@@ -23,7 +23,7 @@ on:
           - demo
 
 env:
-  FLUTTER_VERSION: '3.27.0'
+  FLUTTER_VERSION: '3.35.4'
 
 jobs:
   test-build:
@@ -86,8 +86,13 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: ${{ env.FLUTTER_VERSION }}
+        flutter-version: '3.35.4'
         channel: 'stable'
+
+    - name: Check Dart version
+      run: |
+        dart --version
+        flutter --version
 
     - name: Get dependencies
       run: flutter pub get
