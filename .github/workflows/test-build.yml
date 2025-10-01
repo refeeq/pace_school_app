@@ -58,26 +58,17 @@ jobs:
         echo "${{ secrets.PACE_KEYSTORE_BASE64 }}" | base64 --decode > android/pace_key.jks
         chmod 600 android/pace_key.jks
 
-    - name: Setup Gradle Wrapper
-      run: |
-        cd android
-        chmod +x gradlew
-        ./gradlew --version
-
     - name: Build APK (Debug)
       run: |
-        cd android
-        ./gradlew assemblepaceDebug
+        flutter build apk --debug --flavor pace --target lib/schools/pace/pace_main.dart
 
     - name: Build APK (Release)
       run: |
-        cd android
-        ./gradlew assemblepaceRelease
+        flutter build apk --release --flavor pace --target lib/schools/pace/pace_main.dart
 
     - name: Build AAB (Release)
       run: |
-        cd android
-        ./gradlew bundlepaceRelease
+        flutter build appbundle --release --flavor pace --target lib/schools/pace/pace_main.dart
 
     - name: Upload APK artifacts
       uses: actions/upload-artifact@v4
@@ -92,7 +83,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: pace-aab
-        path: build/app/outputs/bundle/paceRelease/app-pace-release.aab
+        path: build/app/outputs/bundle/release/app-pace-release.aab
         retention-days: 7
 
     - name: Build Summary
