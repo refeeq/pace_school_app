@@ -131,6 +131,12 @@ jobs:
         
         chmod 600 android/${{ matrix.key_file }}
 
+    - name: Setup Gradle Wrapper
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew --version
+
     - name: Build APK
       run: |
         cd android
