@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "248147619082",
+    "project_id": "delhi-private-school-ajman",
+    "storage_bucket": "delhi-private-school-ajman.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:248147619082:android:6bcf06fb7dbe9adc619ef3",
+        "android_client_info": {
+          "package_name": "com.dpsa.schoolapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "248147619082-o5gnoj0mqvdtkqh392psdce2112egkl6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC7jg3aqTAgdNJrBWyG8mrOfOB1iaUMfd4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "248147619082-o5gnoj0mqvdtkqh392psdce2112egkl6.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "248147619082-tv3jnfrh47elhkps89n5nfkpva2qvdc7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dpsa.schoolapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

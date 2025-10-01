@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "435225058588",
+    "project_id": "school-app-ee10d",
+    "storage_bucket": "school-app-ee10d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:435225058588:android:04799f03f40d01bb2f6ed9",
+        "android_client_info": {
+          "package_name": "com.gaes.schoolapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "435225058588-fid42jojmuhadpv041b1f7tf9alrjuvg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCN5e2O6RViz1nLAUfNk96l2qrdccB4Qvs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "435225058588-fid42jojmuhadpv041b1f7tf9alrjuvg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "369491460962",
+    "project_id": "pace-intl-803a9",
+    "storage_bucket": "pace-intl-803a9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:369491460962:android:156b4dd7d6431ba5cf623b",
+        "android_client_info": {
+          "package_name": "com.pacesharjah.schoolapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "369491460962-n4d5ihfbkgrc8u70djqeut0fh30dp88i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMxgfCaRAIxvq794LtZqQWX2v_TYNku94"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "369491460962-n4d5ihfbkgrc8u70djqeut0fh30dp88i.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "369491460962-37s95im331p2bgbu24jqjl13tgg13sqa.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pacesharjah.schoolapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

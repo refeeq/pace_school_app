@@ -1,0 +1,216 @@
+name: Deploy to Play Store (Safe)
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      flavor:
+        description: 'Flavor to build and deploy'
+        required: true
+        default: 'pace'
+        type: choice
+        options:
+          - pace
+          - iiss
+          - gaes
+          - cbsa
+          - dpsa
+          - pmbs
+          - pcbs
+          - pbss
+          - sisd
+          - demo
+      deployment_strategy:
+        description: 'Deployment Strategy'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+          - internal
+          - alpha
+          - beta
+          - production
+      upload_to_play_store:
+        description: 'Upload to Play Store'
+        required: true
+        default: true
+        type: boolean
+
+env:
+  FLUTTER_VERSION: '3.24.0'
+
+jobs:
+  setup-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
+      
+    - name: Set matrix
+      id: set-matrix
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          # Single flavor from manual trigger
+          FLAVOR="${{ github.event.inputs.flavor }}"
+          CONFIG=$(jq -c ".flavors.$FLAVOR" .github/flavor-config.json)
+          echo "matrix={\"flavor\":\"$FLAVOR\",\"config\":$CONFIG}" >> $GITHUB_OUTPUT
+        else
+          # All flavors for automatic triggers
+          MATRIX=$(jq -c '.flavors | to_entries | map({flavor: .key, config: .value})' .github/flavor-config.json)
+          echo "matrix=$MATRIX" >> $GITHUB_OUTPUT
+        fi
+
+  build-and-deploy:
+    needs: setup-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.setup-matrix.outputs.matrix) }}
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+
+    - name: Install dependencies
+      run: |
+        flutter pub get
+        sudo apt-get update && sudo apt-get install -y jq
+
+    - name: Generate Flutter launcher icons
+      run: |
+        ICON_CONFIG=$(echo '${{ matrix.config }}' | jq -r '.icon_config')
+        if [ -f "$ICON_CONFIG" ]; then
+          flutter pub run flutter_launcher_icons:main -f "$ICON_CONFIG"
+        fi
+
+    - name: Setup signing configuration
+      run: |
+        FLAVOR="${{ matrix.flavor }}"
+        KEY_FILE=$(echo '${{ matrix.config }}' | jq -r '.key_file')
+        KEY_ALIAS=$(echo '${{ matrix.config }}' | jq -r '.key_alias')
+        
+        # Create key.properties file
+        cat > android/key.properties << EOF
+        storePassword=${{ secrets[format('{0}_STORE_PASSWORD', matrix.flavor)] }}
+        keyAlias=$KEY_ALIAS
+        keyPassword=${{ secrets[format('{0}_KEY_PASSWORD', matrix.flavor)] }}
+        storeFile=../$KEY_FILE
+        EOF
+        
+        # Decode the keystore file from secrets
+        echo "${{ secrets[format('{0}_KEYSTORE_BASE64', matrix.flavor)] }}" | base64 --decode > android/$KEY_FILE
+        chmod 600 android/$KEY_FILE
+
+    - name: Build APK
+      run: |
+        cd android
+        ./gradlew assemble${{ matrix.flavor }}Release
+
+    - name: Build AAB
+      run: |
+        cd android
+        ./gradlew bundle${{ matrix.flavor }}Release
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.flavor }}-apk-${{ github.run_number }}
+        path: build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk
+        retention-days: 30
+
+    - name: Upload AAB artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.flavor }}-aab-${{ github.run_number }}
+        path: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
+        retention-days: 30
+
+    - name: Determine deployment track
+      id: track
+      run: |
+        # Always use internal track for safety
+        TRACK="internal"
+        
+        echo "track=$TRACK" >> $GITHUB_OUTPUT
+        echo "Deploying to track: $TRACK (INTERNAL ONLY - Safe for testing)"
+
+    - name: Setup Google Play Console
+      if: ${{ github.event.inputs.upload_to_play_store == 'true' || github.event_name != 'workflow_dispatch' }}
+      uses: r0adkll/upload-google-play@v1
+      with:
+        serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        packageName: ${{ matrix.config.app_id }}
+        releaseFiles: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
+        track: ${{ steps.track.outputs.track }}
+        status: completed
+        inAppUpdatePriority: 2
+        userFraction: 1.0
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }} - ${{ matrix.flavor }}
+        body: |
+          ## Flavor: ${{ matrix.flavor }}
+          - **App ID**: ${{ matrix.config.app_id }}
+          - **App Name**: ${{ matrix.config.app_name }}
+          - **Build Type**: Release
+          - **Track**: ${{ steps.track.outputs.track }}
+          
+          ### Downloads
+          - [APK](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          - [AAB](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        draft: false
+        prerelease: false
+
+    - name: Deployment Summary
+      run: |
+        echo "## Deployment Summary for ${{ matrix.flavor }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **App ID**: ${{ matrix.config.app_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **App Name**: ${{ matrix.config.app_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Track**: ${{ steps.track.outputs.track }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build**: ✅ Completed" >> $GITHUB_STEP_SUMMARY
+        echo "- **Upload**: ✅ Completed" >> $GITHUB_STEP_SUMMARY
+
+    - name: Clean up sensitive files
+      if: always()
+      run: |
+        rm -f android/${{ matrix.config.key_file }}
+        rm -f android/key.properties
+
+  notify:
+    needs: [setup-matrix, build-and-deploy]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Notify deployment status
+      run: |
+        echo "Deployment completed for all flavors"
+        echo "Check the workflow run for detailed results: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1010788280854",
+    "project_id": "springfield-international",
+    "storage_bucket": "springfield-international.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1010788280854:android:913bc6fdc5226276c32337",
+        "android_client_info": {
+          "package_name": "com.sisd.schoolapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAbAhp1_ilh73Fh2kr_0E7GR2eQj-ZSI8M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

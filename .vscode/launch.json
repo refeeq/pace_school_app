@@ -1,0 +1,145 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "school_app (default)",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "PACE INTL",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/schools/pace/pace_main.dart",
+            "args": [
+                "--flavor",
+                "pace",
+                "--target",
+                "lib/schools/pace/pace_main.dart"
+            ]
+        },
+        {
+            "name": "PACE IISS",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/schools/iiss/iiss_main.dart",
+            "args": [
+                "--flavor",
+                "iiss",
+                "--target",
+                "lib/schools/iiss/iiss_main.dart"
+            ]
+        },
+        {
+            "name": "PACE GAES",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/schools/gaes/gaes_main.dart",
+            "args": [
+                "--flavor",
+                "gaes",
+                "--target",
+                "lib/schools/gaes/gaes_main.dart"
+            ]
+        },
+        {
+            "name": "CBS Abudhabi",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/schools/cbsa/cbsa_main.dart",
+            "args": [
+                "--flavor",
+                "cbsa",
+                "--target",
+                "lib/schools/cbsa/cbsa_main.dart"
+            ]
+        },
+        {
+            "name": "DPS Ajman",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/schools/dpsa/dpsa_main.dart",
+            "args": [
+                "--flavor",
+                "dpsa",
+                "--target",
+                "lib/schools/dpsa/dpsa_main.dart"
+            ]
+        },
+        {
+            "name": "PACE PMBS",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/schools/pmbs/pmbs_main.dart",
+            "args": [
+                "--flavor",
+                "pmbs",
+                "--target",
+                "lib/schools/pmbs/pmbs_main.dart"
+            ]
+        },
+        {
+            "name": "PACE PCBS",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/schools/pcbs/pcbs_main.dart",
+            "args": [
+                "--flavor",
+                "pcbs",
+                "--target",
+                "lib/schools/pcbs/pcbs_main.dart"
+            ]
+        },
+        {
+            "name": "PACE PBSS",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/schools/pbss/pbss_main.dart",
+            "args": [
+                "--flavor",
+                "pbss",
+                "--target",
+                "lib/schools/pbss/pbss_main.dart"
+            ]
+        },
+        {
+            "name": "Springfield",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/schools/sisd/sisd_main.dart",
+            "args": [
+                "--flavor",
+                "sisd",
+                "--target",
+                "lib/schools/sisd/sisd_main.dart"
+            ]
+        },
+        {
+            "name": "DEMO",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/schools/demo/demo_main.dart",
+            "args": [
+                "--flavor",
+                "demo",
+                "--target",
+                "lib/schools/demo/demo_main.dart"
+            ]
+        },
+        {
+            "name": "school_app (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "school_app (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}

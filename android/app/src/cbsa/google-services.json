@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "738700515636",
+    "project_id": "cbsa-a78fb",
+    "storage_bucket": "cbsa-a78fb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:738700515636:android:704ce17b0bf6719986ad61",
+        "android_client_info": {
+          "package_name": "com.cbsa.schoolapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "738700515636-9mh57sk2ucu30fp23gqo2n8anr363nge.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNkx2a9fZSq70ek0DpFkW8yV3jXjN0ZbI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "738700515636-9mh57sk2ucu30fp23gqo2n8anr363nge.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "738700515636-srglvimqo70hm8n2bgaukv0otadvgb03.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.cbsa.schoolapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

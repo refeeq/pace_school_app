@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "668684287266",
+    "project_id": "pmbs-cfb9b",
+    "storage_bucket": "pmbs-cfb9b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:668684287266:android:a142f3af1711823199b97b",
+        "android_client_info": {
+          "package_name": "com.pmbs.schoolapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "668684287266-5tg9n5gu1b1c6c8jusjffun5dh1iile0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAnIkfO1xVrai90AUM-4_-Vz1ilMzgUsBw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "668684287266-5tg9n5gu1b1c6c8jusjffun5dh1iile0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "668684287266-7nlv3tso1net6899f116rlv85n36ci0c.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pmbs.schoolapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

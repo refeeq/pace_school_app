@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "2332574769",
+    "project_id": "pace-british-school-sharjah",
+    "storage_bucket": "pace-british-school-sharjah.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:2332574769:android:31314ff7428bc4959a8110",
+        "android_client_info": {
+          "package_name": "com.pbss.schoolapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "2332574769-7gm8hc0reiu0360fl3fto1cttcp01nrj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCGQDmtTXb_JVqij4YLNCxFrKiIzT5HBpw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "2332574769-7gm8hc0reiu0360fl3fto1cttcp01nrj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "2332574769-d4l3qar21cos3pruq1u8bdmoteav2cpt.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pbss.schoolapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

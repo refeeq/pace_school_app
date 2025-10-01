@@ -1,0 +1,114 @@
+name: Test Build
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      flavor:
+        description: 'Flavor to build'
+        required: true
+        default: 'pace'
+        type: choice
+        options:
+          - pace
+          - iiss
+          - gaes
+          - cbsa
+          - dpsa
+          - pmbs
+          - pcbs
+          - pbss
+          - sisd
+          - demo
+
+env:
+  FLUTTER_VERSION: '3.24.0'
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        include:
+          - flavor: pace
+            app_id: com.pacesharjah.schoolapp
+          - flavor: iiss
+            app_id: com.iiss.schoolapp
+          - flavor: gaes
+            app_id: com.gaes.schoolapp
+          - flavor: cbsa
+            app_id: com.cbsa.schoolapp
+          - flavor: dpsa
+            app_id: com.dpsa.schoolapp
+          - flavor: pmbs
+            app_id: com.pmbs.schoolapp
+          - flavor: pcbs
+            app_id: com.pcbs.schoolapp
+          - flavor: pbss
+            app_id: com.pbss.schoolapp
+          - flavor: sisd
+            app_id: com.sisd.schoolapp
+          - flavor: demo
+            app_id: com.demo.schoolapp
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+        channel: 'stable'
+
+    - name: Get Flutter dependencies
+      run: flutter pub get
+
+    - name: Generate Flutter launcher icons
+      run: |
+        if [ -f "flutter_launcher_icons-${{ matrix.flavor }}.yaml" ]; then
+          flutter pub run flutter_launcher_icons:main -f flutter_launcher_icons-${{ matrix.flavor }}.yaml
+        fi
+
+    - name: Analyze code
+      run: flutter analyze
+
+    - name: Run tests
+      run: flutter test
+
+    - name: Build APK (Debug)
+      run: |
+        cd android
+        ./gradlew assemble${{ matrix.flavor }}Debug
+
+    - name: Build APK (Release) - No signing
+      run: |
+        cd android
+        ./gradlew assemble${{ matrix.flavor }}Release
+
+    - name: Upload APK artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.flavor }}-test-apk
+        path: |
+          build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-debug.apk
+          build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk
+        retention-days: 7
+
+    - name: Build summary
+      run: |
+        echo "## Build Summary for ${{ matrix.flavor }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **App ID**: ${{ matrix.app_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Debug APK**: ✅ Built successfully" >> $GITHUB_STEP_SUMMARY
+        echo "- **Release APK**: ✅ Built successfully" >> $GITHUB_STEP_SUMMARY
+        echo "- **Code Analysis**: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+        echo "- **Tests**: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+

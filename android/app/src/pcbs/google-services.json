@@ -1,0 +1,47 @@
+
+{
+  "project_info": {
+    "project_number": "724372178164",
+    "project_id": "pace-creative-british-school",
+    "storage_bucket": "pace-creative-british-school.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:724372178164:android:77c9d1e6343dbf9f5bcaa1",
+        "android_client_info": {
+          "package_name": "com.pcbs.schoolapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "724372178164-16s8fo9nf786ol98d8fqq9ae6hp3l2ru.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHSbl_bo_clxbrgTSNGuWbhL8zXU8pgUk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "724372178164-16s8fo9nf786ol98d8fqq9ae6hp3l2ru.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "724372178164-lrdlqv4h9ol47f6v4n6l9m2nbvd72of2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pcbs.schoolapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

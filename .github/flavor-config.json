@@ -1,0 +1,85 @@
+{
+  "flavors": {
+    "pace": {
+      "app_id": "com.pacesharjah.schoolapp",
+      "app_name": "PACE INTL",
+      "key_file": "pace_key.jks",
+      "key_alias": "pace",
+      "track": "internal",
+      "icon_config": "flutter_launcher_icons-pace.yaml"
+    },
+    "iiss": {
+      "app_id": "com.iiss.schoolapp",
+      "app_name": "PACE IISS",
+      "key_file": "pace_key.jks",
+      "key_alias": "pace",
+      "track": "internal",
+      "icon_config": "flutter_launcher_icons-iiss.yaml"
+    },
+    "gaes": {
+      "app_id": "com.gaes.schoolapp",
+      "app_name": "PACE GAES",
+      "key_file": "gaes.key",
+      "key_alias": "key0",
+      "track": "internal",
+      "icon_config": "flutter_launcher_icons-gaes.yaml"
+    },
+    "cbsa": {
+      "app_id": "com.cbsa.schoolapp",
+      "app_name": "CBS Abudhabi",
+      "key_file": "pace_key.jks",
+      "key_alias": "pace",
+      "track": "internal",
+      "icon_config": "flutter_launcher_icons-cbsa.yaml"
+    },
+    "dpsa": {
+      "app_id": "com.dpsa.schoolapp",
+      "app_name": "DPS Ajman",
+      "key_file": "pace_key.jks",
+      "key_alias": "pace",
+      "track": "internal",
+      "icon_config": "flutter_launcher_icons-dpsa.yaml"
+    },
+    "pmbs": {
+      "app_id": "com.pmbs.schoolapp",
+      "app_name": "PACE PMBS",
+      "key_file": "pace_key.jks",
+      "key_alias": "pace",
+      "track": "internal",
+      "icon_config": "flutter_launcher_icons-pmbs.yaml"
+    },
+    "pcbs": {
+      "app_id": "com.pcbs.schoolapp",
+      "app_name": "PACE PCBS",
+      "key_file": "pace_key.jks",
+      "key_alias": "pace",
+      "track": "internal",
+      "icon_config": "flutter_launcher_icons-pcbs.yaml"
+    },
+    "pbss": {
+      "app_id": "com.pbss.schoolapp",
+      "app_name": "PACE PBSS",
+      "key_file": "pace_key.jks",
+      "key_alias": "pace",
+      "track": "internal",
+      "icon_config": "flutter_launcher_icons-pbss.yaml"
+    },
+    "sisd": {
+      "app_id": "com.sisd.schoolapp",
+      "app_name": "Springfield",
+      "key_file": "pace_key.jks",
+      "key_alias": "pace",
+      "track": "internal",
+      "icon_config": "flutter_launcher_icons-sisd.yaml"
+    },
+    "demo": {
+      "app_id": "com.demo.schoolapp",
+      "app_name": "DEMO",
+      "key_file": "pace_key.jks",
+      "key_alias": "pace",
+      "track": "internal",
+      "icon_config": "flutter_launcher_icons-demo.yaml"
+    }
+  }
+}
+

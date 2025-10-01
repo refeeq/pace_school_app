@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>2332574769-d4l3qar21cos3pruq1u8bdmoteav2cpt.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.2332574769-d4l3qar21cos3pruq1u8bdmoteav2cpt</string>
+	<key>API_KEY</key>
+	<string>AIzaSyBw6nwUV9OQf8qL9pxBEAKUuYHvkz055Rc</string>
+	<key>GCM_SENDER_ID</key>
+	<string>2332574769</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.pbss.schoolapp</string>
+	<key>PROJECT_ID</key>
+	<string>pace-british-school-sharjah</string>
+	<key>STORAGE_BUCKET</key>
+	<string>pace-british-school-sharjah.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:2332574769:ios:08904dce2f0476819a8110</string>
+</dict>
+</plist>

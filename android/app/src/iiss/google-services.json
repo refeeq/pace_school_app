@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "103086477297",
+    "project_id": "india-international-school",
+    "storage_bucket": "india-international-school.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:103086477297:android:471ddaf056e6de02957e50",
+        "android_client_info": {
+          "package_name": "com.iiss.schoolapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "103086477297-igulcj90qbj4gg16ug99ua0e32nqosq9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBaww4O573tjDG50_vD3_r0JFdJTxoBIAQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "103086477297-igulcj90qbj4gg16ug99ua0e32nqosq9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "103086477297-ktfs6nhtksrm2fja1bhf3j6t744jmp2g.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.iiss.schoolapp"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
