@@ -114,7 +114,7 @@ class _HomeViewState extends State<HomeView> {
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Image.asset(
-                        "assets/icons/menus.png",
+                        "assets/Icons/menus.png",
                         height: 25,
                         width: 25,
                         color: const Color.fromARGB(255, 255, 255, 255),

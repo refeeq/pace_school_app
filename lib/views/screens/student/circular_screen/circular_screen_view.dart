@@ -136,7 +136,7 @@ class CircularTile extends StatelessWidget {
                                 ),
                                 const SizedBox(width: 5),
                                 Image.asset(
-                                  'assets/icons/ic_right.png',
+                                  'assets/Icons/ic_right.png',
                                   height: 10,
                                 ),
                               ],

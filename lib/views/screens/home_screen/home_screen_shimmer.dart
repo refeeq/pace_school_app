@@ -44,7 +44,7 @@ class HomeShimmerView extends StatelessWidget {
                     radius: 28,
                     child: CircleAvatar(
                       radius: 25,
-                      backgroundImage: AssetImage('assets/icons/mother.png'),
+                      backgroundImage: AssetImage('assets/Icons/mother.png'),
                     ),
                   ),
                 ),

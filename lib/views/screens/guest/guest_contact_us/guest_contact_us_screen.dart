@@ -109,7 +109,7 @@ class _GuestContactUsScreenState extends State<GuestContactUsScreen> {
                                   children: [
                                     value.schoolInfoModel!.whatsapp != null
                                         ? Informationtile(
-                                            image: 'assets/icons/whatsapp.png',
+                                            image: 'assets/Icons/whatsapp.png',
                                             title:
                                                 "https://api.whatsapp.com/send?phone=${value.schoolInfoModel!.whatsapp}",
                                             show: true,
@@ -118,7 +118,7 @@ class _GuestContactUsScreenState extends State<GuestContactUsScreen> {
                                         : const SizedBox(),
                                     value.schoolInfoModel!.facebook != null
                                         ? Informationtile(
-                                            image: 'assets/icons/facebook.png',
+                                            image: 'assets/Icons/facebook.png',
                                             title: value
                                                 .schoolInfoModel!
                                                 .facebook!,
@@ -128,7 +128,7 @@ class _GuestContactUsScreenState extends State<GuestContactUsScreen> {
                                         : const SizedBox(),
                                     value.schoolInfoModel!.instagram != null
                                         ? Informationtile(
-                                            image: 'assets/icons/instagram.png',
+                                            image: 'assets/Icons/instagram.png',
                                             title: value
                                                 .schoolInfoModel!
                                                 .instagram!,
@@ -138,7 +138,7 @@ class _GuestContactUsScreenState extends State<GuestContactUsScreen> {
                                         : const SizedBox(),
                                     value.schoolInfoModel!.youtube != null
                                         ? Informationtile(
-                                            image: 'assets/icons/youtube.png',
+                                            image: 'assets/Icons/youtube.png',
                                             title:
                                                 value.schoolInfoModel!.youtube!,
                                             show: true,
@@ -148,7 +148,7 @@ class _GuestContactUsScreenState extends State<GuestContactUsScreen> {
                                     value.schoolInfoModel!.contact != null
                                         ? Informationtile(
                                             image:
-                                                'assets/icons/phone-call.png',
+                                                'assets/Icons/phone-call.png',
                                             title:
                                                 value.schoolInfoModel!.contact!,
                                           )
@@ -156,7 +156,7 @@ class _GuestContactUsScreenState extends State<GuestContactUsScreen> {
                                     value.schoolInfoModel!.website != null
                                         ? Informationtile(
                                             image:
-                                                'assets/icons/world-wide-web.png',
+                                                'assets/Icons/world-wide-web.png',
                                             title:
                                                 value.schoolInfoModel!.website!,
                                           )

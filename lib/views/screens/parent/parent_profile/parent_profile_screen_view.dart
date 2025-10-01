@@ -96,14 +96,14 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                                                   .data[index]
                                                                   .relation ==
                                                               "Mother"
-                                                          ? 'assets/icons/mother.png'
+                                                          ? 'assets/Icons/mother.png'
                                                           : value
                                                                     .parentProfileListModel!
                                                                     .data[index]
                                                                     .relation ==
                                                                 "Father"
-                                                          ? 'assets/icons/dad.png'
-                                                          : 'assets/icons/user.png',
+                                                          ? 'assets/Icons/dad.png'
+                                                          : 'assets/Icons/user.png',
                                                     ),
                                                   )
                                                 : CircleAvatar(

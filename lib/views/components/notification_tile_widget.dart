@@ -374,7 +374,7 @@ class _NotificationTileWidgetState extends State<NotificationTileWidget> {
                                 1,
                               ),
                               child: Image.asset(
-                                'assets/icons/i.png',
+                                'assets/Icons/i.png',
                                 color: Colors.white,
                               ),
                             )

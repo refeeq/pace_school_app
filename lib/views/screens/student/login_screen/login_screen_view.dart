@@ -137,7 +137,7 @@
 //                                         width: 30,
 //                                       ),
 //                                       SvgPicture.asset(
-//                                         'assets/icons/right.svg',
+//                                         'assets/Icons/right.svg',
 //                                         height: 15,
 //                                         width: 15,
 //                                       ),
@@ -184,7 +184,7 @@
 //                                         width: 30,
 //                                       ),
 //                                       SvgPicture.asset(
-//                                         'assets/icons/right.svg',
+//                                         'assets/Icons/right.svg',
 //                                         height: 15,
 //                                         width: 15,
 //                                       ),
@@ -374,7 +374,7 @@ class LoginScreen extends StatelessWidget {
                                           ),
                                           const SizedBox(width: 30),
                                           SvgPicture.asset(
-                                            'assets/icons/right.svg',
+                                            'assets/Icons/right.svg',
                                             height: 15,
                                             width: 15,
                                           ),
@@ -429,7 +429,7 @@ class LoginScreen extends StatelessWidget {
                                       ),
                                       const SizedBox(width: 30),
                                       SvgPicture.asset(
-                                        'assets/icons/right.svg',
+                                        'assets/Icons/right.svg',
                                         height: 15,
                                         width: 15,
                                       ),
