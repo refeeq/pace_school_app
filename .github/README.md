@@ -1,13 +1,13 @@
-# Play Store Deployment
+# Test Build Workflow
 
-Simple GitHub Actions workflow for deploying your Flutter app to Google Play Store.
+Simple GitHub Actions workflow for testing your Flutter app builds.
 
-## 🚀 **One Workflow - Everything You Need**
+## 🚀 **Test Build Workflow**
 
-- ✅ **All 10 flavors** supported
-- ✅ **Different signing keys** handled automatically  
-- ✅ **Internal track only** (safe testing)
-- ✅ **Manual or automatic** deployment
+- ✅ **Pace flavor only** - fast and focused testing
+- ✅ **Debug and Release builds** - APK + AAB
+- ✅ **Code analysis and tests** - quality checks
+- ✅ **Pull request validation** - automatic testing
 - ✅ **Clean and simple**
 
 ## 🔧 **Setup**
@@ -16,70 +16,58 @@ Simple GitHub Actions workflow for deploying your Flutter app to Google Play Sto
 
 Add these secrets in GitHub → Settings → Secrets:
 
-#### For PACE flavors (pace, iiss, cbsa, dpsa, pmbs, pcbs, pbss, sisd, demo):
+#### For PACE flavor testing:
 ```
 PACE_STORE_PASSWORD=pace1234
 PACE_KEY_PASSWORD=pace1234
 PACE_KEYSTORE_BASE64=base64_encoded_pace_key.jks
 ```
 
-#### For GAES flavor:
-```
-GAES_STORE_PASSWORD=123456
-GAES_KEY_PASSWORD=123456
-GAES_KEYSTORE_BASE64=base64_encoded_gaes.key
-```
-
-#### Global:
-```
-GOOGLE_PLAY_SERVICE_ACCOUNT_JSON=your_service_account_json
-```
-
 ### 2. Convert Keystore to Base64
 
 ```bash
-# For pace_key.jks (used by most flavors)
+# For pace_key.jks (used for testing)
 base64 -i android/pace_key.jks | pbcopy
-
-# For gaes.key (used by GAES flavor only)
-base64 -i path/to/gaes.key | pbcopy
 ```
 
 ## 🎯 **Usage**
 
-### Automatic Deployment
-- **Push to main** → Deploys all flavors to internal track
-- **Create tag** (v1.0.0) → Deploys all flavors to internal track
+### Automatic Testing
+- **Pull Requests** → Automatically tests pace flavor build
+- **Push to main/develop** → No automatic testing (only on PRs)
 
-### Manual Deployment
-1. Go to Actions → "Deploy to Play Store"
-2. Click "Run workflow"
-3. Choose flavor to deploy
-4. Click "Run workflow"
+### Manual Testing
 
-## 📱 **Supported Flavors**
+1. Go to Actions tab in your GitHub repository
+2. Select "Test Build"
+3. Click "Run workflow"
+4. **Note**: Only builds pace flavor for testing
 
-| Flavor | App ID | Key File |
-|--------|--------|----------|
-| pace | com.pacesharjah.schoolapp | pace_key.jks |
-| iiss | com.iiss.schoolapp | pace_key.jks |
-| gaes | com.gaes.schoolapp | gaes.key |
-| cbsa | com.cbsa.schoolapp | pace_key.jks |
-| dpsa | com.dpsa.schoolapp | pace_key.jks |
-| pmbs | com.pmbs.schoolapp | pace_key.jks |
-| pcbs | com.pcbs.schoolapp | pace_key.jks |
-| pbss | com.pbss.schoolapp | pace_key.jks |
-| sisd | com.sisd.schoolapp | pace_key.jks |
-| demo | com.demo.schoolapp | pace_key.jks |
+### Testing Process
+
+1. **Create PR** → Automatic build testing
+2. **Review build** → Check APK/AAB artifacts
+3. **Merge PR** → When build is successful
+4. **Manual deployment** → Deploy when ready
+
+## 📱 **What Gets Built**
+
+| Build Type | File | Purpose |
+|------------|------|---------|
+| **Debug APK** | `app-pace-debug.apk` | Development testing |
+| **Release APK** | `app-pace-release.apk` | Release testing |
+| **Release AAB** | `app-pace-release.aab` | Play Store testing |
 
 ## 🔒 **Safety**
 
-- All deployments go to **INTERNAL track only**
-- No accidental production releases
-- Test safely before manual promotion to production
+- **Test builds only** - no automatic deployment
+- **Pace flavor only** - focused testing
+- **Artifact retention** - 7 days for download
+- **Manual deployment** - when you're ready
 
 ## 🛠️ **Troubleshooting**
 
 - Check workflow logs for detailed error messages
 - Verify all secrets are set correctly
 - Test build locally first: `flutter build apk --flavor pace`
+- Check artifacts in GitHub Actions for download links

@@ -4,23 +4,7 @@ on:
   pull_request:
     branches: [ main, develop ]
   workflow_dispatch:
-    inputs:
-      flavor:
-        description: 'Flavor to test build'
-        required: true
-        default: 'pace'
-        type: choice
-        options:
-          - pace
-          - iiss
-          - gaes
-          - cbsa
-          - dpsa
-          - pmbs
-          - pcbs
-          - pbss
-          - sisd
-          - demo
+    # Only builds pace flavor for testing
 
 env:
   FLUTTER_VERSION: '3.35.4'
@@ -29,50 +13,7 @@ jobs:
   test-build:
     runs-on: ubuntu-latest
     
-    strategy:
-      matrix:
-        include:
-          - flavor: pace
-            app_id: com.pacesharjah.schoolapp
-            key_file: pace_key.jks
-            key_alias: pace
-          - flavor: iiss
-            app_id: com.iiss.schoolapp
-            key_file: pace_key.jks
-            key_alias: pace
-          - flavor: gaes
-            app_id: com.gaes.schoolapp
-            key_file: gaes.key
-            key_alias: key0
-          - flavor: cbsa
-            app_id: com.cbsa.schoolapp
-            key_file: pace_key.jks
-            key_alias: pace
-          - flavor: dpsa
-            app_id: com.dpsa.schoolapp
-            key_file: pace_key.jks
-            key_alias: pace
-          - flavor: pmbs
-            app_id: com.pmbs.schoolapp
-            key_file: pace_key.jks
-            key_alias: pace
-          - flavor: pcbs
-            app_id: com.pcbs.schoolapp
-            key_file: pace_key.jks
-            key_alias: pace
-          - flavor: pbss
-            app_id: com.pbss.schoolapp
-            key_file: pace_key.jks
-            key_alias: pace
-          - flavor: sisd
-            app_id: com.sisd.schoolapp
-            key_file: pace_key.jks
-            key_alias: pace
-          - flavor: demo
-            app_id: com.demo.schoolapp
-            key_file: pace_key.jks
-            key_alias: pace
-
+    # Only build pace flavor for testing
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -100,36 +41,22 @@ jobs:
 
     - name: Generate icons
       run: |
-        if [ -f "flutter_launcher_icons-${{ matrix.flavor }}.yaml" ]; then
-          flutter pub run flutter_launcher_icons:main -f flutter_launcher_icons-${{ matrix.flavor }}.yaml
+        if [ -f "flutter_launcher_icons-pace.yaml" ]; then
+          flutter pub run flutter_launcher_icons:main -f flutter_launcher_icons-pace.yaml
         fi
 
     - name: Setup signing
       run: |
-        # Create key.properties based on flavor
-        if [ "${{ matrix.flavor }}" = "gaes" ]; then
-          # GAES uses different credentials
-          cat > android/key.properties << 'EOF'
-        storePassword=${{ secrets.GAES_STORE_PASSWORD }}
-        keyAlias=${{ matrix.key_alias }}
-        keyPassword=${{ secrets.GAES_KEY_PASSWORD }}
-        storeFile=../${{ matrix.key_file }}
-        EOF
-          
-          echo "${{ secrets.GAES_KEYSTORE_BASE64 }}" | base64 --decode > android/${{ matrix.key_file }}
-        else
-          # All other flavors use PACE credentials
-          cat > android/key.properties << 'EOF'
+        # Setup signing for pace flavor
+        cat > android/key.properties << 'EOF'
         storePassword=${{ secrets.PACE_STORE_PASSWORD }}
-        keyAlias=${{ matrix.key_alias }}
+        keyAlias=pace
         keyPassword=${{ secrets.PACE_KEY_PASSWORD }}
-        storeFile=../${{ matrix.key_file }}
+        storeFile=../pace_key.jks
         EOF
-          
-          echo "${{ secrets.PACE_KEYSTORE_BASE64 }}" | base64 --decode > android/${{ matrix.key_file }}
-        fi
         
-        chmod 600 android/${{ matrix.key_file }}
+        echo "${{ secrets.PACE_KEYSTORE_BASE64 }}" | base64 --decode > android/pace_key.jks
+        chmod 600 android/pace_key.jks
 
     - name: Setup Gradle Wrapper
       run: |
@@ -140,38 +67,38 @@ jobs:
     - name: Build APK (Debug)
       run: |
         cd android
-        ./gradlew assemble${{ matrix.flavor }}Debug
+        ./gradlew assemblepaceDebug
 
     - name: Build APK (Release)
       run: |
         cd android
-        ./gradlew assemble${{ matrix.flavor }}Release
+        ./gradlew assemblepaceRelease
 
     - name: Build AAB (Release)
       run: |
         cd android
-        ./gradlew bundle${{ matrix.flavor }}Release
+        ./gradlew bundlepaceRelease
 
     - name: Upload APK artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.flavor }}-apk
+        name: pace-apk
         path: |
-          build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-debug.apk
-          build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk
+          build/app/outputs/flutter-apk/app-pace-debug.apk
+          build/app/outputs/flutter-apk/app-pace-release.apk
         retention-days: 7
 
     - name: Upload AAB artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.flavor }}-aab
-        path: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
+        name: pace-aab
+        path: build/app/outputs/bundle/paceRelease/app-pace-release.aab
         retention-days: 7
 
     - name: Build Summary
       run: |
-        echo "## ✅ Build Successful for ${{ matrix.flavor }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **App ID**: ${{ matrix.app_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "## ✅ Build Successful for pace" >> $GITHUB_STEP_SUMMARY
+        echo "- **App ID**: com.pacesharjah.schoolapp" >> $GITHUB_STEP_SUMMARY
         echo "- **Debug APK**: ✅ Built" >> $GITHUB_STEP_SUMMARY
         echo "- **Release APK**: ✅ Built" >> $GITHUB_STEP_SUMMARY
         echo "- **Release AAB**: ✅ Built" >> $GITHUB_STEP_SUMMARY
@@ -181,5 +108,5 @@ jobs:
     - name: Cleanup
       if: always()
       run: |
-        rm -f android/${{ matrix.key_file }}
+        rm -f android/pace_key.jks
         rm -f android/key.properties
