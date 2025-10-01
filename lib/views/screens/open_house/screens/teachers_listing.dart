@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/views/components/common_app_bar.dart';
 import 'package:school_app/views/screens/open_house/components/booking_page.dart';
-import 'package:school_app/views/screens/open_house/components/slot_details_card.dart';
 import 'package:school_app/views/screens/open_house/components/teacher_card.dart';
 import 'package:school_app/views/screens/open_house/cubit/open_house_cubit.dart';
 import 'package:school_app/views/screens/open_house/model/add_open_house_model.dart';
@@ -54,13 +52,12 @@ class TeachersListing extends StatelessWidget {
                         openHouseModel: open_house_model,
                         teacherModel: open_house_model.trSlotDetails[index],
                       );
-                       },
+                    },
                   );
                 },
               ),
             ),
-
-         ],
+          ],
         ),
       ),
     );
