@@ -1,0 +1,132 @@
+name: Deploy to Play Store
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      flavor:
+        description: 'Flavor to deploy'
+        required: true
+        default: 'pace'
+        type: choice
+        options:
+          - pace
+
+env:
+  FLUTTER_VERSION: '3.35.4'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    # Start with pace flavor only
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.35.4'
+        channel: 'stable'
+
+    - name: Check Dart version
+      run: |
+        dart --version
+        flutter --version
+
+    - name: Get dependencies
+      run: flutter pub get
+
+    - name: Generate icons
+      run: |
+        if [ -f "flutter_launcher_icons-pace.yaml" ]; then
+          flutter pub run flutter_launcher_icons:main -f flutter_launcher_icons-pace.yaml
+        fi
+
+    - name: Setup signing
+      run: |
+        # Setup signing for pace flavor
+        cat > android/key.properties << 'EOF'
+        storePassword=${{ secrets.PACE_STORE_PASSWORD }}
+        keyAlias=pace
+        keyPassword=${{ secrets.PACE_KEY_PASSWORD }}
+        storeFile=../pace_key.jks
+        EOF
+        
+        echo "${{ secrets.PACE_KEYSTORE_BASE64 }}" | base64 --decode > android/pace_key.jks
+        chmod 600 android/pace_key.jks
+
+    - name: Build AAB
+      run: |
+        flutter build appbundle --release --flavor pace --target lib/schools/pace/pace_main.dart
+
+    - name: Upload AAB artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: pace-aab
+        path: build/app/outputs/bundle/release/app-pace-release.aab
+        retention-days: 30
+
+    - name: Determine deployment track
+      id: track
+      run: |
+        # Always deploy to internal track for safety
+        TRACK="internal"
+        
+        echo "track=$TRACK" >> $GITHUB_OUTPUT
+        echo "Deploying to track: $TRACK"
+
+    - name: Upload to Play Store
+      uses: r0adkll/upload-google-play@v1
+      with:
+        serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        packageName: com.pacesharjah.schoolapp
+        releaseFiles: build/app/outputs/bundle/release/app-pace-release.aab
+        track: ${{ steps.track.outputs.track }}
+        status: completed
+        inAppUpdatePriority: 2
+        userFraction: 1.0
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }} - PACE
+        body: |
+          ## Flavor: PACE
+          - **App ID**: com.pacesharjah.schoolapp
+          - **App Name**: PACE INTL
+          - **Build Type**: Release
+          - **Track**: internal
+          
+          ### Downloads
+          - [AAB](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        draft: false
+        prerelease: false
+
+    - name: Deployment Summary
+      run: |
+        echo "## 🚀 Deployment Successful for PACE" >> $GITHUB_STEP_SUMMARY
+        echo "- **App ID**: com.pacesharjah.schoolapp" >> $GITHUB_STEP_SUMMARY
+        echo "- **App Name**: PACE INTL" >> $GITHUB_STEP_SUMMARY
+        echo "- **Track**: internal" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build**: ✅ Completed" >> $GITHUB_STEP_SUMMARY
+        echo "- **Upload**: ✅ Completed" >> $GITHUB_STEP_SUMMARY
+
+    - name: Cleanup
+      if: always()
+      run: |
+        rm -f android/pace_key.jks
+        rm -f android/key.properties
