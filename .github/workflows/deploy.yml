@@ -44,16 +44,27 @@ jobs:
         flutter --version
 
     - name: Get dependencies
-      run: flutter pub get
+      timeout-minutes: 5
+      run: |
+        echo "Getting Flutter dependencies..."
+        flutter pub get
+        echo "Dependencies resolved successfully"
 
     - name: Generate icons
+      timeout-minutes: 3
       run: |
+        echo "Generating app icons..."
         if [ -f "flutter_launcher_icons-pace.yaml" ]; then
           flutter pub run flutter_launcher_icons:main -f flutter_launcher_icons-pace.yaml
+          echo "Icons generated successfully"
+        else
+          echo "No icon config found, skipping icon generation"
         fi
 
     - name: Setup signing
+      timeout-minutes: 2
       run: |
+        echo "Setting up signing configuration..."
         # Setup signing for pace flavor
         cat > android/key.properties << 'EOF'
         storePassword=${{ secrets.PACE_STORE_PASSWORD }}
@@ -64,10 +75,27 @@ jobs:
         
         echo "${{ secrets.PACE_KEYSTORE_BASE64 }}" | base64 --decode > android/pace_key.jks
         chmod 600 android/pace_key.jks
+        echo "Signing setup completed"
 
     - name: Build AAB
+      timeout-minutes: 15
       run: |
-        flutter build appbundle --release --flavor pace --target lib/schools/pace/pace_main.dart
+        echo "Starting Flutter build..."
+        flutter build appbundle --release --flavor pace --target lib/schools/pace/pace_main.dart --verbose
+        echo "Flutter build completed successfully"
+
+    - name: Verify AAB file
+      run: |
+        echo "Checking if AAB file was created..."
+        if [ -f "build/app/outputs/bundle/release/app-pace-release.aab" ]; then
+          echo "✅ AAB file found:"
+          ls -la build/app/outputs/bundle/release/app-pace-release.aab
+        else
+          echo "❌ AAB file not found!"
+          echo "Build directory contents:"
+          find build -name "*.aab" -type f 2>/dev/null || echo "No AAB files found"
+          exit 1
+        fi
 
     - name: Upload AAB artifact
       uses: actions/upload-artifact@v4
