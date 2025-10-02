@@ -87,9 +87,9 @@ jobs:
     - name: Verify AAB file
       run: |
         echo "Checking if AAB file was created..."
-        if [ -f "build/app/outputs/bundle/release/app-pace-release.aab" ]; then
+        if [ -f "build/app/outputs/bundle/paceRelease/app-pace-release.aab" ]; then
           echo "✅ AAB file found:"
-          ls -la build/app/outputs/bundle/release/app-pace-release.aab
+          ls -la build/app/outputs/bundle/paceRelease/app-pace-release.aab
         else
           echo "❌ AAB file not found!"
           echo "Build directory contents:"
@@ -101,7 +101,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: pace-aab
-        path: build/app/outputs/bundle/release/app-pace-release.aab
+        path: build/app/outputs/bundle/paceRelease/app-pace-release.aab
         retention-days: 30
 
     - name: Determine deployment track
@@ -118,7 +118,7 @@ jobs:
       with:
         serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
         packageName: com.pacesharjah.schoolapp
-        releaseFiles: build/app/outputs/bundle/release/app-pace-release.aab
+        releaseFiles: build/app/outputs/bundle/paceRelease/app-pace-release.aab
         track: ${{ steps.track.outputs.track }}
         status: completed
         inAppUpdatePriority: 2
