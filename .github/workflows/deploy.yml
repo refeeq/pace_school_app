@@ -122,7 +122,7 @@ jobs:
         track: ${{ steps.track.outputs.track }}
         status: completed
         inAppUpdatePriority: 2
-        userFraction: 0.99
+        userFraction: "0.99"
 
     - name: Create Release
       if: startsWith(github.ref, 'refs/tags/')
