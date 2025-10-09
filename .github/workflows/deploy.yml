@@ -43,8 +43,8 @@ jobs:
           - flavor: gaes
             package_name: com.gaes.schoolapp
             app_name: GAES
-            key_file: pace_key.jks
-            key_alias: pace
+            key_file: gaes.key
+            key_alias: key0
             icon_config: flutter_launcher_icons-gaes.yaml
             target_file: lib/schools/gaes/gaes_main.dart
           - flavor: cbsa
@@ -140,15 +140,28 @@ jobs:
       timeout-minutes: 2
       run: |
         echo "Setting up signing configuration for ${{ matrix.flavor }}..."
-        # All flavors use PACE credentials and keystore
-        cat > android/key.properties << 'EOF'
+        if [ "${{ matrix.flavor }}" = "gaes" ]; then
+          # GAES uses different credentials
+          cat > android/key.properties << 'EOF'
+        storePassword=${{ secrets.GAES_STORE_PASSWORD }}
+        keyAlias=${{ matrix.key_alias }}
+        keyPassword=${{ secrets.GAES_KEY_PASSWORD }}
+        storeFile=../${{ matrix.key_file }}
+        EOF
+          
+          echo "${{ secrets.GAES_KEYSTORE_BASE64 }}" | base64 --decode > android/${{ matrix.key_file }}
+        else
+          # All other flavors use PACE credentials
+          cat > android/key.properties << 'EOF'
         storePassword=${{ secrets.PACE_STORE_PASSWORD }}
         keyAlias=${{ matrix.key_alias }}
         keyPassword=${{ secrets.PACE_KEY_PASSWORD }}
         storeFile=../${{ matrix.key_file }}
         EOF
+          
+          echo "${{ secrets.PACE_KEYSTORE_BASE64 }}" | base64 --decode > android/${{ matrix.key_file }}
+        fi
         
-        echo "${{ secrets.PACE_KEYSTORE_BASE64 }}" | base64 --decode > android/${{ matrix.key_file }}
         chmod 600 android/${{ matrix.key_file }}
         echo "Signing setup completed for ${{ matrix.flavor }}"
 
