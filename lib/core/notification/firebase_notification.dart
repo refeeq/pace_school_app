@@ -107,7 +107,7 @@ void showFlutterNotification(RemoteMessage message) {
             channel.id,
             channel.name,
             channelDescription: channel.description,
-            icon: 'ic_notification',
+            icon: 'ic_launcher',
             largeIcon: const DrawableResourceAndroidBitmap('ic_launcher'),
             importance: Importance.high,
             priority: Priority.high,
