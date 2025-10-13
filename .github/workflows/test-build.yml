@@ -134,14 +134,14 @@ jobs:
         path: |
           build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-debug.apk
           build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk
-        retention-days: 7
+        retention-days: 1
 
     - name: Upload AAB artifact
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.flavor }}-aab
         path: build/app/outputs/bundle/release/app-${{ matrix.flavor }}-release.aab
-        retention-days: 7
+        retention-days: 1
 
     - name: Build Summary
       run: |

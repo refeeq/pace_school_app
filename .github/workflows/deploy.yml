@@ -186,12 +186,25 @@ jobs:
           exit 1
         fi
 
+    - name: Clean up build artifacts
+      run: |
+        echo "Cleaning up unnecessary build artifacts to save storage..."
+        # Keep only the AAB file we need
+        find build -name "*.apk" -delete 2>/dev/null || true
+        find build -name "*.dex" -delete 2>/dev/null || true
+        find build -name "*.class" -delete 2>/dev/null || true
+        find build -name "*.jar" -delete 2>/dev/null || true
+        # Remove intermediate build files
+        rm -rf build/app/intermediates 2>/dev/null || true
+        rm -rf build/app/tmp 2>/dev/null || true
+        echo "Build cleanup completed"
+
     - name: Upload AAB artifact
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.flavor }}-aab
         path: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
-        retention-days: 30
+        retention-days: 1
 
     - name: Determine deployment track
       id: track
