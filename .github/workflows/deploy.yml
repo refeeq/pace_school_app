@@ -200,7 +200,6 @@ jobs:
         echo "Build cleanup completed"
 
     - name: Upload AAB artifact
-      if: false  # Temporarily disabled due to storage quota
       uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.flavor }}-aab
