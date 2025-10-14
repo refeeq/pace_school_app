@@ -1,4 +1,4 @@
-name: Deploy to Play Store
+name: Deploy to Play Store (Self-Hosted)
 
 on:
   push:
@@ -27,11 +27,11 @@ env:
 
 jobs:
   deploy:
-    runs-on: macos-latest
+    runs-on: self-hosted  # Use your self-hosted runner
     
     strategy:
       matrix:
-        flavor: [pace]  # Start with only pace flavor to reduce costs
+        flavor: [pace, gaes, cbsa, dpsa, iiss, pbss, pcbs, pmbs, sisd]
         include:
           - flavor: pace
             package_name: com.pacesharjah.schoolapp
