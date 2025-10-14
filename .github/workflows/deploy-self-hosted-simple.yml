@@ -1,0 +1,222 @@
+name: Deploy to Play Store (Self-Hosted - Simple)
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+    inputs:
+      flavor:
+        description: 'Flavor to deploy'
+        required: true
+        default: 'pace'
+        type: choice
+        options:
+          - pace
+          - gaes
+          - cbsa
+          - dpsa
+          - iiss
+          - pbss
+          - pcbs
+          - pmbs
+          - sisd
+
+env:
+  FLUTTER_VERSION: '3.35.4'
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # Use your self-hosted runner
+    
+    strategy:
+      matrix:
+        flavor: [pace, gaes, cbsa, dpsa, iiss, pbss, pcbs, pmbs, sisd]
+        include:
+          - flavor: pace
+            package_name: com.pacesharjah.schoolapp
+            app_name: PACE INTL
+            key_file: pace_key.jks
+            key_alias: pace
+            icon_config: flutter_launcher_icons-pace.yaml
+            target_file: lib/schools/pace/pace_main.dart
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Environment
+      run: |
+        echo "Setting up environment variables..."
+        # Use pre-installed Android SDK and Flutter
+        
+        # Check if Android SDK exists in common locations
+        if [ -d "/Users/ec2-user/Library/Android/sdk" ]; then
+          ANDROID_SDK_PATH="/Users/ec2-user/Library/Android/sdk"
+        elif [ -d "/opt/homebrew/share/android-commandlinetools" ]; then
+          ANDROID_SDK_PATH="/opt/homebrew/share/android-commandlinetools"
+        elif [ -d "$HOME/Library/Android/sdk" ]; then
+          ANDROID_SDK_PATH="$HOME/Library/Android/sdk"
+        else
+          echo "❌ Android SDK not found in common locations."
+          echo "Please install Android SDK and update the path in this workflow."
+          exit 1
+        fi
+        
+        # Set Android SDK environment variables
+        echo "ANDROID_HOME=$ANDROID_SDK_PATH" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_PATH" >> $GITHUB_ENV
+        echo "PATH=$PATH:$ANDROID_SDK_PATH/cmdline-tools/latest/bin:$ANDROID_SDK_PATH/platform-tools" >> $GITHUB_ENV
+        
+        # Add Flutter to PATH (if not already there)
+        if ! command -v flutter &> /dev/null; then
+          echo "PATH=$PATH:/opt/homebrew/bin" >> $GITHUB_ENV
+          echo "PATH=$PATH:$HOME/flutter/bin" >> $GITHUB_ENV
+        fi
+        
+        echo "✅ Using Android SDK at: $ANDROID_SDK_PATH"
+        echo "✅ Flutter path: $(which flutter || echo 'Not found in PATH')"
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Verify Flutter Installation
+      run: |
+        echo "Verifying Flutter installation..."
+        if command -v flutter &> /dev/null; then
+          echo "✅ Flutter found: $(which flutter)"
+          flutter --version
+        else
+          echo "❌ Flutter not found in PATH"
+          echo "Please ensure Flutter is installed and added to PATH"
+          exit 1
+        fi
+
+    - name: Verify Setup
+      run: |
+        echo "Verifying setup..."
+        echo "Java version:"
+        java -version
+        echo "Flutter version:"
+        flutter --version
+        echo "Android SDK:"
+        echo "ANDROID_HOME: $ANDROID_HOME"
+        if [ -d "$ANDROID_HOME" ]; then
+          echo "✅ Android SDK directory exists"
+          ls -la "$ANDROID_HOME"
+        else
+          echo "❌ Android SDK directory not found"
+          exit 1
+        fi
+
+    - name: Get dependencies
+      timeout-minutes: 5
+      run: |
+        echo "Getting Flutter dependencies..."
+        flutter pub get
+        echo "Dependencies resolved successfully"
+
+    - name: Generate icons
+      timeout-minutes: 3
+      run: |
+        echo "Generating app icons for ${{ matrix.flavor }}..."
+        if [ -f "${{ matrix.icon_config }}" ]; then
+          flutter pub run flutter_launcher_icons:main -f ${{ matrix.icon_config }}
+          echo "Icons generated successfully for ${{ matrix.flavor }}"
+        else
+          echo "No icon config found for ${{ matrix.flavor }}, skipping icon generation"
+        fi
+
+    - name: Setup signing
+      timeout-minutes: 2
+      run: |
+        echo "Setting up signing configuration for ${{ matrix.flavor }}..."
+        if [ "${{ matrix.flavor }}" = "gaes" ]; then
+          # GAES uses different credentials
+          cat > android/key.properties << 'EOF'
+        storePassword=${{ secrets.GAES_STORE_PASSWORD }}
+        keyAlias=${{ matrix.key_alias }}
+        keyPassword=${{ secrets.GAES_KEY_PASSWORD }}
+        storeFile=../${{ matrix.key_file }}
+        EOF
+          
+          echo "${{ secrets.GAES_KEYSTORE_BASE64 }}" | base64 --decode > android/${{ matrix.key_file }}
+        else
+          # All other flavors use PACE credentials
+          cat > android/key.properties << 'EOF'
+        storePassword=${{ secrets.PACE_STORE_PASSWORD }}
+        keyAlias=${{ matrix.key_alias }}
+        keyPassword=${{ secrets.PACE_KEY_PASSWORD }}
+        storeFile=../${{ matrix.key_file }}
+        EOF
+          
+          echo "${{ secrets.PACE_KEYSTORE_BASE64 }}" | base64 --decode > android/${{ matrix.key_file }}
+        fi
+        
+        chmod 600 android/${{ matrix.key_file }}
+        echo "Signing setup completed for ${{ matrix.flavor }}"
+
+    - name: Build AAB
+      timeout-minutes: 15
+      run: |
+        echo "Starting Flutter build for ${{ matrix.flavor }}..."
+        flutter build appbundle --release --flavor ${{ matrix.flavor }} --target ${{ matrix.target_file }} --verbose
+        echo "Flutter build completed successfully for ${{ matrix.flavor }}"
+
+    - name: Verify AAB file
+      run: |
+        echo "Checking if AAB file was created for ${{ matrix.flavor }}..."
+        AAB_PATH="build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab"
+        if [ -f "$AAB_PATH" ]; then
+          echo "✅ AAB file found for ${{ matrix.flavor }}:"
+          ls -la "$AAB_PATH"
+        else
+          echo "❌ AAB file not found for ${{ matrix.flavor }}!"
+          echo "Build directory contents:"
+          find build -name "*.aab" -type f 2>/dev/null || echo "No AAB files found"
+          exit 1
+        fi
+
+    - name: Upload AAB artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ matrix.flavor }}-aab
+        path: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
+        retention-days: 1
+
+    - name: Determine deployment track
+      id: track
+      run: |
+        # Always deploy to internal track for safety
+        TRACK="internal"
+        
+        echo "track=$TRACK" >> $GITHUB_OUTPUT
+        echo "Deploying to track: $TRACK"
+
+    - name: Upload to Play Store
+      uses: r0adkll/upload-google-play@v1
+      with:
+        serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        packageName: ${{ matrix.package_name }}
+        releaseFiles: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
+        track: ${{ steps.track.outputs.track }}
+        status: completed
+        changesNotSentForReview: false
+
+    - name: Deployment Summary
+      run: |
+        echo "## 🚀 Deployment Successful for ${{ matrix.flavor }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **App ID**: ${{ matrix.package_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **App Name**: ${{ matrix.app_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Track**: internal" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build**: ✅ Completed" >> $GITHUB_STEP_SUMMARY
+        echo "- **Upload**: ✅ Completed" >> $GITHUB_STEP_SUMMARY
+
+    - name: Cleanup
+      if: always()
+      run: |
+        rm -f android/${{ matrix.key_file }}
+        rm -f android/key.properties
