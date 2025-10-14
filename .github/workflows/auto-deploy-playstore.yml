@@ -1,0 +1,206 @@
+name: Auto Deploy to Play Store
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'Play Store Track'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+        - internal
+        - alpha
+        - beta
+        - production
+
+jobs:
+  auto-deploy:
+    runs-on: self-hosted  # Your AWS Mac machine
+    
+    strategy:
+      matrix:
+        flavor: [pace, gaes, cbsa, dpsa, iiss, pbss, pcbs, pmbs, sisd]
+        include:
+          - flavor: pace
+            key_file: pace_key.jks
+            key_alias: pace
+            package_name: com.pacesharjah.schoolapp
+          - flavor: gaes
+            key_file: gaes.key
+            key_alias: key0
+            package_name: com.pacesharjah.schoolapp
+          - flavor: cbsa
+            key_file: pace_key.jks
+            key_alias: pace
+            package_name: com.pacesharjah.schoolapp
+          - flavor: dpsa
+            key_file: pace_key.jks
+            key_alias: pace
+            package_name: com.pacesharjah.schoolapp
+          - flavor: iiss
+            key_file: pace_key.jks
+            key_alias: pace
+            package_name: com.pacesharjah.schoolapp
+          - flavor: pbss
+            key_file: pace_key.jks
+            key_alias: pace
+            package_name: com.pacesharjah.schoolapp
+          - flavor: pcbs
+            key_file: pace_key.jks
+            key_alias: pace
+            package_name: com.pacesharjah.schoolapp
+          - flavor: pmbs
+            key_file: pace_key.jks
+            key_alias: pace
+            package_name: com.pacesharjah.schoolapp
+          - flavor: sisd
+            key_file: pace_key.jks
+            key_alias: pace
+            package_name: com.pacesharjah.schoolapp
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Environment
+      run: |
+        echo "🚀 Setting up environment for auto-deploy..."
+        echo "Flavor: ${{ matrix.flavor }}"
+        echo "Package: ${{ matrix.package_name }}"
+        echo "Track: ${{ github.event.inputs.track || 'internal' }}"
+        
+        # Use pre-installed Flutter and Android SDK
+        export ANDROID_HOME="$ANDROID_HOME"
+        export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
+        export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
+        
+        echo "✅ Environment ready"
+        echo "Flutter: $(which flutter)"
+        echo "Android SDK: $ANDROID_HOME"
+    
+    - name: Get Dependencies
+      run: |
+        echo "📦 Getting Flutter dependencies..."
+        flutter pub get
+        
+    - name: Generate Icons
+      run: |
+        echo "🎨 Generating icons for ${{ matrix.flavor }}..."
+        if [ -f "flutter_launcher_icons-${{ matrix.flavor }}.yaml" ]; then
+          flutter pub run flutter_launcher_icons:main -f "flutter_launcher_icons-${{ matrix.flavor }}.yaml"
+        else
+          echo "No icon config found for ${{ matrix.flavor }}, using default"
+        fi
+        
+    - name: Setup Signing
+      run: |
+        echo "🔐 Setting up signing for ${{ matrix.flavor }}..."
+        
+        if [ "${{ matrix.flavor }}" = "gaes" ]; then
+          # GAES uses different credentials
+          cat > android/key.properties << 'EOF'
+        storePassword=${{ secrets.GAES_STORE_PASSWORD }}
+        keyAlias=${{ matrix.key_alias }}
+        keyPassword=${{ secrets.GAES_KEY_PASSWORD }}
+        storeFile=../${{ matrix.key_file }}
+        EOF
+          
+          echo "${{ secrets.GAES_KEYSTORE_BASE64 }}" | base64 --decode > android/${{ matrix.key_file }}
+        else
+          # All other flavors use PACE credentials
+          cat > android/key.properties << 'EOF'
+        storePassword=${{ secrets.PACE_STORE_PASSWORD }}
+        keyAlias=${{ matrix.key_alias }}
+        keyPassword=${{ secrets.PACE_KEY_PASSWORD }}
+        storeFile=../${{ matrix.key_file }}
+        EOF
+          
+          echo "${{ secrets.PACE_KEYSTORE_BASE64 }}" | base64 --decode > android/${{ matrix.key_file }}
+        fi
+        
+        chmod 600 android/${{ matrix.key_file }}
+        echo "✅ Signing setup completed"
+        
+    - name: Build AAB
+      run: |
+        echo "🔨 Building AAB for ${{ matrix.flavor }}..."
+        flutter build appbundle --release --flavor "${{ matrix.flavor }}" --target "lib/schools/${{ matrix.flavor }}/${matrix.flavor}_main.dart" --verbose
+        
+        echo "✅ AAB build completed"
+        
+    - name: Verify AAB
+      run: |
+        AAB_PATH="build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab"
+        if [ -f "$AAB_PATH" ]; then
+          echo "✅ AAB file found: $AAB_PATH"
+          ls -lh "$AAB_PATH"
+        else
+          echo "❌ AAB file not found!"
+          exit 1
+        fi
+        
+    - name: Upload to Play Store
+      uses: r0adkll/upload-google-play@v1
+      with:
+        serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        packageName: ${{ matrix.package_name }}
+        releaseFiles: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
+        track: ${{ github.event.inputs.track || 'internal' }}
+        status: completed
+        inAppUpdatePriority: 2
+        userFraction: "0.99"
+        
+    - name: Store AAB Locally
+      run: |
+        echo "💾 Storing AAB locally on self-hosted runner..."
+        AAB_PATH="build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab"
+        
+        # Create local storage directory
+        mkdir -p ~/playstore-deployments/${{ github.run_id }}
+        
+        # Copy AAB to local storage
+        cp "$AAB_PATH" ~/playstore-deployments/${{ github.run_id }}/${{ matrix.flavor }}-release.aab
+        
+        echo "✅ AAB stored locally at: ~/playstore-deployments/${{ github.run_id }}/${{ matrix.flavor }}-release.aab"
+        echo "File size: $(ls -lh ~/playstore-deployments/${{ github.run_id }}/${{ matrix.flavor }}-release.aab | awk '{print $5}')"
+        
+    - name: Create Deployment Summary
+      run: |
+        echo "📋 Creating deployment summary..."
+        DEPLOY_DIR=~/playstore-deployments/${{ github.run_id }}
+        mkdir -p "$DEPLOY_DIR"
+        
+        cat > "$DEPLOY_DIR/deployment_summary.txt" << EOF
+        Play Store Auto-Deploy Summary
+        =============================
+        
+        Deployment Date: $(date)
+        Triggered by: ${{ github.event.head_commit.message }}
+        Commit: ${{ github.sha }}
+        Branch: ${{ github.ref_name }}
+        Track: ${{ github.event.inputs.track || 'internal' }}
+        
+        Flavors Deployed:
+        EOF
+        
+        for flavor in pace gaes cbsa dpsa iiss pbss pcbs pmbs sisd; do
+          if [ -f "$DEPLOY_DIR/$flavor-release.aab" ]; then
+            size=$(ls -lh "$DEPLOY_DIR/$flavor-release.aab" | awk '{print $5}')
+            echo "- $flavor: ✅ Deployed to Play Store ($size)" >> "$DEPLOY_DIR/deployment_summary.txt"
+          else
+            echo "- $flavor: ❌ Failed" >> "$DEPLOY_DIR/deployment_summary.txt"
+          fi
+        done
+        
+        echo "Deployment summary saved to: $DEPLOY_DIR/deployment_summary.txt"
+        
+    - name: Cleanup
+      if: always()
+      run: |
+        echo "🧹 Cleaning up..."
+        rm -f android/key.properties
+        rm -f android/${{ matrix.key_file }}
+        flutter clean

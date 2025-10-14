@@ -180,12 +180,23 @@ jobs:
           exit 1
         fi
 
-    - name: Upload AAB artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: ${{ matrix.flavor }}-aab
-        path: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
-        retention-days: 1
+    - name: Store AAB locally
+      run: |
+        echo "Storing AAB file locally on self-hosted runner..."
+        AAB_PATH="build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab"
+        
+        # Create local storage directory
+        mkdir -p ~/build-artifacts/${{ github.run_id }}
+        
+        # Copy AAB to local storage
+        cp "$AAB_PATH" ~/build-artifacts/${{ github.run_id }}/${{ matrix.flavor }}-release.aab
+        
+        echo "✅ AAB stored locally at: ~/build-artifacts/${{ github.run_id }}/${{ matrix.flavor }}-release.aab"
+        echo "File size: $(ls -lh ~/build-artifacts/${{ github.run_id }}/${{ matrix.flavor }}-release.aab | awk '{print $5}')"
+        
+        # List all stored artifacts
+        echo "All stored artifacts:"
+        ls -la ~/build-artifacts/${{ github.run_id }}/
 
     - name: Determine deployment track
       id: track

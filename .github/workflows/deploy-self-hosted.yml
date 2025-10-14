@@ -107,6 +107,30 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
 
+    - name: Setup Android SDK
+      run: |
+        echo "Setting up Android SDK..."
+        # Create Android SDK directory
+        mkdir -p $HOME/android-sdk
+        
+        # Set environment variables
+        echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "PATH=$PATH:$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools" >> $GITHUB_ENV
+        
+        # Download and install Android SDK command line tools
+        cd $HOME
+        wget -q https://dl.google.com/android/repository/commandlinetools-mac-11076708_latest.zip
+        unzip -q commandlinetools-mac-11076708_latest.zip
+        mkdir -p android-sdk/cmdline-tools
+        mv cmdline-tools android-sdk/cmdline-tools/latest
+        
+        # Accept licenses and install required components
+        yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+        $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+        
+        echo "Android SDK setup completed"
+
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
@@ -117,6 +141,15 @@ jobs:
       run: |
         dart --version
         flutter --version
+
+    - name: Verify Android SDK
+      run: |
+        echo "Verifying Android SDK setup..."
+        echo "ANDROID_HOME: $ANDROID_HOME"
+        echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+        ls -la $ANDROID_HOME
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --list | head -10
+        echo "Android SDK verification completed"
 
     - name: Get dependencies
       timeout-minutes: 5
