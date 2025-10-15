@@ -167,7 +167,7 @@ jobs:
         packageName: ${{ matrix.package_name }}
         releaseFiles: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
         track: ${{ github.event.inputs.track || 'internal' }}
-        status: completed
+        status: draft
         inAppUpdatePriority: 2
         userFraction: "0.99"
         
