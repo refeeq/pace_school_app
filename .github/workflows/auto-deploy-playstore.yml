@@ -145,7 +145,7 @@ jobs:
         # Source environment variables
         source ~/.zshrc
         
-        flutter build appbundle --release --flavor "${{ matrix.flavor }}" --target "lib/schools/${{ matrix.flavor }}/${matrix.flavor}_main.dart" --verbose
+        flutter build appbundle --release --flavor "${{ matrix.flavor }}" --target "lib/schools/${{ matrix.flavor }}/${{ matrix.flavor }}_main.dart" --verbose
         
         echo "✅ AAB build completed"
         
