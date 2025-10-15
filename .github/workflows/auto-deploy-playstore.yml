@@ -27,39 +27,39 @@ jobs:
           - flavor: pace
             key_file: pace_key.jks
             key_alias: pace
-            package_name: com.pacesharjah.schoolapp
+            package_name: com.example.school_app
           - flavor: gaes
             key_file: gaes.key
             key_alias: key0
-            package_name: com.pacesharjah.schoolapp
+            package_name: com.example.school_app
           - flavor: cbsa
             key_file: pace_key.jks
             key_alias: pace
-            package_name: com.pacesharjah.schoolapp
+            package_name: com.example.school_app
           - flavor: dpsa
             key_file: pace_key.jks
             key_alias: pace
-            package_name: com.pacesharjah.schoolapp
+            package_name: com.example.school_app
           - flavor: iiss
             key_file: pace_key.jks
             key_alias: pace
-            package_name: com.pacesharjah.schoolapp
+            package_name: com.example.school_app
           - flavor: pbss
             key_file: pace_key.jks
             key_alias: pace
-            package_name: com.pacesharjah.schoolapp
+            package_name: com.example.school_app
           - flavor: pcbs
             key_file: pace_key.jks
             key_alias: pace
-            package_name: com.pacesharjah.schoolapp
+            package_name: com.example.school_app
           - flavor: pmbs
             key_file: pace_key.jks
             key_alias: pace
-            package_name: com.pacesharjah.schoolapp
+            package_name: com.example.school_app
           - flavor: sisd
             key_file: pace_key.jks
             key_alias: pace
-            package_name: com.pacesharjah.schoolapp
+            package_name: com.example.school_app
     
     steps:
     - name: Checkout code
