@@ -43,3 +43,19 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Auto-deploy build artifacts
+build-artifacts/
+builds/
+logs/
+runner.log
+runner.error.log
+
+# Keystore files (security)
+android/key.properties
+android/*.jks
+android/*.key
+android/*.p12
+
+# Deployment artifacts
+playstore-deployments/
