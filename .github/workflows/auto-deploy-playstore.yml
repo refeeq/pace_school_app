@@ -18,7 +18,7 @@ on:
 
 jobs:
   auto-deploy:
-    runs-on: self-hosted  # Your AWS Mac machine
+    runs-on: [self-hosted, macos, aws]  # Self-hosted AWS macOS runner
     
     strategy:
       matrix:
@@ -67,19 +67,30 @@ jobs:
       
     - name: Setup Environment
       run: |
-        echo "🚀 Setting up environment for auto-deploy..."
+        echo "🚀 Setting up environment for auto-deploy on AWS Mac..."
         echo "Flavor: ${{ matrix.flavor }}"
         echo "Package: ${{ matrix.package_name }}"
         echo "Track: ${{ github.event.inputs.track || 'internal' }}"
         
-        # Use pre-installed Flutter and Android SDK
-        export ANDROID_HOME="$ANDROID_HOME"
-        export ANDROID_SDK_ROOT="$ANDROID_SDK_ROOT"
-        export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
+        # Source environment variables from ~/.zshrc (set up by setup-aws-mac.sh)
+        source ~/.zshrc
+        
+        # Verify Flutter installation
+        if ! command -v flutter &> /dev/null; then
+          echo "❌ Flutter not found. Please ensure setup-aws-mac.sh was run."
+          exit 1
+        fi
+        
+        # Verify Android SDK
+        if [ -z "$ANDROID_HOME" ]; then
+          echo "❌ ANDROID_HOME not set. Please ensure setup-aws-mac.sh was run."
+          exit 1
+        fi
         
         echo "✅ Environment ready"
-        echo "Flutter: $(which flutter)"
+        echo "Flutter: $(which flutter) - $(flutter --version | head -1)"
         echo "Android SDK: $ANDROID_HOME"
+        echo "Java: $(java -version 2>&1 | head -1)"
     
     - name: Get Dependencies
       run: |
@@ -98,6 +109,9 @@ jobs:
     - name: Setup Signing
       run: |
         echo "🔐 Setting up signing for ${{ matrix.flavor }}..."
+        
+        # Source environment variables
+        source ~/.zshrc
         
         if [ "${{ matrix.flavor }}" = "gaes" ]; then
           # GAES uses different credentials
@@ -122,11 +136,15 @@ jobs:
         fi
         
         chmod 600 android/${{ matrix.key_file }}
-        echo "✅ Signing setup completed"
+        echo "✅ Signing setup completed for ${{ matrix.flavor }}"
         
     - name: Build AAB
       run: |
         echo "🔨 Building AAB for ${{ matrix.flavor }}..."
+        
+        # Source environment variables
+        source ~/.zshrc
+        
         flutter build appbundle --release --flavor "${{ matrix.flavor }}" --target "lib/schools/${{ matrix.flavor }}/${matrix.flavor}_main.dart" --verbose
         
         echo "✅ AAB build completed"
@@ -200,7 +218,19 @@ jobs:
     - name: Cleanup
       if: always()
       run: |
-        echo "🧹 Cleaning up..."
+        echo "🧹 Cleaning up AWS Mac runner..."
+        
+        # Source environment variables
+        source ~/.zshrc
+        
+        # Clean up signing files
         rm -f android/key.properties
         rm -f android/${{ matrix.key_file }}
+        
+        # Clean Flutter build cache
         flutter clean
+        
+        # Clean up any temporary files
+        rm -rf /tmp/flutter_*
+        
+        echo "✅ Cleanup completed"

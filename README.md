@@ -1,155 +1,135 @@
-# School App - Auto-Deploy System
+# School App - GitHub Actions CI/CD
 
-A Flutter application with automated CI/CD pipeline that builds and deploys to Google Play Store.
+A Flutter application with automated CI/CD using GitHub Actions.
 
 ## 🚀 Features
 
 - **9 School Flavors**: pace, gaes, cbsa, dpsa, iiss, pbss, pcbs, pmbs, sisd
-- **Auto-Deploy**: Push to GitHub → Automatic build → Deploy to Play Store
-- **Self-Hosted Runner**: Uses your AWS Mac machine for building
-- **Play Store Integration**: Direct upload to Google Play Console
-- **Notifications**: Real-time build status alerts
+- **Automated Builds**: Push to GitHub → Automatic build → Artifacts uploaded
+- **Play Store Deployment**: Manual deployment to Google Play Store
+- **GitHub Actions**: Simple, reliable, and free
 
 ## 📋 Quick Start
 
-### 1. Setup AWS Mac Machine
+### 1. Build All Flavors
 ```bash
-# SSH into your AWS Mac
-ssh ec2-user@your-aws-mac-ip
-
-# Clone repository
-git clone https://github.com/hashiqvh/school_app.git
-cd school_app
-
-# Run setup
-./setup-aws-mac.sh
-```
-
-### 2. Add GitHub Secrets
-Go to GitHub → Settings → Secrets and variables → Actions
-
-Add these secrets:
-- `PACE_STORE_PASSWORD` - Password for pace_key.jks
-- `PACE_KEY_PASSWORD` - Key password for pace_key.jks
-- `PACE_KEYSTORE_BASE64` - Base64 encoded pace_key.jks file
-- `GAES_STORE_PASSWORD` - Password for gaes.key
-- `GAES_KEY_PASSWORD` - Key password for gaes.key
-- `GAES_KEYSTORE_BASE64` - Base64 encoded gaes.key file
-- `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON` - Google Play Console service account JSON
-
-### 3. Deploy
-```bash
-# Make changes and push
+# Push code to trigger automatic builds
 git add .
 git commit -m "Your changes"
 git push origin main
-
-# Watch the magic happen! ✨
 ```
+
+### 2. Deploy to Play Store
+1. Go to GitHub Actions tab
+2. Click "Deploy to Play Store"
+3. Click "Run workflow"
+4. Choose track (internal/alpha/beta/production)
 
 ## 🔧 How It Works
 
-1. **Push to GitHub** → Triggers `auto-deploy-playstore.yml` workflow
-2. **AWS Mac activates** → Self-hosted runner starts
-3. **Pulls latest code** → Builds all 9 flavors
-4. **Uploads to Play Store** → Internal track by default
-5. **Sends notifications** → Success/failure alerts
-6. **Stores artifacts** → AABs saved locally
+### **Build Workflow** (`build.yml`)
+- **Triggers**: Push to main, Pull requests, Manual
+- **Builds**: All 9 flavors in parallel
+- **Outputs**: APK and AAB files for each flavor
+- **Artifacts**: Stored for 7 days
 
-## 📊 Monitoring
-
-### Check Deployment Status
-```bash
-# On AWS Mac
-./monitor-deployments.sh
-```
-
-### View Logs
-```bash
-# Build logs
-tail -f logs/git-hooks.log
-
-# Notification logs
-tail -f logs/notifications.log
-```
-
-### Manual Deployment
-- Go to GitHub Actions tab
-- Click "Auto Deploy to Play Store"
-- Click "Run workflow"
-- Choose track (internal/alpha/beta/production)
-
-## 🗂️ Project Structure
-
-```
-school_app/
-├── .github/workflows/
-│   └── auto-deploy-playstore.yml    # Main deployment workflow
-├── android/                          # Android configuration
-├── lib/                             # Flutter source code
-│   └── schools/                     # School-specific code
-├── assets/                          # App assets and icons
-├── setup-aws-mac.sh                 # AWS Mac setup script
-├── quick-build.sh                   # Quick build script
-├── setup-git-hooks.sh               # Git hooks for auto-pull
-├── notify-deployment.sh             # Notification system
-└── monitor-deployments.sh           # Deployment monitoring
-```
+### **Deploy Workflow** (`deploy.yml`)
+- **Triggers**: Manual only
+- **Builds**: PACE flavor only
+- **Deploys**: To Google Play Store
+- **Tracks**: internal/alpha/beta/production
 
 ## 🎯 Flavors
 
-| Flavor | Description | Signing Key |
-|--------|-------------|-------------|
-| pace | PACE School | pace_key.jks |
-| gaes | GAES School | gaes.key |
-| cbsa | CBSA School | pace_key.jks |
-| dpsa | DPSA School | pace_key.jks |
-| iiss | IISS School | pace_key.jks |
-| pbss | PBSS School | pace_key.jks |
-| pcbs | PCBS School | pace_key.jks |
-| pmbs | PMBS School | pace_key.jks |
-| sisd | SISD School | pace_key.jks |
+| Flavor | Description | Main File |
+|--------|-------------|-----------|
+| pace | PACE School | lib/schools/pace/pace_main.dart |
+| gaes | GAES School | lib/schools/gaes/gaes_main.dart |
+| cbsa | CBSA School | lib/schools/cbsa/cbsa_main.dart |
+| dpsa | DPSA School | lib/schools/dpsa/dpsa_main.dart |
+| iiss | IISS School | lib/schools/iiss/iiss_main.dart |
+| pbss | PBSS School | lib/schools/pbss/pbss_main.dart |
+| pcbs | PCBS School | lib/schools/pcbs/pcbs_main.dart |
+| pmbs | PMBS School | lib/schools/pmbs/pmbs_main.dart |
+| sisd | SISD School | lib/schools/sisd/sisd_main.dart |
 
 ## 🔑 Required Secrets
 
-### Keystore Files
-- `pace_key.jks` - Main signing key for most flavors
-- `gaes.key` - Special key for GAES flavor
+For Play Store deployment, add these secrets to your GitHub repository:
 
-### Base64 Encoding
+1. **PACE_STORE_PASSWORD** - Password for pace_key.jks
+2. **PACE_KEY_PASSWORD** - Key password for pace_key.jks
+3. **PACE_KEYSTORE_BASE64** - Base64 encoded pace_key.jks file
+4. **GOOGLE_PLAY_SERVICE_ACCOUNT_JSON** - Google Play Console service account JSON
+
+### How to Add Secrets:
+1. Go to GitHub repository
+2. Settings → Secrets and variables → Actions
+3. Click "New repository secret"
+4. Add each secret with the exact name above
+
+### How to Get Base64 Keystore:
 ```bash
 # Convert keystore to base64
-base64 -i pace_key.jks | pbcopy
-base64 -i gaes.key | pbcopy
+base64 -i android/pace_key.jks | pbcopy
 ```
 
-### Google Play Console
-1. Go to Google Play Console
-2. Setup → API access
-3. Create service account
-4. Download JSON key file
-5. Add content as `GOOGLE_PLAY_SERVICE_ACCOUNT_JSON`
+## 📊 Monitoring
 
-## 🚨 Troubleshooting
+### Check Build Status:
+- Go to GitHub Actions tab
+- View build logs and artifacts
+- Download APK/AAB files
 
-### Build Fails
+### View Artifacts:
+- Click on any completed workflow
+- Scroll down to "Artifacts" section
+- Download APK or AAB files
+
+## 🚀 Usage
+
+### Automatic Builds:
+```bash
+# Make changes and push
+echo "// New feature" >> lib/main.dart
+git add .
+git commit -m "Add new feature"
+git push origin main
+
+# Builds will start automatically!
+```
+
+### Manual Deployment:
+1. Go to Actions tab
+2. Click "Deploy to Play Store"
+3. Click "Run workflow"
+4. Select track and run
+
+## 🎉 Benefits
+
+- ✅ **Simple** - Just push code
+- ✅ **Reliable** - GitHub's infrastructure
+- ✅ **Free** - 2000 minutes/month for public repos
+- ✅ **Fast** - Parallel builds for all flavors
+- ✅ **Secure** - Secrets stored safely
+- ✅ **Flexible** - Manual deployment control
+
+## 🔧 Troubleshooting
+
+### Build Fails:
 - Check GitHub Actions logs
-- Verify secrets are correct
-- Check AWS Mac logs: `tail -f logs/git-hooks.log`
+- Verify Flutter version compatibility
+- Check for syntax errors
 
-### Notifications Not Working
-```bash
-# Setup notifications
-./notify-deployment.sh --setup
-```
+### Deployment Fails:
+- Verify all secrets are added correctly
+- Check Google Play Console permissions
+- Ensure keystore is valid
 
-### Environment Issues
-```bash
-# Check environment
-echo $ANDROID_HOME
-echo $ANDROID_SDK_ROOT
-which flutter
-```
+### No Builds Triggering:
+- Check workflow files are in `.github/workflows/`
+- Verify branch names match
+- Check file syntax
 
 ## 📱 Play Store Tracks
 
@@ -158,6 +138,6 @@ which flutter
 - **Beta**: Open testing
 - **Production**: Public release
 
-## 🎉 Success!
+## 🎊 Success!
 
-Your auto-deploy system is now ready! Just push code to GitHub and watch it automatically build and deploy to Play Store! 🚀
+Your GitHub Actions CI/CD is now set up! Just push code and watch the magic happen! 🚀
