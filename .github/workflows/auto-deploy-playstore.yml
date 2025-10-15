@@ -167,9 +167,9 @@ jobs:
         packageName: ${{ matrix.package_name }}
         releaseFiles: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
         track: ${{ github.event.inputs.track || 'internal' }}
-        status: draft
+        status: completed
         inAppUpdatePriority: 2
-        userFraction: "0.99"
+
         
     - name: Store AAB Locally
       run: |
