@@ -1,0 +1,60 @@
+name: Deploy to Play Store
+
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: 'Play Store Track'
+        required: true
+        default: 'internal'
+        type: choice
+        options:
+        - internal
+        - alpha
+        - beta
+        - production
+
+jobs:
+  deploy:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        channel: 'stable'
+        
+    - name: Get dependencies
+      run: flutter pub get
+      
+    - name: Setup signing
+      run: |
+        # Create key.properties
+        cat > android/key.properties << 'EOF'
+        storePassword=${{ secrets.PACE_STORE_PASSWORD }}
+        keyAlias=pace
+        keyPassword=${{ secrets.PACE_KEY_PASSWORD }}
+        storeFile=../pace_key.jks
+        EOF
+        
+        # Create keystore from base64
+        echo "${{ secrets.PACE_KEYSTORE_BASE64 }}" | base64 --decode > android/pace_key.jks
+        chmod 600 android/pace_key.jks
+      
+    - name: Build AAB for PACE
+      run: flutter build appbundle --release --flavor pace --target lib/schools/pace/pace_main.dart
+      
+    - name: Upload to Play Store
+      uses: r0adkll/upload-google-play@v1
+      with:
+        serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+        packageName: com.pacesharjah.schoolapp
+        releaseFiles: build/app/outputs/bundle/paceRelease/app-pace-release.aab
+        track: ${{ inputs.track }}
+        status: completed
+        inAppUpdatePriority: 2
+        userFraction: "0.99"
