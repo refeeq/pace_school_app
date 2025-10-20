@@ -162,7 +162,7 @@ jobs:
         releaseFiles: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
         track: ${{ github.event.inputs.track || 'internal' }}
         status: completed
-        changesNotSentForReview: true    # ✅ avoids userFraction errors
+
         inAppUpdatePriority: 2
 
     # -------------------------------------------------------------
