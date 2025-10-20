@@ -183,164 +183,166 @@ class _HomeScreenViewState extends State<HomeScreenView>
               key: _scaffoldKey,
               backgroundColor: Colors.white,
               body: list[provider.index],
-              bottomNavigationBar: Container(
-                width: 328.w,
-                height: 64.h,
-                decoration: ShapeDecoration(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  shadows: const [
-                    BoxShadow(
-                      color: Color(0x214D4D52),
-                      blurRadius: 16,
-                      offset: Offset(0, 2),
-                      spreadRadius: 2,
+              bottomNavigationBar: SafeArea(
+                child: Container(
+                  width: 328.w,
+                  height: 64.h,
+                  decoration: ShapeDecoration(
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    BoxShadow(
-                      color: Color(0x1EFFFFFF),
-                      blurRadius: 1,
-                      offset: Offset(0, 0),
-                      spreadRadius: 0,
-                    ),
-                  ],
-                ),
-                child: Padding(
-                  padding: EdgeInsets.only(left: 15.0.w, right: 15.0.w),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          provider.changeIndex(0, context);
-                        },
-                        child: provider.index == 0
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                    "assets/bottom/home_selected.png",
-                                    height: 35,
-                                    width: 35,
-                                  ),
-                                  SizedBox(width: 0.w),
-                                  Text(
-                                    "Home",
-                                    style: TextStyle(
-                                      color: provider.index == 0
-                                          ? ConstColors.primary
-                                          : null,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Image.asset(
-                                  "assets/bottom/home_unselected.png",
-                                  height: 35,
-                                  width: 35,
-                                ),
-                              ),
+                    shadows: const [
+                      BoxShadow(
+                        color: Color(0x214D4D52),
+                        blurRadius: 16,
+                        offset: Offset(0, 2),
+                        spreadRadius: 2,
                       ),
-                      InkWell(
-                        onTap: () {
-                          provider.changeIndex(1, context);
-                        },
-                        child: provider.index == 1
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                    "assets/bottom/profile_selected.png",
-                                    height: 35,
-                                    width: 35,
-                                  ),
-                                  SizedBox(width: 0.w),
-                                  Text(
-                                    "Profile",
-                                    style: TextStyle(
-                                      color: provider.index == 1
-                                          ? ConstColors.primary
-                                          : null,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Image.asset(
-                                  "assets/bottom/profile_unselected.png",
-                                  height: 35,
-                                  width: 35,
-                                ),
-                              ),
-                      ),
-                      InkWell(
-                        onTap: () {
-                          provider.changeIndex(2, context);
-                        },
-                        child: provider.index == 2
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  NotificationIcon(
-                                    isSelected: provider.index == 2,
-                                  ),
-                                  SizedBox(width: 0.w),
-                                  Text(
-                                    "Notification",
-                                    style: TextStyle(
-                                      color: provider.index == 2
-                                          ? ConstColors.primary
-                                          : Colors.transparent,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: NotificationIcon(
-                                  isSelected: provider.index == 2,
-                                ),
-                              ),
-                      ),
-                      InkWell(
-                        onTap: () {
-                          provider.changeIndex(3, context);
-                        },
-                        child: provider.index == 3
-                            ? Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  CommunicationIcon(
-                                    isSelected: provider.index == 3,
-                                  ),
-                                  SizedBox(width: 0.w),
-                                  Text(
-                                    "Communication",
-                                    style: TextStyle(
-                                      color: provider.index == 3
-                                          ? ConstColors.primary
-                                          : null,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: CommunicationIcon(
-                                  isSelected: provider.index == 3,
-                                ),
-                              ),
+                      BoxShadow(
+                        color: Color(0x1EFFFFFF),
+                        blurRadius: 1,
+                        offset: Offset(0, 0),
+                        spreadRadius: 0,
                       ),
                     ],
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 15.0.w, right: 15.0.w),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        InkWell(
+                          onTap: () {
+                            provider.changeIndex(0, context);
+                          },
+                          child: provider.index == 0
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      "assets/bottom/home_selected.png",
+                                      height: 35,
+                                      width: 35,
+                                    ),
+                                    SizedBox(width: 0.w),
+                                    Text(
+                                      "Home",
+                                      style: TextStyle(
+                                        color: provider.index == 0
+                                            ? ConstColors.primary
+                                            : null,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Image.asset(
+                                    "assets/bottom/home_unselected.png",
+                                    height: 35,
+                                    width: 35,
+                                  ),
+                                ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            provider.changeIndex(1, context);
+                          },
+                          child: provider.index == 1
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      "assets/bottom/profile_selected.png",
+                                      height: 35,
+                                      width: 35,
+                                    ),
+                                    SizedBox(width: 0.w),
+                                    Text(
+                                      "Profile",
+                                      style: TextStyle(
+                                        color: provider.index == 1
+                                            ? ConstColors.primary
+                                            : null,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Image.asset(
+                                    "assets/bottom/profile_unselected.png",
+                                    height: 35,
+                                    width: 35,
+                                  ),
+                                ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            provider.changeIndex(2, context);
+                          },
+                          child: provider.index == 2
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    NotificationIcon(
+                                      isSelected: provider.index == 2,
+                                    ),
+                                    SizedBox(width: 0.w),
+                                    Text(
+                                      "Notification",
+                                      style: TextStyle(
+                                        color: provider.index == 2
+                                            ? ConstColors.primary
+                                            : Colors.transparent,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: NotificationIcon(
+                                    isSelected: provider.index == 2,
+                                  ),
+                                ),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            provider.changeIndex(3, context);
+                          },
+                          child: provider.index == 3
+                              ? Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    CommunicationIcon(
+                                      isSelected: provider.index == 3,
+                                    ),
+                                    SizedBox(width: 0.w),
+                                    Text(
+                                      "Communication",
+                                      style: TextStyle(
+                                        color: provider.index == 3
+                                            ? ConstColors.primary
+                                            : null,
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: CommunicationIcon(
+                                    isSelected: provider.index == 3,
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
