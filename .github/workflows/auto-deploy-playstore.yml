@@ -18,7 +18,7 @@ on:
 
 jobs:
   auto-deploy:
-    runs-on: [self-hosted, macos, aws]  # Self-hosted AWS macOS runner
+    runs-on: [self-hosted, macOS]  # Self-hosted AWS macOS runner
     
     strategy:
       matrix:
