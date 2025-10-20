@@ -10,16 +10,12 @@ on:
         required: true
         default: 'internal'
         type: choice
-        options:
-        - internal
-        - alpha
-        - beta
-        - production
+        options: [internal, alpha, beta, production]
 
 jobs:
   auto-deploy:
-    runs-on: [self-hosted, macOS]  # Self-hosted AWS macOS runner
-    
+    runs-on: [self-hosted, macOS]   # ✅ matches your runner labels
+
     strategy:
       matrix:
         flavor: [pace, gaes, cbsa, dpsa, iiss, pbss, pcbs, pmbs, sisd]
@@ -60,107 +56,105 @@ jobs:
             key_file: pace_key.jks
             key_alias: pace
             package_name: com.sisd.schoolapp
-    
+
     steps:
-    - name: Checkout code
+    - name: 🧾 Checkout Repository
       uses: actions/checkout@v4
-      
-    - name: Setup Environment
+
+    # -------------------------------------------------------------
+    # ENVIRONMENT SETUP
+    # -------------------------------------------------------------
+    - name: 🧩 Setup Environment
       run: |
-        echo "🚀 Setting up environment for auto-deploy on AWS Mac..."
+        echo "🚀 Setting up environment for auto-deploy..."
         echo "Flavor: ${{ matrix.flavor }}"
         echo "Package: ${{ matrix.package_name }}"
         echo "Track: ${{ github.event.inputs.track || 'internal' }}"
         
-        # Source environment variables from ~/.zshrc (set up by setup-aws-mac.sh)
-        source ~/.zshrc
-        
-        # Verify Flutter installation
-        if ! command -v flutter &> /dev/null; then
-          echo "❌ Flutter not found. Please ensure setup-aws-mac.sh was run."
-          exit 1
+        # ✅ Use Bash-safe environment file instead of zshrc
+        if [ -f "$HOME/.env_setup.sh" ]; then
+          source "$HOME/.env_setup.sh"
+        else
+          echo "⚠️ ~/.env_setup.sh not found, using defaults"
+          export ANDROID_HOME="$HOME/Library/Android/sdk"
+          export JAVA_HOME=$(/usr/libexec/java_home)
+          export PATH="$PATH:$HOME/flutter/bin:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools"
         fi
         
-        # Verify Android SDK
-        if [ -z "$ANDROID_HOME" ]; then
-          echo "❌ ANDROID_HOME not set. Please ensure setup-aws-mac.sh was run."
-          exit 1
-        fi
-        
+        # Verify toolchain
+        echo "🔍 Checking environment..."
+        command -v flutter >/dev/null || { echo "❌ Flutter not found!"; exit 1; }
+        [ -z "$ANDROID_HOME" ] && { echo "❌ ANDROID_HOME missing!"; exit 1; }
+
         echo "✅ Environment ready"
-        echo "Flutter: $(which flutter) - $(flutter --version | head -1)"
+        echo "Flutter: $(flutter --version | head -1)"
         echo "Android SDK: $ANDROID_HOME"
         echo "Java: $(java -version 2>&1 | head -1)"
-    
-    - name: Get Dependencies
+      shell: bash
+
+    # -------------------------------------------------------------
+    # FLUTTER BUILD
+    # -------------------------------------------------------------
+    - name: 📦 Get Dependencies
+      run: flutter pub get
+      shell: bash
+
+    - name: 🎨 Generate Icons
       run: |
-        echo "📦 Getting Flutter dependencies..."
-        flutter pub get
-        
-    - name: Generate Icons
-      run: |
-        echo "🎨 Generating icons for ${{ matrix.flavor }}..."
-        if [ -f "flutter_launcher_icons-${{ matrix.flavor }}.yaml" ]; then
-          flutter pub run flutter_launcher_icons:main -f "flutter_launcher_icons-${{ matrix.flavor }}.yaml"
+        echo "Generating icons for ${{ matrix.flavor }}..."
+        ICON_FILE="flutter_launcher_icons-${{ matrix.flavor }}.yaml"
+        if [ -f "$ICON_FILE" ]; then
+          flutter pub run flutter_launcher_icons:main -f "$ICON_FILE"
         else
-          echo "No icon config found for ${{ matrix.flavor }}, using default"
+          echo "ℹ️ No icon config for ${{ matrix.flavor }} — skipping"
         fi
-        
-    - name: Setup Signing
+      shell: bash
+
+    - name: 🔐 Setup Signing
       run: |
-        echo "🔐 Setting up signing for ${{ matrix.flavor }}..."
-        
-        # Source environment variables
-        source ~/.zshrc
-        
+        echo "Setting up signing for ${{ matrix.flavor }}..."
         if [ "${{ matrix.flavor }}" = "gaes" ]; then
-          # GAES uses different credentials
-          cat > android/key.properties << 'EOF'
-        storePassword=${{ secrets.GAES_STORE_PASSWORD }}
-        keyAlias=${{ matrix.key_alias }}
-        keyPassword=${{ secrets.GAES_KEY_PASSWORD }}
-        storeFile=../${{ matrix.key_file }}
-        EOF
-          
+          echo "storePassword=${{ secrets.GAES_STORE_PASSWORD }}" > android/key.properties
+          echo "keyAlias=${{ matrix.key_alias }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.GAES_KEY_PASSWORD }}" >> android/key.properties
+          echo "storeFile=../${{ matrix.key_file }}" >> android/key.properties
           echo "${{ secrets.GAES_KEYSTORE_BASE64 }}" | base64 --decode > android/${{ matrix.key_file }}
         else
-          # All other flavors use PACE credentials
-          cat > android/key.properties << 'EOF'
-        storePassword=${{ secrets.PACE_STORE_PASSWORD }}
-        keyAlias=${{ matrix.key_alias }}
-        keyPassword=${{ secrets.PACE_KEY_PASSWORD }}
-        storeFile=../${{ matrix.key_file }}
-        EOF
-          
+          echo "storePassword=${{ secrets.PACE_STORE_PASSWORD }}" > android/key.properties
+          echo "keyAlias=${{ matrix.key_alias }}" >> android/key.properties
+          echo "keyPassword=${{ secrets.PACE_KEY_PASSWORD }}" >> android/key.properties
+          echo "storeFile=../${{ matrix.key_file }}" >> android/key.properties
           echo "${{ secrets.PACE_KEYSTORE_BASE64 }}" | base64 --decode > android/${{ matrix.key_file }}
         fi
-        
         chmod 600 android/${{ matrix.key_file }}
-        echo "✅ Signing setup completed for ${{ matrix.flavor }}"
-        
-    - name: Build AAB
+        echo "✅ Signing ready"
+      shell: bash
+
+    - name: 🔨 Build AAB
       run: |
-        echo "🔨 Building AAB for ${{ matrix.flavor }}..."
-        
-        # Source environment variables
-        source ~/.zshrc
-        
-        flutter build appbundle --release --flavor "${{ matrix.flavor }}" --target "lib/schools/${{ matrix.flavor }}/${{ matrix.flavor }}_main.dart" --verbose
-        
-        echo "✅ AAB build completed"
-        
-    - name: Verify AAB
+        echo "Building release AAB for ${{ matrix.flavor }}..."
+        flutter build appbundle --release \
+          --flavor "${{ matrix.flavor }}" \
+          --target "lib/schools/${{ matrix.flavor }}/${{ matrix.flavor }}_main.dart" \
+          --verbose
+        echo "✅ Build complete"
+      shell: bash
+
+    - name: 🧾 Verify AAB
       run: |
         AAB_PATH="build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab"
         if [ -f "$AAB_PATH" ]; then
-          echo "✅ AAB file found: $AAB_PATH"
-          ls -lh "$AAB_PATH"
+          echo "✅ Found: $AAB_PATH ($(ls -lh "$AAB_PATH" | awk '{print $5}'))"
         else
-          echo "❌ AAB file not found!"
+          echo "❌ AAB not found!"
           exit 1
         fi
-        
-    - name: Upload to Play Store
+      shell: bash
+
+    # -------------------------------------------------------------
+    # PLAY STORE UPLOAD
+    # -------------------------------------------------------------
+    - name: 🚀 Upload to Play Store
       uses: r0adkll/upload-google-play@v1
       with:
         serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
@@ -168,69 +162,56 @@ jobs:
         releaseFiles: build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab
         track: ${{ github.event.inputs.track || 'internal' }}
         status: completed
+        changesNotSentForReview: true    # ✅ avoids userFraction errors
         inAppUpdatePriority: 2
 
-        
-    - name: Store AAB Locally
+    # -------------------------------------------------------------
+    # LOCAL STORAGE & SUMMARY
+    # -------------------------------------------------------------
+    - name: 💾 Store AAB Locally
       run: |
-        echo "💾 Storing AAB locally on self-hosted runner..."
-        AAB_PATH="build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab"
-        
-        # Create local storage directory
-        mkdir -p ~/playstore-deployments/${{ github.run_id }}
-        
-        # Copy AAB to local storage
-        cp "$AAB_PATH" ~/playstore-deployments/${{ github.run_id }}/${{ matrix.flavor }}-release.aab
-        
-        echo "✅ AAB stored locally at: ~/playstore-deployments/${{ github.run_id }}/${{ matrix.flavor }}-release.aab"
-        echo "File size: $(ls -lh ~/playstore-deployments/${{ github.run_id }}/${{ matrix.flavor }}-release.aab | awk '{print $5}')"
-        
-    - name: Create Deployment Summary
-      run: |
-        echo "📋 Creating deployment summary..."
-        DEPLOY_DIR=~/playstore-deployments/${{ github.run_id }}
+        DEPLOY_DIR="$HOME/playstore-deployments/${{ github.run_id }}"
         mkdir -p "$DEPLOY_DIR"
-        
-        cat > "$DEPLOY_DIR/deployment_summary.txt" << EOF
-        Play Store Auto-Deploy Summary
-        =============================
-        
-        Deployment Date: $(date)
-        Triggered by: ${{ github.event.head_commit.message }}
-        Commit: ${{ github.sha }}
-        Branch: ${{ github.ref_name }}
-        Track: ${{ github.event.inputs.track || 'internal' }}
-        
-        Flavors Deployed:
-        EOF
-        
-        for flavor in pace gaes cbsa dpsa iiss pbss pcbs pmbs sisd; do
-          if [ -f "$DEPLOY_DIR/$flavor-release.aab" ]; then
-            size=$(ls -lh "$DEPLOY_DIR/$flavor-release.aab" | awk '{print $5}')
-            echo "- $flavor: ✅ Deployed to Play Store ($size)" >> "$DEPLOY_DIR/deployment_summary.txt"
+        cp "build/app/outputs/bundle/${{ matrix.flavor }}Release/app-${{ matrix.flavor }}-release.aab" \
+          "$DEPLOY_DIR/${{ matrix.flavor }}-release.aab"
+        echo "✅ Stored at $DEPLOY_DIR"
+      shell: bash
+
+    - name: 🧾 Create Deployment Summary
+      run: |
+        DEPLOY_DIR="$HOME/playstore-deployments/${{ github.run_id }}"
+        SUMMARY="$DEPLOY_DIR/deployment_summary.txt"
+
+        echo "Play Store Auto-Deploy Summary" > "$SUMMARY"
+        echo "=============================" >> "$SUMMARY"
+        echo "Date: $(date)" >> "$SUMMARY"
+        echo "Branch: ${{ github.ref_name }}" >> "$SUMMARY"
+        echo "Track: ${{ github.event.inputs.track || 'internal' }}" >> "$SUMMARY"
+        echo "Commit: ${{ github.sha }}" >> "$SUMMARY"
+        echo "" >> "$SUMMARY"
+        echo "Flavors Deployed:" >> "$SUMMARY"
+
+        for f in pace gaes cbsa dpsa iiss pbss pcbs pmbs sisd; do
+          if [ -f "$DEPLOY_DIR/$f-release.aab" ]; then
+            size=$(ls -lh "$DEPLOY_DIR/$f-release.aab" | awk '{print $5}')
+            echo "- $f: ✅ ($size)" >> "$SUMMARY"
           else
-            echo "- $flavor: ❌ Failed" >> "$DEPLOY_DIR/deployment_summary.txt"
+            echo "- $f: ❌ Failed" >> "$SUMMARY"
           fi
         done
-        
-        echo "Deployment summary saved to: $DEPLOY_DIR/deployment_summary.txt"
-        
-    - name: Cleanup
+
+        echo "✅ Summary saved at $SUMMARY"
+      shell: bash
+
+    # -------------------------------------------------------------
+    # CLEANUP
+    # -------------------------------------------------------------
+    - name: 🧹 Cleanup
       if: always()
       run: |
-        echo "🧹 Cleaning up AWS Mac runner..."
-        
-        # Source environment variables
-        source ~/.zshrc
-        
-        # Clean up signing files
-        rm -f android/key.properties
-        rm -f android/${{ matrix.key_file }}
-        
-        # Clean Flutter build cache
+        echo "Cleaning up temporary files..."
+        rm -f android/key.properties android/*.jks
         flutter clean
-        
-        # Clean up any temporary files
         rm -rf /tmp/flutter_*
-        
-        echo "✅ Cleanup completed"
+        echo "✅ Cleanup done"
+      shell: bash
