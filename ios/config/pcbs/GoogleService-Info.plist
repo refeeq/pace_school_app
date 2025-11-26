@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>724372178164-lrdlqv4h9ol47f6v4n6l9m2nbvd72of2.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.724372178164-lrdlqv4h9ol47f6v4n6l9m2nbvd72of2</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCA8uKhHR6M1G18y9vuiER78F2_aIinA64</string>
+	<key>GCM_SENDER_ID</key>
+	<string>724372178164</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.pcbs.schoolapp</string>
+	<key>PROJECT_ID</key>
+	<string>pace-creative-british-school</string>
+	<key>STORAGE_BUCKET</key>
+	<string>pace-creative-british-school.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:724372178164:ios:2b88638b93a3fe665bcaa1</string>
+</dict>
+</plist>

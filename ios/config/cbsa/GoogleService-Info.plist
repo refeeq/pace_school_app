@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>738700515636-srglvimqo70hm8n2bgaukv0otadvgb03.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.738700515636-srglvimqo70hm8n2bgaukv0otadvgb03</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAK1OgvEQgucy4vvp_tRTTpd8uv6Ydmj1c</string>
+	<key>GCM_SENDER_ID</key>
+	<string>738700515636</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.cbsa.schoolapp</string>
+	<key>PROJECT_ID</key>
+	<string>cbsa-a78fb</string>
+	<key>STORAGE_BUCKET</key>
+	<string>cbsa-a78fb.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:738700515636:ios:cac64ef53bf5579d86ad61</string>
+</dict>
+</plist>
