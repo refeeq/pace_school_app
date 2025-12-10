@@ -13,6 +13,7 @@ import 'package:school_app/core/models/student_menu_model.dart';
 import 'package:school_app/core/models/students_model.dart';
 import 'package:school_app/core/repository/student/repository.dart';
 import 'package:school_app/core/services/dependecyInjection.dart';
+import 'package:school_app/core/utils/utils.dart';
 
 enum PageControllerState {
   NoNeedPageController,
@@ -40,6 +41,7 @@ class StudentProvider with ChangeNotifier {
     status: AppStates.Unintialized,
   );
   PageControllerState pageControllerState = PageControllerState.Uninitialized;
+  AppStates updateStudentDocState = AppStates.Unintialized;
 
   Future<void> getProgressReport(String stdCode, examId, accId) async {
     progressReport = CommonResModel(status: AppStates.Initial_Fetching);
@@ -208,6 +210,11 @@ class StudentProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void resetUpdateStudentDocState({bool notify = true}) {
+    updateStudentDocState = AppStates.Unintialized;
+    if (notify) notifyListeners();
+  }
+
   StudentModel selectedStudentModel(BuildContext) {
     print("Student ID $studID");
     if (studID.isNotEmpty) {
@@ -247,5 +254,52 @@ class StudentProvider with ChangeNotifier {
     studID = studId;
 
     notifyListeners();
+  }
+
+  Future<bool> updateStudentDocumentDetails({
+    required String studCode,
+    required String emiratesId,
+    required String emiratesIdExp,
+    required BuildContext context,
+  }) async {
+    updateStudentDocState = AppStates.Initial_Fetching;
+    notifyListeners();
+
+    bool hasInternet = await InternetConnectivity().hasInternetConnection;
+    if (!hasInternet) {
+      updateStudentDocState = AppStates.NoInterNetConnectionState;
+      notifyListeners();
+      showToast("No internet connection!", context);
+      return false;
+    }
+
+    final respon = await repository.updateStudentDocumentDetails(
+      studCode: studCode,
+      emiratesId: emiratesId,
+      emiratesIdExp: emiratesIdExp,
+    );
+
+    if (respon.isLeft) {
+      log(respon.left.message.toString());
+      log(respon.left.key.toString());
+      updateStudentDocState = AppStates.Error;
+      showToast(respon.left.message ?? "Failed to update details", context);
+      notifyListeners();
+      return false;
+    } else {
+      final data = respon.right;
+      if (data['status'] == true) {
+        updateStudentDocState = AppStates.Fetched;
+        showToast(data["message"].toString(), context);
+        await getStudentDetail(studCode: studCode);
+        notifyListeners();
+        return true;
+      } else {
+        updateStudentDocState = AppStates.Error;
+        showToast(data["message"].toString(), context);
+        notifyListeners();
+        return false;
+      }
+    }
   }
 }

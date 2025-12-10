@@ -16,22 +16,6 @@ class BusTrackPage extends StatefulWidget {
   State<BusTrackPage> createState() => _BusTrackPageState();
 }
 
-class _BusTrackPageState extends State<BusTrackPage> {
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: ConstColors.backgroundColor,
-      appBar: const CommonAppBar(title: "Student Tracking"),
-      body: const UiWidget(),
-    );
-  }
-}
-
 class UiWidget extends StatelessWidget {
   const UiWidget({super.key});
 
@@ -75,5 +59,35 @@ class UiWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _BusTrackPageState extends State<BusTrackPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: ConstColors.backgroundColor,
+      appBar: CommonAppBar(
+        title: "Student Tracking",
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.settings_ethernet, color: Colors.white),
+        //     tooltip: 'MQTT Test',
+        //     onPressed: () {
+        //       Navigator.push(
+        //         context,
+        //         MaterialPageRoute(builder: (context) => const MqttTestPage()),
+        //       );
+        //     },
+        //   ),
+        // ],
+      ),
+      body: const UiWidget(),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 }

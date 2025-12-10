@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:either_dart/either.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -19,11 +21,14 @@ class BusTrackRepository {
     var userData = Hive.box<AuthModel>(USERDB);
     userData.values;
     AuthModel authModel = userData.get(0) as AuthModel;
+
     var data = FormData.fromMap({
       "token": authModel.token,
       "famcode": authModel.famcode,
       "admission_no": admissionNo,
     });
+    log(data.fields.toString());
+
     var res = await dioAPIServices.postAPI(
       body: data,
       url: ApiConstatns.getTracking,

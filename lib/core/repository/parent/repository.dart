@@ -15,4 +15,13 @@ abstract class ParentRepository {
     required String relation,
     required String otp,
   });
+  Future<Either<MyError, dynamic>> updateParentMobile({
+    required String mobile,
+    required String relation,
+  });
+  Future<Either<MyError, dynamic>> updateParentMobileOtp({
+    required String mobile,
+    required String relation,
+    required String otp,
+  });
 }

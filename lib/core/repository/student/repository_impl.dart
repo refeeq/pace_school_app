@@ -235,6 +235,40 @@ class StudentRepositoryImpl implements StudentRepository {
   }
 
   @override
+  Future<Either<MyError, dynamic>> updateStudentDocumentDetails({
+    required String studCode,
+    required String emiratesId,
+    required String emiratesIdExp,
+  }) async {
+    var userData = Hive.box<AuthModel>(USERDB);
+    userData.values;
+    AuthModel authModel = userData.get(0) as AuthModel;
+
+    var data = FormData.fromMap({
+      "token": authModel.token,
+      "famcode": authModel.famcode,
+      "admission_no": studCode,
+      "emirates_id": emiratesId,
+      "emirates_id_exp": emiratesIdExp,
+    });
+
+    // var response = await apiServices.postAPI(
+    //   url: ApiConstatns.updateStudentDocumentDetails,
+    //   body: data,
+    // );
+
+    // if (response.isLeft) {
+    //   log(response.left.message!);
+    //   return Left(response.left);
+    // } else {
+    //   log(response.right.toString());
+    //   return Right(response.right);
+    // }
+
+    return Right(data);
+  }
+
+  @override
   Future<Either<MyError, dynamic>> viewStudentRcpts({
     required String studCode,
     type,

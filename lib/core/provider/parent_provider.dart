@@ -19,12 +19,9 @@ class ParentProvider with ChangeNotifier {
   ParentProfileListModel? parentProfileListModel;
   AppStates parentDetailListState = AppStates.Unintialized;
   AppStates parentOtpState = AppStates.Unintialized;
-  void updateParentOtpStatus() {
-    parentOtpState = AppStates.Unintialized;
-    notifyListeners();
-  }
-
+  AppStates parentMobileOtpState = AppStates.Unintialized;
   int parentSelected = 0;
+
   Future<void> getParentDetails() async {
     parentDetail = AppStates.Initial_Fetching;
     bool hasInternet = await InternetConnectivity().hasInternetConnection;
@@ -81,6 +78,39 @@ class ParentProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> sendMobileOtp({
+    required String relation,
+    required String mobile,
+    required BuildContext context,
+  }) async {
+    parentMobileOtpState = AppStates.Initial_Fetching;
+    bool hasInternet = await InternetConnectivity().hasInternetConnection;
+
+    if (!hasInternet) {
+      parentMobileOtpState = AppStates.NoInterNetConnectionState;
+    } else {
+      notifyListeners();
+      var respon = await repository.updateParentMobile(
+        mobile: mobile,
+        relation: relation,
+      );
+      if (respon.isLeft) {
+        log(respon.left.message.toString());
+        log(respon.left.key.toString());
+        parentMobileOtpState = AppStates.Error;
+      } else {
+        if (respon.right['status'] == true) {
+          parentMobileOtpState = AppStates.Fetched;
+          showToast(respon.right["message"].toString(), context);
+          log(respon.right.toString());
+        } else {
+          showToast(respon.right["message"].toString(), context);
+        }
+      }
+    }
+    notifyListeners();
+  }
+
   Future<void> sendOtp({
     required String relation,
     required String email,
@@ -116,6 +146,16 @@ class ParentProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void updateParentMobileOtpStatus() {
+    parentMobileOtpState = AppStates.Unintialized;
+    notifyListeners();
+  }
+
+  void updateParentOtpStatus() {
+    parentOtpState = AppStates.Unintialized;
+    notifyListeners();
+  }
+
   Future verify({
     required String relation,
     required String email,
@@ -146,6 +186,42 @@ class ParentProvider with ChangeNotifier {
 
           log(respon.right.toString());
           // parentProfileListModel = respon.right;
+        } else {
+          showToast(respon.right["message"].toString(), context);
+        }
+      }
+    }
+    notifyListeners();
+  }
+
+  Future verifyMobile({
+    required String relation,
+    required String mobile,
+    required String otp,
+    required BuildContext context,
+  }) async {
+    parentMobileOtpState = AppStates.Initial_Fetching;
+    bool hasInternet = await InternetConnectivity().hasInternetConnection;
+
+    if (!hasInternet) {
+      parentMobileOtpState = AppStates.NoInterNetConnectionState;
+    } else {
+      notifyListeners();
+      var respon = await repository.updateParentMobileOtp(
+        mobile: mobile,
+        relation: relation,
+        otp: otp,
+      );
+      if (respon.isLeft) {
+        log(respon.left.message.toString());
+        log(respon.left.key.toString());
+        parentMobileOtpState = AppStates.Error;
+      } else {
+        if (respon.right['status'] == true) {
+          getParentDetailsList();
+          parentMobileOtpState = AppStates.Unintialized;
+          showToast(respon.right["message"].toString(), context);
+          log(respon.right.toString());
         } else {
           showToast(respon.right["message"].toString(), context);
         }

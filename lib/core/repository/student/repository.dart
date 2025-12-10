@@ -34,6 +34,11 @@ abstract class StudentRepository {
     examId,
     accId,
   });
+  Future<Either<MyError, dynamic>> updateStudentDocumentDetails({
+    required String studCode,
+    required String emiratesId,
+    required String emiratesIdExp,
+  });
   Future<Either<MyError, dynamic>> viewStudentRcpts({
     required String studCode,
     no,

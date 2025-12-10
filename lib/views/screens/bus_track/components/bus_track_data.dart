@@ -176,7 +176,7 @@ class BusTrackData extends StatelessWidget {
                                       MaterialPageRoute(
                                         builder: (context) => TrackingComponent(
                                           topic:
-                                              //  "$schoolIdentifier/transport/bus/19",
+                                              // "$schoolIdentifier/transport/bus/OT",
                                               "$schoolIdentifier/transport/bus/${busTrackDataModel.liveTrips![index].busNo}",
                                         ),
                                       ),

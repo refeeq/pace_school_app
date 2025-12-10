@@ -13,6 +13,7 @@ import 'package:school_app/views/components/no_data_widget.dart';
 import 'package:school_app/views/components/no_internet_connection.dart';
 import 'package:school_app/views/components/shimmer_student_profile.dart';
 import 'package:school_app/views/screens/parent/parent_profile/verify_email.dart';
+import 'package:school_app/views/screens/parent/parent_profile/verify_mobile.dart';
 
 import '../../../components/profile_tile.dart';
 import '../../../components/shimmer_profile.dart';
@@ -176,33 +177,43 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                           .famcode,
                                     ),
                                     SizedBox(height: 6.h),
-                                    ProfileTile(
-                                      label: "Mobile Number",
-                                      value: value
-                                          .parentProfileListModel!
-                                          .data[value.parentSelected]
-                                          .mobile,
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => VerifyMobile(
+                                              relation: value
+                                                  .parentProfileListModel!
+                                                  .data[value.parentSelected]
+                                                  .relation,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: ProfileTile(
+                                        canEdit: true,
+                                        label: "Mobile Number",
+                                        value: value
+                                            .parentProfileListModel!
+                                            .data[value.parentSelected]
+                                            .mobile,
+                                      ),
                                     ),
                                     SizedBox(height: 6.h),
                                     InkWell(
                                       onTap: () {
-                                        if (value
-                                            .parentProfileListModel!
-                                            .data[value.parentSelected]
-                                            .email
-                                            .isEmpty) {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => VerifyEmail(
-                                                relation: value
-                                                    .parentProfileListModel!
-                                                    .data[value.parentSelected]
-                                                    .relation,
-                                              ),
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => VerifyEmail(
+                                              relation: value
+                                                  .parentProfileListModel!
+                                                  .data[value.parentSelected]
+                                                  .relation,
                                             ),
-                                          );
-                                        }
+                                          ),
+                                        );
                                       },
                                       child: ProfileTile(
                                         isRed: value
