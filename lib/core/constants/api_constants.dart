@@ -40,13 +40,12 @@ class ApiConstatns {
   static String applyLeave = '${baseUrl}applyLeave';
   static String updateParentEmailOtp = '${baseUrl}updateParentEmailOtp';
   static String updateParentEmail = '${baseUrl}updateParentEmail';
-  static String updateParentMobileOtp = '${baseUrl}updateParentMobileOtp';
-  static String updateParentMobile = '${baseUrl}updateParentMobile';
+  static String updateParentMobileOtp = '${baseUrl}updateParentPhoneOtp';
+  static String updateParentMobile = '${baseUrl}updateParentPhone';
   static String viewFeeRcpt = '${baseUrl}studView';
   static String availableProgrssReport = '${baseUrl}availableProgrssReport';
   static String progrssReport = '${baseUrl}progrssReport';
-  static String updateStudentDocumentDetails =
-      '${baseUrl}updateStudentDocumentDetails';
+  static String updateStudentEmiratesID = '${baseUrl}updateStudentEmiratesID';
 
   //open House
   static String openHouse = '${baseUrl}openHouse';

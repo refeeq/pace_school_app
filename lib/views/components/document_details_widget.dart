@@ -50,7 +50,8 @@ class DocumentDetailWidget extends StatelessWidget {
                 const SizedBox(height: 5),
                 Builder(
                   builder: (context) {
-                    final canEdit = _isExpiredOrToday(data.emiratesId);
+                    final canEdit = true;
+                    // _isExpiredOrToday(data.emiratesId);
                     void navigate() {
                       Navigator.push(
                         context,
@@ -73,7 +74,8 @@ class DocumentDetailWidget extends StatelessWidget {
                 const SizedBox(height: 5),
                 Builder(
                   builder: (context) {
-                    final canEdit = _isExpiredOrToday(data.emiratesIdExp);
+                    final canEdit = true;
+                    //_isExpiredOrToday(data.emiratesIdExp);
                     void navigate() {
                       Navigator.push(
                         context,
@@ -87,7 +89,7 @@ class DocumentDetailWidget extends StatelessWidget {
                       onTap: canEdit ? navigate : null,
                       child: ProfileTile(
                         canEdit: canEdit,
-                        label: "Emirates ID Expiry date1",
+                        label: "Emirates ID Expiry date",
                         value: data.emiratesIdExp,
                       ),
                     );

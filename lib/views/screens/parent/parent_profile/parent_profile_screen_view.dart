@@ -203,17 +203,23 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                     SizedBox(height: 6.h),
                                     InkWell(
                                       onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => VerifyEmail(
-                                              relation: value
-                                                  .parentProfileListModel!
-                                                  .data[value.parentSelected]
-                                                  .relation,
+                                        if (value
+                                            .parentProfileListModel!
+                                            .data[value.parentSelected]
+                                            .email
+                                            .isEmpty) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => VerifyEmail(
+                                                relation: value
+                                                    .parentProfileListModel!
+                                                    .data[value.parentSelected]
+                                                    .relation,
+                                              ),
                                             ),
-                                          ),
-                                        );
+                                          );
+                                        }
                                       },
                                       child: ProfileTile(
                                         isRed: value

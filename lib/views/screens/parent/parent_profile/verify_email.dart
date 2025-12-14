@@ -32,6 +32,19 @@ class _VerifyEmailState extends State<VerifyEmail> {
   final _formKey = GlobalKey<FormState>();
 
   @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ParentProvider>(
+        context,
+        listen: false,
+      ).updateParentOtpStatus();
+    });
+    startTimer();
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ConstColors.backgroundColor,
@@ -239,7 +252,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                     return NoInternetConnection(ontap: () {});
                   case AppStates.Error:
                     return const NoDataWidget(
-                      imagePath: "assets/images/error.svg",
+                      imagePath: "assets/images/no_data.svg",
                       content: "Something went wrong. Please try again later.",
                     );
                 }
@@ -256,9 +269,14 @@ class _VerifyEmailState extends State<VerifyEmail> {
                 Provider.of<ParentProvider>(
                       context,
                       listen: false,
-                    ).parentOtpState ==
-                    AppStates.Unintialized) {
-              Provider.of<ParentProvider>(context, listen: false).sendOtp(
+                    ).parentOtpState !=
+                    AppStates.Fetched &&
+                Provider.of<ParentProvider>(
+                      context,
+                      listen: false,
+                    ).parentOtpState !=
+                    AppStates.Initial_Fetching) {
+              Provider.of<ParentProvider>(context, listen: false).sendEmailOtp(
                 relation: widget.relation,
                 email: emailcontroller.text,
                 context: context,
@@ -269,7 +287,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                 ).parentOtpState ==
                 AppStates.Fetched) {
               Provider.of<ParentProvider>(context, listen: false)
-                  .verify(
+                  .verifyEmailOtp(
                     relation: widget.relation,
                     email: emailcontroller.text,
                     otp: controller.text,
@@ -314,19 +332,6 @@ class _VerifyEmailState extends State<VerifyEmail> {
   void dispose() {
     _timer.cancel();
     super.dispose();
-  }
-
-  @override
-  void initState() {
-    Future(
-      () => Provider.of<ParentProvider>(
-        context,
-        listen: false,
-      ).updateParentOtpStatus(),
-    );
-    startTimer();
-    // TODO: implement initState
-    super.initState();
   }
 
   void startTimer() {

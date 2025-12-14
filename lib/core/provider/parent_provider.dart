@@ -104,6 +104,7 @@ class ParentProvider with ChangeNotifier {
           showToast(respon.right["message"].toString(), context);
           log(respon.right.toString());
         } else {
+          parentMobileOtpState = AppStates.Error;
           showToast(respon.right["message"].toString(), context);
         }
       }
@@ -111,7 +112,7 @@ class ParentProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> sendOtp({
+  Future<void> sendEmailOtp({
     required String relation,
     required String email,
     required BuildContext context,
@@ -139,6 +140,7 @@ class ParentProvider with ChangeNotifier {
           log(respon.right.toString());
           // parentProfileListModel = respon.right;
         } else {
+          parentOtpState = AppStates.Error;
           showToast(respon.right["message"].toString(), context);
         }
       }
@@ -156,7 +158,7 @@ class ParentProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future verify({
+  Future verifyEmailOtp({
     required String relation,
     required String email,
     required String otp,
@@ -187,6 +189,7 @@ class ParentProvider with ChangeNotifier {
           log(respon.right.toString());
           // parentProfileListModel = respon.right;
         } else {
+          parentOtpState = AppStates.Error;
           showToast(respon.right["message"].toString(), context);
         }
       }
@@ -223,6 +226,7 @@ class ParentProvider with ChangeNotifier {
           showToast(respon.right["message"].toString(), context);
           log(respon.right.toString());
         } else {
+          parentMobileOtpState = AppStates.Error;
           showToast(respon.right["message"].toString(), context);
         }
       }

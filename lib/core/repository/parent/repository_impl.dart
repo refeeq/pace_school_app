@@ -140,7 +140,7 @@ class ParentRepositoryimpl implements ParentRepository {
     var data = FormData.fromMap({
       "token": authModel.token,
       "famcode": authModel.famcode,
-      "mobile_number": mobile,
+      "phone_number": mobile,
       "relation": relation,
     });
     var response = await apiServices.postAPI(
@@ -170,7 +170,7 @@ class ParentRepositoryimpl implements ParentRepository {
     var data = FormData.fromMap({
       "token": authModel.token,
       "famcode": authModel.famcode,
-      "mobile_number": mobile,
+      "phone_number": mobile,
       "relation": relation,
       "otp": otp,
     });

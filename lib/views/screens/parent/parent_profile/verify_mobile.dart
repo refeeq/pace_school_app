@@ -33,6 +33,14 @@ class _VerifyMobileState extends State<VerifyMobile> {
   final _formKey = GlobalKey<FormState>();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ParentProvider>(context, listen: false).updateParentMobileOtpStatus();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ConstColors.backgroundColor,
@@ -205,7 +213,7 @@ class _VerifyMobileState extends State<VerifyMobile> {
                     return NoInternetConnection(ontap: () {});
                   case AppStates.Error:
                     return const NoDataWidget(
-                      imagePath: "assets/images/error.svg",
+                      imagePath: "assets/images/no_data.svg",
                       content: "Something went wrong. Please try again later.",
                     );
                 }
@@ -222,8 +230,13 @@ class _VerifyMobileState extends State<VerifyMobile> {
                 Provider.of<ParentProvider>(
                       context,
                       listen: false,
-                    ).parentMobileOtpState ==
-                    AppStates.Unintialized) {
+                    ).parentMobileOtpState !=
+                    AppStates.Fetched &&
+                Provider.of<ParentProvider>(
+                      context,
+                      listen: false,
+                    ).parentMobileOtpState !=
+                    AppStates.Initial_Fetching) {
               Provider.of<ParentProvider>(context, listen: false).sendMobileOtp(
                 relation: widget.relation,
                 mobile: mobileController.text,

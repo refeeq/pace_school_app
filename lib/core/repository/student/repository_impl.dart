@@ -240,32 +240,44 @@ class StudentRepositoryImpl implements StudentRepository {
     required String emiratesId,
     required String emiratesIdExp,
   }) async {
-    var userData = Hive.box<AuthModel>(USERDB);
-    userData.values;
-    AuthModel authModel = userData.get(0) as AuthModel;
+    try {
+      var userData = Hive.box<AuthModel>(USERDB);
+      userData.values;
+      AuthModel authModel = userData.get(0) as AuthModel;
 
-    var data = FormData.fromMap({
-      "token": authModel.token,
-      "famcode": authModel.famcode,
-      "admission_no": studCode,
-      "emirates_id": emiratesId,
-      "emirates_id_exp": emiratesIdExp,
-    });
+      var data = FormData.fromMap({
+        "token": authModel.token,
+        "famcode": authModel.famcode,
+        "admission_no": studCode,
+        "emirates_id": emiratesId,
+        "emirates_exp": emiratesIdExp,
+      });
 
-    // var response = await apiServices.postAPI(
-    //   url: ApiConstatns.updateStudentDocumentDetails,
-    //   body: data,
-    // );
+      var response = await apiServices.postAPI(
+        url: ApiConstatns.updateStudentEmiratesID,
+        body: data,
+      );
 
-    // if (response.isLeft) {
-    //   log(response.left.message!);
-    //   return Left(response.left);
-    // } else {
-    //   log(response.right.toString());
-    //   return Right(response.right);
-    // }
-
-    return Right(data);
+      if (response.isLeft) {
+        log(
+          "Error updating student document details: ${response.left.message}",
+        );
+        return Left(response.left);
+      } else {
+        // Return Right for all successful API responses
+        // Provider will check response.right['status'] to determine success/failure
+        log("API response received: ${response.right.toString()}");
+        return Right(response.right);
+      }
+    } catch (e) {
+      log("Unexpected error in updateStudentDocumentDetails: $e");
+      return Left(
+        MyError(
+          key: AppError.unknown,
+          message: 'An unexpected error occurred. Please try again.',
+        ),
+      );
+    }
   }
 
   @override
