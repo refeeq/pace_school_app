@@ -59,6 +59,7 @@ dependencies:
   observe_internet_connectivity: ^1.0.2
   equatable: ^2.0.7
   maps_launcher: ^3.0.0+1
+  google_maps_flutter: ^2.9.0
   firebase_messaging: ^16.0.2
   permission_handler: ^12.0.1
   upgrader: ^12.1.0
@@ -108,6 +109,7 @@ flutter:
     - assets/certs/
     - assets/logo/
     - assets/bottom/
+    - assets/location.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

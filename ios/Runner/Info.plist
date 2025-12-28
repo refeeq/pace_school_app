@@ -71,5 +71,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>GMSApiKey</key>
+	<string>AIzaSyDQwTk9sXiKrH2ksFk6uPyy16wdxQoL9vc</string>
 </dict>
 </plist>

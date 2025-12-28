@@ -266,7 +266,7 @@ void onDisconnected() {
 }
 
 void onSubscribed(String topic) {
-  log('Subscribed to topic: $topic');
+  log('##Subscribed to topic: $topic');
 }
 ```
 
