@@ -41,7 +41,7 @@ class TrackingComponentState extends State<TrackingComponent>
   ); // Custom bus marker icon - default to blue
   //bool showPolyline = false; // Control polyline visibility
   bool isMapReady = false; // Flag to check if map is ready
-  bool shouldMoveMap = true; // New flag to toggle map movement
+  bool shouldMoveMap = false; // New flag to toggle map movement (default: false to allow free map exploration)
   MapType _currentMapType = MapType.normal; // Current map type (no extra API calls)
   bool isConnecting = false; // Track connection state
   String? connectionError; // Store connection error message
@@ -72,7 +72,6 @@ class TrackingComponentState extends State<TrackingComponent>
   LatLng? _previousLocation;
   LatLng? _targetLocation;
   static const Duration _animationDuration = Duration(milliseconds: 2000); // 2 seconds for smooth movement
-  static const double _minCameraMoveDistance = 10.0; // Reduced from 30m to 10m for smoother tracking
 
   @override
   void initState() {
@@ -118,7 +117,7 @@ class TrackingComponentState extends State<TrackingComponent>
     if (mounted) {
       setState(() {});
     }
-    log('✅ [MAP] Default blue marker set immediately');
+    // log('✅ [MAP] Default blue marker set immediately');
 
     // Create custom bus icon - this is our primary visible icon
     try {
@@ -128,9 +127,9 @@ class TrackingComponentState extends State<TrackingComponent>
       );
 
       _busIcon = customIcon;
-      log(
-        '✅ [MAP] Custom bus icon created successfully (120x120 blue circle with bus)',
-      );
+      // log(
+      //   '✅ [MAP] Custom bus icon created successfully (120x120 blue circle with bus)',
+      // );
       if (mounted) {
         setState(() {});
       }
@@ -142,9 +141,9 @@ class TrackingComponentState extends State<TrackingComponent>
 
     // Skip loading from assets - the asset icon might be transparent or not suitable
     // We'll use the custom icon which is guaranteed to be visible
-    log(
-      'ℹ️ [MAP] Using custom bus icon (skipping asset icon to ensure visibility)',
-    );
+    // log(
+    //   'ℹ️ [MAP] Using custom bus icon (skipping asset icon to ensure visibility)',
+    // );
   }
 
   // Create a custom bus icon - perfectly sized and beautifully designed
@@ -175,17 +174,17 @@ class TrackingComponentState extends State<TrackingComponent>
   // Connect to the MQTT broker and subscribe to the location topic
   Future<void> connectToMqtt() async {
     if (_isDisposed || !mounted) {
-      log('⚠️ [MQTT] Widget disposed, skipping connection...');
+      // log('⚠️ [MQTT] Widget disposed, skipping connection...');
       return;
     }
 
     if (isConnecting) {
-      log('⏳ [MQTT] Connection already in progress, skipping...');
+      // log('⏳ [MQTT] Connection already in progress, skipping...');
       return;
     }
 
-    log('🔄 [MQTT] Starting connection attempt...');
-    log('📊 [MQTT] Retry count: $retryCount/$maxRetries');
+    // log('🔄 [MQTT] Starting connection attempt...');
+    // log('📊 [MQTT] Retry count: $retryCount/$maxRetries');
 
     if (!mounted) return;
     setState(() {
@@ -194,7 +193,7 @@ class TrackingComponentState extends State<TrackingComponent>
     });
 
     try {
-      log('⚙️ [MQTT] Configuring client settings...');
+      // log('⚙️ [MQTT] Configuring client settings...');
       client.port = 8883;
       client.keepAlivePeriod = 20;
       client.secure = true; // Enable SSL/TLS
@@ -202,40 +201,40 @@ class TrackingComponentState extends State<TrackingComponent>
       client.onConnected = onConnected;
       client.onSubscribed = onSubscribed;
       client.autoReconnect = false; // We'll handle reconnection manually
-      log('✅ [MQTT] Client configured: Port=8883, KeepAlive=20s, SSL=true');
+      // log('✅ [MQTT] Client configured: Port=8883, KeepAlive=20s, SSL=true');
 
       // Create SecurityContext for certificates
-      log('🔐 [MQTT] Loading SSL certificates...');
+      // log('🔐 [MQTT] Loading SSL certificates...');
       final context = SecurityContext.defaultContext;
       try {
         // Load certificates with better error handling
-        log('📄 [MQTT] Loading Root CA certificate...');
+        // log('📄 [MQTT] Loading Root CA certificate...');
         final rootCA = await rootBundle.load('assets/certs/AmazonRootCA1.pem');
         context.setTrustedCertificatesBytes(rootCA.buffer.asUint8List());
-        log(
-          '✅ [MQTT] Root CA loaded successfully (${rootCA.lengthInBytes} bytes)',
-        );
+        // log(
+        //   '✅ [MQTT] Root CA loaded successfully (${rootCA.lengthInBytes} bytes)',
+        // );
 
-        log('📄 [MQTT] Loading client certificate...');
+        // log('📄 [MQTT] Loading client certificate...');
         final clientCert = await rootBundle.load(
           'assets/certs/certificate.pem.crt',
         );
         context.useCertificateChainBytes(clientCert.buffer.asUint8List());
-        log(
-          '✅ [MQTT] Client certificate loaded successfully (${clientCert.lengthInBytes} bytes)',
-        );
+        // log(
+        //   '✅ [MQTT] Client certificate loaded successfully (${clientCert.lengthInBytes} bytes)',
+        // );
 
-        log('🔑 [MQTT] Loading private key...');
+        // log('🔑 [MQTT] Loading private key...');
         final privateKey = await rootBundle.load(
           'assets/certs/private.pem.key',
         );
         context.usePrivateKeyBytes(privateKey.buffer.asUint8List());
-        log(
-          '✅ [MQTT] Private key loaded successfully (${privateKey.lengthInBytes} bytes)',
-        );
+        // log(
+        //   '✅ [MQTT] Private key loaded successfully (${privateKey.lengthInBytes} bytes)',
+        // );
 
         client.securityContext = context;
-        log('✅ [MQTT] All certificates loaded and configured');
+        // log('✅ [MQTT] All certificates loaded and configured');
       } on PlatformException catch (e) {
         log('❌ [MQTT] PlatformException loading certificates: $e');
         log('📋 [MQTT] Error details: ${e.toString()}');
@@ -258,7 +257,7 @@ class TrackingComponentState extends State<TrackingComponent>
       }
 
       // Attempt connection with timeout
-      log('🔌 [MQTT] Attempting to connect to broker...');
+      // log('🔌 [MQTT] Attempting to connect to broker...');
       final connectionStartTime = DateTime.now();
       try {
         await client.connect().timeout(
@@ -270,9 +269,9 @@ class TrackingComponentState extends State<TrackingComponent>
         final connectionDuration = DateTime.now().difference(
           connectionStartTime,
         );
-        log(
-          '⏱️ [MQTT] Connection attempt completed in ${connectionDuration.inMilliseconds}ms',
-        );
+        // log(
+        //   '⏱️ [MQTT] Connection attempt completed in ${connectionDuration.inMilliseconds}ms',
+        // );
       } on SocketException catch (e) {
         log('❌ [MQTT] SocketException connecting to MQTT');
         log('📋 [MQTT] Error message: ${e.message}');
@@ -286,9 +285,9 @@ class TrackingComponentState extends State<TrackingComponent>
           final delay = Duration(
             seconds: 2 * retryCount,
           ); // Exponential backoff
-          log(
-            '🔄 [MQTT] Retrying connection in ${delay.inSeconds} seconds (attempt $retryCount/$maxRetries)...',
-          );
+          // log(
+          //   '🔄 [MQTT] Retrying connection in ${delay.inSeconds} seconds (attempt $retryCount/$maxRetries)...',
+          // );
           setState(() {
             isConnecting = false;
             connectionError = 'Connection failed: ${e.message}. Retrying...';
@@ -479,23 +478,23 @@ class TrackingComponentState extends State<TrackingComponent>
           _messageSubscription = client.updates!.listen(
             (List<MqttReceivedMessage<MqttMessage>> c) {
               if (_isDisposed || !mounted) {
-                log('⚠️ [MQTT] Message received but widget disposed/unmounted');
+                // log('⚠️ [MQTT] Message received but widget disposed/unmounted');
                 return;
               }
 
-              log(
-                '📨 [MQTT] Raw message batch received with ${c.length} message(s)',
-              );
+              // log(
+             //     '📨 [MQTT] Raw message batch received with ${c.length} message(s)',
+              // );
 
               // Process all messages in the batch
               for (int i = 0; i < c.length; i++) {
                 try {
                   final message = c[i];
-                  log('📨 [MQTT] Processing message $i of ${c.length}');
-                  log('📨 [MQTT] Message topic: ${message.topic}');
-                  log(
-                    '📨 [MQTT] Message payload type: ${message.payload.runtimeType}',
-                  );
+                    // log('📨 [MQTT] Processing message $i of ${c.length}');
+                  // log('📨 [MQTT] Message topic: ${message.topic}');
+                  // log(
+                  //   '📨 [MQTT] Message payload type: ${message.payload.runtimeType}',
+                  // );
 
                   if (message.payload is MqttPublishMessage) {
                     final MqttPublishMessage recMess =
@@ -506,13 +505,13 @@ class TrackingComponentState extends State<TrackingComponent>
                           recMess.payload.message,
                         );
 
-                    log(
-                      '📋 [MQTT] Message #${_totalMessagesReceived + 1} details:',
-                    );
-                    log('   Received topic: "$topic"');
-                    log('   Expected topic: "${widget.topic}"');
-                    log('   Topic match: ${topic == widget.topic}');
-                    log('   Payload length: ${payload.length} characters');
+                      // log(
+                      //   '📋 [MQTT] Message #${_totalMessagesReceived + 1} details:',
+                      // );
+                      // log('   Received topic: "$topic"');
+                      // log('   Expected topic: "${widget.topic}"');
+                    // log('   Topic match: ${topic == widget.topic}');
+                    // log('   Payload length: ${payload.length} characters');
                     log(
                       '   Payload preview: ${payload.length > 100 ? payload.substring(0, 100) + "..." : payload}',
                     );
@@ -530,13 +529,13 @@ class TrackingComponentState extends State<TrackingComponent>
                         });
                       }
 
-                      log('✅ [MQTT] Processing message for subscribed topic');
-                      log(
-                        '🕐 [MQTT] Message received at: ${_lastMessageTime!.toIso8601String()}',
-                      );
-                      log(
-                        '📊 [MQTT] Total messages received: $_totalMessagesReceived',
-                      );
+                      // log('✅ [MQTT] Processing message for subscribed topic');
+                      // log(
+                      //   '🕐 [MQTT] Message received at: ${_lastMessageTime!.toIso8601String()}',
+                      // );
+                      // log(
+                      //   '📊 [MQTT] Total messages received: $_totalMessagesReceived',
+                      // );
 
                       updateBusLocation(payload);
                     } else {
@@ -575,9 +574,9 @@ class TrackingComponentState extends State<TrackingComponent>
                 final timeSinceLastMessage = DateTime.now().difference(
                   _lastMessageTime!,
                 );
-                log(
-                  '📊 [MQTT] Time since last message: ${timeSinceLastMessage.inSeconds}s',
-                );
+                // log(
+                //   '📊 [MQTT] Time since last message: ${timeSinceLastMessage.inSeconds}s',
+                // );
               }
             },
             cancelOnError: false,
@@ -678,15 +677,15 @@ class TrackingComponentState extends State<TrackingComponent>
   }
 
   void onSubscribed(String topic) {
-    log('✅ [MQTT] onSubscribed callback triggered');
-    log('📋 [MQTT] Successfully subscribed to topic: $topic');
-    log('📋 [MQTT] Topic length: ${topic.length}');
-    log('📋 [MQTT] Topic bytes: ${topic.codeUnits}');
-    log('📊 [MQTT] Subscription confirmed - ready to receive messages');
-    log('📊 [MQTT] Expected topic: ${widget.topic}');
-    log('📊 [MQTT] Expected topic length: ${widget.topic.length}');
-    log('📊 [MQTT] Expected topic bytes: ${widget.topic.codeUnits}');
-    log('📊 [MQTT] Topic match: ${topic == widget.topic}');
+    // log('✅ [MQTT] onSubscribed callback triggered');
+    // log('📋 [MQTT] Successfully subscribed to topic: $topic');
+    // log('📋 [MQTT] Topic length: ${topic.length}');
+    // log('📋 [MQTT] Topic bytes: ${topic.codeUnits}');
+    // log('📊 [MQTT] Subscription confirmed - ready to receive messages');
+    // log('📊 [MQTT] Expected topic: ${widget.topic}');
+    // log('📊 [MQTT] Expected topic length: ${widget.topic.length}');
+    // log('📊 [MQTT] Expected topic bytes: ${widget.topic.codeUnits}');
+    // log('📊 [MQTT] Topic match: ${topic == widget.topic}');
 
     // Detailed topic comparison
     if (topic != widget.topic) {
@@ -756,19 +755,19 @@ class TrackingComponentState extends State<TrackingComponent>
     final returnCode = client.connectionStatus?.returnCode;
 
     log('📊 [MQTT] ========== PERIODIC STATUS CHECK ==========');
-    log('📊 [MQTT] Connection state: $connectionState');
-    log('📊 [MQTT] Return code: $returnCode');
-    log('📊 [MQTT] Topic subscribed: ${widget.topic}');
-    log('📊 [MQTT] Total messages received: $_totalMessagesReceived');
+    // log('📊 [MQTT] Connection state: $connectionState');
+    // log('📊 [MQTT] Return code: $returnCode');
+    // log('📊 [MQTT] Topic subscribed: ${widget.topic}');
+    // log('📊 [MQTT] Total messages received: $_totalMessagesReceived');
 
     // Check if message stream is still active
     try {
       final streamActive =
           _messageSubscription != null && !_messageSubscription!.isPaused;
-      log('📊 [MQTT] Message stream subscription active: $streamActive');
-      log(
-        '📊 [MQTT] Message stream paused: ${_messageSubscription?.isPaused ?? "N/A"}',
-      );
+      // log('📊 [MQTT] Message stream subscription active: $streamActive');
+      // log(
+      //   '📊 [MQTT] Message stream paused: ${_messageSubscription?.isPaused ?? "N/A"}',
+      // );
     } catch (e) {
       log('⚠️ [MQTT] Error checking stream status: $e');
     }
@@ -800,15 +799,15 @@ class TrackingComponentState extends State<TrackingComponent>
       log('   - Bus device may not be active');
     }
 
-    log(
-      '📊 [MQTT] Message subscription active: ${_messageSubscription != null}',
-    );
-    log('📊 [MQTT] Widget mounted: $mounted');
-    log('📊 [MQTT] Widget disposed: $_isDisposed');
-    log('📊 [MQTT] Map ready: $isMapReady');
-    log('📊 [MQTT] Bus location set: ${busLocation != null}');
-    log('📊 [MQTT] Path points: ${busPath.length}');
-    log('📊 [MQTT] ===========================================');
+    // log(
+    //   '📊 [MQTT] Message subscription active: ${_messageSubscription != null}',
+    // );
+    // log('📊 [MQTT] Widget mounted: $mounted');
+    // log('📊 [MQTT] Widget disposed: $_isDisposed');
+    // log('📊 [MQTT] Map ready: $isMapReady');
+    // log('📊 [MQTT] Bus location set: ${busLocation != null}');
+    // log('📊 [MQTT] Path points: ${busPath.length}');
+    // log('📊 [MQTT] ===========================================');
 
     // Check if connection is still active
     if (connectionState != MqttConnectionState.connected) {
@@ -834,13 +833,6 @@ class TrackingComponentState extends State<TrackingComponent>
         // Update rotation smoothly during animation
         if (_animatedBusLocation != null && _previousLocation != null) {
           busRotation = _bearing(_previousLocation!, _animatedBusLocation!);
-        }
-        
-        // Smoothly move camera during animation if enabled
-        if (shouldMoveMap && isMapReady && _mapController != null && _animatedBusLocation != null) {
-          _mapController!.moveCamera(
-            CameraUpdate.newLatLng(_animatedBusLocation!),
-          );
         }
       });
     }
@@ -897,12 +889,12 @@ class TrackingComponentState extends State<TrackingComponent>
     }
 
     try {
-      log('📍 [MQTT] Processing location update');
-      log('📦 [MQTT] Payload received: $payload');
+      // log('📍 [MQTT] Processing location update');
+      // log('📦 [MQTT] Payload received: $payload');
 
       final List<dynamic> data = jsonDecode(payload);
-      log('✅ [MQTT] JSON parsed successfully');
-      log('📊 [MQTT] Data array length: ${data.length}');
+      // log('✅ [MQTT] JSON parsed successfully');
+      // log('📊 [MQTT] Data array length: ${data.length}');
 
       if (data.isEmpty || data.first is! Map<String, dynamic>) {
         log('❌ [MQTT] Invalid data format');
@@ -914,22 +906,22 @@ class TrackingComponentState extends State<TrackingComponent>
       }
 
       final Map<String, dynamic> busData = data.first;
-      log('📋 [MQTT] Bus data keys: ${busData.keys.toList()}');
+      // log('📋 [MQTT] Bus data keys: ${busData.keys.toList()}');
 
       final double lat = (busData['latitude'] as num).toDouble();
       final double lon = (busData['longitude'] as num).toDouble();
       final LatLng newLocation = LatLng(lat, lon);
-      log('📍 [MQTT] Parsed location: Lat=$lat, Lon=$lon');
+      // log('📍 [MQTT] Parsed location: Lat=$lat, Lon=$lon');
 
       final timestamp = busData['time_stamp'];
-      log('🕐 [MQTT] Timestamp: $timestamp');
+      // log('🕐 [MQTT] Timestamp: $timestamp');
 
       // Update timestamp immediately
       setState(() {
         lastUpdatedTime = DateFormat(
           'h:mm:ss a',
         ).format(DateTime.parse(timestamp));
-        log('🕐 [MQTT] Formatted time: $lastUpdatedTime');
+       // log('🕐 [MQTT] Formatted time: $lastUpdatedTime');
       });
 
       // Calculate distance and rotation
@@ -937,12 +929,12 @@ class TrackingComponentState extends State<TrackingComponent>
       if (busLocation != null) {
         distance = _calculateDistance(busLocation!, newLocation);
         busRotation = _bearing(busLocation!, newLocation);
-        log(
-          '📏 [MQTT] Distance from previous location: ${distance.toStringAsFixed(2)}m',
-        );
-        log(
-          '🧭 [MQTT] Bus rotation calculated: ${busRotation.toStringAsFixed(2)}°',
-        );
+        // log(
+        //   '📏 [MQTT] Distance from previous location: ${distance.toStringAsFixed(2)}m',
+        // );
+        // log(
+        //   '🧭 [MQTT] Bus rotation calculated: ${busRotation.toStringAsFixed(2)}°',
+        // );
       } else {
         log('📍 [MQTT] First location point - no rotation calculated');
         // For first location, set immediately without animation
@@ -956,8 +948,8 @@ class TrackingComponentState extends State<TrackingComponent>
         // Add to path
         busPath.add(newLocation);
         
-        // Center camera on first location
-        if (shouldMoveMap && isMapReady && _mapController != null) {
+        // Center camera on first location (always, regardless of shouldMoveMap)
+        if (isMapReady && _mapController != null) {
           _mapController!.animateCamera(
             CameraUpdate.newLatLngZoom(newLocation, 17.0),
           );
@@ -1008,60 +1000,21 @@ class TrackingComponentState extends State<TrackingComponent>
       // Update bus location immediately (for path tracking)
       setState(() {
         busLocation = newLocation;
-        log('✅ [MQTT] Bus location updated in state');
-        log(
-          '📍 [MAP] Bus location set: Lat=${newLocation.latitude}, Lon=${newLocation.longitude}',
-        );
+        // log('✅ [MQTT] Bus location updated in state');
+        // log(
+        //   '📍 [MAP] Bus location set: Lat=${newLocation.latitude}, Lon=${newLocation.longitude}',
+        // );
 
         // Maintain bounded path history
         busPath.add(newLocation);
         if (busPath.length > maxPathPoints) {
           busPath.removeAt(0);
-          log('📊 [MQTT] Path history trimmed (max: $maxPathPoints points)');
+          // log('📊 [MQTT] Path history trimmed (max: $maxPathPoints points)');
         }
-        log('📊 [MQTT] Path history: ${busPath.length} points');
+        // log('📊 [MQTT] Path history: ${busPath.length} points');
       });
 
-      // Smoothly move camera if distance is significant
-      if (shouldMoveMap && isMapReady && _mapController != null) {
-        final bool isFirstLocation = _currentCameraPosition == null;
-        double cameraDistance = 0;
-
-        if (!isFirstLocation) {
-          cameraDistance = _calculateDistance(
-            LatLng(
-              _currentCameraPosition!.target.latitude,
-              _currentCameraPosition!.target.longitude,
-            ),
-            newLocation,
-          );
-          log(
-            '📷 [MQTT] Camera distance from new location: ${cameraDistance.toStringAsFixed(2)}m',
-          );
-        }
-
-        if (isFirstLocation || cameraDistance > _minCameraMoveDistance) {
-          // Use smooth camera animation
-          _mapController!.animateCamera(
-            CameraUpdate.newLatLng(newLocation),
-          );
-          _currentCameraPosition = CameraPosition(
-            target: newLocation,
-            zoom: _currentCameraPosition?.zoom ?? 17.0,
-          );
-          log(
-            '📷 [MQTT] Camera smoothly moved to new location ${isFirstLocation ? "(first location)" : ""}',
-          );
-        } else {
-          log('📷 [MQTT] Camera not moved (distance < ${_minCameraMoveDistance}m)');
-        }
-      } else {
-        log(
-          '📷 [MQTT] Camera not moved - shouldMoveMap: $shouldMoveMap, isMapReady: $isMapReady, controller: ${_mapController != null}',
-        );
-      }
-
-      log('✅ [MQTT] Location update completed successfully with smooth animation');
+      // log('✅ [MQTT] Location update completed successfully with smooth animation');
     } catch (e, stack) {
       log('❌ [MQTT] Error parsing MQTT payload');
       log('📋 [MQTT] Error: $e');
@@ -1260,10 +1213,10 @@ class TrackingComponentState extends State<TrackingComponent>
                     // Use animated location if available, otherwise use regular location
                     final displayLocation = _animatedBusLocation ?? busLocation;
                     if (displayLocation != null) {
-                      log(
-                        '📍 [MAP] Creating marker at: ${displayLocation.latitude}, ${displayLocation.longitude}',
-                      );
-                      log('📍 [MAP] Marker icon type: ${_busIcon.toString()}');
+                      // log(
+                        // '📍 [MAP] Creating marker at: ${displayLocation.latitude}, ${displayLocation.longitude}',
+                     // );
+                      // log('📍 [MAP] Marker icon type: ${_busIcon.toString()}');
                       return {
                         Marker(
                           markerId: const MarkerId('bus_location'),
@@ -1277,7 +1230,7 @@ class TrackingComponentState extends State<TrackingComponent>
                             snippet:
                                 'Bus No: $busNo\nLast Update: $lastUpdatedTime',
                           ),
-                          zIndex: 1000, // Ensure marker is on top
+                          zIndexInt: 1000, // Ensure marker is on top
                           visible: true, // Explicitly set visibility
                           draggable: false,
                           consumeTapEvents: true, // Allow tapping the marker
@@ -1432,172 +1385,172 @@ class TrackingComponentState extends State<TrackingComponent>
                   ),
                 ),
                 // Map type selector button
-              Positioned(
-                  top: 70,
-                  right: 16,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.15),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: PopupMenuButton<MapType>(
-                      icon: const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Icon(Icons.layers, color: Colors.blue, size: 24),
-                      ),
-                      tooltip: 'Map Type',
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 8,
-                      onSelected: (MapType type) {
-                        setState(() {
-                          _currentMapType = type;
-                        });
-                        log('🗺️ [MAP] Map type changed to: $type (no extra API calls)');
-                      },
-                      itemBuilder: (BuildContext context) => [
-                        PopupMenuItem<MapType>(
-                          value: MapType.normal,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.map,
-                                  color: _currentMapType == MapType.normal
-                                      ? Colors.blue
-                                      : Colors.grey.shade600,
-                                  size: 22,
-                                ),
-                                const SizedBox(width: 12),
-                                const Expanded(
-                                  child: Text(
-                                    'Normal',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ),
-                                if (_currentMapType == MapType.normal)
-                                  const Icon(
-                                    Icons.check,
-                                    color: Colors.blue,
-                                    size: 20,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        PopupMenuItem<MapType>(
-                          value: MapType.satellite,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.satellite,
-                                  color: _currentMapType == MapType.satellite
-                                      ? Colors.blue
-                                      : Colors.grey.shade600,
-                                  size: 22,
-                                ),
-                                const SizedBox(width: 12),
-                                const Expanded(
-                                  child: Text(
-                                    'Satellite',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ),
-                                if (_currentMapType == MapType.satellite)
-                                  const Icon(
-                                    Icons.check,
-                                    color: Colors.blue,
-                                    size: 20,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        PopupMenuItem<MapType>(
-                          value: MapType.hybrid,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.layers,
-                                  color: _currentMapType == MapType.hybrid
-                                      ? Colors.blue
-                                      : Colors.grey.shade600,
-                                  size: 22,
-                                ),
-                                const SizedBox(width: 12),
-                                const Expanded(
-                                  child: Text(
-                                    'Hybrid',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ),
-                                if (_currentMapType == MapType.hybrid)
-                                  const Icon(
-                                    Icons.check,
-                                    color: Colors.blue,
-                                    size: 20,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        PopupMenuItem<MapType>(
-                          value: MapType.terrain,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.landscape,
-                                  color: _currentMapType == MapType.terrain
-                                      ? Colors.blue
-                                      : Colors.grey.shade600,
-                                  size: 22,
-                                ),
-                                const SizedBox(width: 12),
-                                const Expanded(
-                                  child: Text(
-                                    'Terrain',
-                                    style: TextStyle(fontSize: 16),
-                                  ),
-                                ),
-                                if (_currentMapType == MapType.terrain)
-                                  const Icon(
-                                    Icons.check,
-                                    color: Colors.blue,
-                                    size: 20,
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                // Floating action button to center on bus location
-                if (busLocation != null)
+              // Positioned(
+              //     top: 70,
+              //     right: 16,
+              //     child: Container(
+              //       decoration: BoxDecoration(
+              //         color: Colors.white,
+              //         borderRadius: BorderRadius.circular(12),
+              //         boxShadow: [
+              //           BoxShadow(
+              //             color: Colors.black.withValues(alpha: 0.15),
+              //             blurRadius: 8,
+              //             offset: const Offset(0, 2),
+              //           ),
+              //         ],
+              //       ),
+              //       child: PopupMenuButton<MapType>(
+              //         icon: const Padding(
+              //           padding: EdgeInsets.all(8.0),
+              //           child: Icon(Icons.layers, color: Colors.blue, size: 24),
+              //         ),
+              //         tooltip: 'Map Type',
+              //         shape: RoundedRectangleBorder(
+              //           borderRadius: BorderRadius.circular(14),
+              //         ),
+              //         elevation: 8,
+              //         onSelected: (MapType type) {
+              //           setState(() {
+              //             _currentMapType = type;
+              //           });
+              //          // log('🗺️ [MAP] Map type changed to: $type (no extra API calls)');
+              //         },
+              //         itemBuilder: (BuildContext context) => [
+              //           PopupMenuItem<MapType>(
+              //             value: MapType.normal,
+              //             child: Container(
+              //               padding: const EdgeInsets.symmetric(vertical: 4),
+              //               child: Row(
+              //                 children: [
+              //                   Icon(
+              //                     Icons.map,
+              //                     color: _currentMapType == MapType.normal
+              //                         ? Colors.blue
+              //                         : Colors.grey.shade600,
+              //                     size: 22,
+              //                   ),
+              //                   const SizedBox(width: 12),
+              //                   const Expanded(
+              //                     child: Text(
+              //                       'Normal',
+              //                       style: TextStyle(fontSize: 16),
+              //                     ),
+              //                   ),
+              //                   if (_currentMapType == MapType.normal)
+              //                     const Icon(
+              //                       Icons.check,
+              //                       color: Colors.blue,
+              //                       size: 20,
+              //                     ),
+              //                 ],
+              //               ),
+              //             ),
+              //           ),
+              //           PopupMenuItem<MapType>(
+              //             value: MapType.satellite,
+              //             child: Container(
+              //               padding: const EdgeInsets.symmetric(vertical: 4),
+              //               child: Row(
+              //                 children: [
+              //                   Icon(
+              //                     Icons.satellite,
+              //                     color: _currentMapType == MapType.satellite
+              //                         ? Colors.blue
+              //                         : Colors.grey.shade600,
+              //                     size: 22,
+              //                   ),
+              //                   const SizedBox(width: 12),
+              //                   const Expanded(
+              //                     child: Text(
+              //                       'Satellite',
+              //                       style: TextStyle(fontSize: 16),
+              //                     ),
+              //                   ),
+              //                   if (_currentMapType == MapType.satellite)
+              //                     const Icon(
+              //                       Icons.check,
+              //                       color: Colors.blue,
+              //                       size: 20,
+              //                     ),
+              //                 ],
+              //               ),
+              //             ),
+              //           ),
+              //           PopupMenuItem<MapType>(
+              //             value: MapType.hybrid,
+              //             child: Container(
+              //               padding: const EdgeInsets.symmetric(vertical: 4),
+              //               child: Row(
+              //                 children: [
+              //                   Icon(
+              //                     Icons.layers,
+              //                     color: _currentMapType == MapType.hybrid
+              //                         ? Colors.blue
+              //                         : Colors.grey.shade600,
+              //                     size: 22,
+              //                   ),
+              //                   const SizedBox(width: 12),
+              //                   const Expanded(
+              //                     child: Text(
+              //                       'Hybrid',
+              //                       style: TextStyle(fontSize: 16),
+              //                     ),
+              //                   ),
+              //                   if (_currentMapType == MapType.hybrid)
+              //                     const Icon(
+              //                       Icons.check,
+              //                       color: Colors.blue,
+              //                       size: 20,
+              //                     ),
+              //                 ],
+              //               ),
+              //             ),
+              //           ),
+              //           PopupMenuItem<MapType>(
+              //             value: MapType.terrain,
+              //             child: Container(
+              //               padding: const EdgeInsets.symmetric(vertical: 4),
+              //               child: Row(
+              //                 children: [
+              //                   Icon(
+              //                     Icons.landscape,
+              //                     color: _currentMapType == MapType.terrain
+              //                         ? Colors.blue
+              //                         : Colors.grey.shade600,
+              //                     size: 22,
+              //                   ),
+              //                   const SizedBox(width: 12),
+              //                   const Expanded(
+              //                     child: Text(
+              //                       'Terrain',
+              //                       style: TextStyle(fontSize: 16),
+              //                     ),
+              //                   ),
+              //                   if (_currentMapType == MapType.terrain)
+              //                     const Icon(
+              //                       Icons.check,
+              //                       color: Colors.blue,
+              //                       size: 20,
+              //                     ),
+              //                 ],
+              //               ),
+              //             ),
+              //           ),
+              //         ],
+              //       ),
+              //     ),
+              //   ),
+              //   // Floating action button to center on bus location
+                 if (busLocation != null)
                   Positioned(
                     bottom: 120,
                     right: 16,
                     child: FloatingActionButton(
                       onPressed: _centerOnBusLocation,
-                      backgroundColor: Colors.blue,
-                      child: const Icon(Icons.my_location, color: Colors.white),
+                      backgroundColor: Colors.blue,     
                       tooltip: 'Center on bus location',
+                      child: const Icon(Icons.my_location, color: Colors.white),
                     ),
                   ),
               ],
@@ -1725,9 +1678,9 @@ class TrackingComponentState extends State<TrackingComponent>
       log(
         '📊 [MQTT] Last message received: ${_lastMessageTime!.toIso8601String()}',
       );
-      log(
-        '📊 [MQTT] Time since last message: ${timeSinceLastMessage.inSeconds}s',
-      );
+      // log(
+      //   '📊 [MQTT] Time since last message: ${timeSinceLastMessage.inSeconds}s',
+      // );
     } else {
       log('⚠️ [MQTT] No messages were received during this session');
     }
