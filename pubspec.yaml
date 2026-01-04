@@ -51,6 +51,8 @@ dependencies:
   share_plus: ^12.0.0
   font_awesome_flutter: ^10.10.0
   flutter_map: ^8.2.2
+  vector_map_tiles: ^9.0.0-beta.8
+  vector_tile_renderer: ^6.0.0
   latlong2: ^0.9.1
   mqtt_client: ^10.11.1
   freezed_annotation: ^3.1.0

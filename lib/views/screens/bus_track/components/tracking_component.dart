@@ -7,6 +7,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart' hide Marker, Polyline;
+import 'package:flutter_map/flutter_map.dart' as flutter_map show Marker, Polyline;
+import 'package:vector_map_tiles/vector_map_tiles.dart';
+import 'package:vector_tile_renderer/vector_tile_renderer.dart';
+import 'package:latlong2/latlong.dart' as latlong2;
 import 'package:intl/intl.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
@@ -27,10 +32,19 @@ class TrackingComponent extends StatefulWidget {
 
 class TrackingComponentState extends State<TrackingComponent>
     with SingleTickerProviderStateMixin {
+  // MapTiler API Key - Replace with your actual API key
+  // Get your free API key at: https://www.maptiler.com/cloud/
+  // The style.json already includes English labels by default
+  static const String _maptilerApiKey = 'weDjifQ8VNyyn2wlKB4d';
+  
+  // Cache for MapTiler style
+  Future<Style>? _mapStyleFuture;
+  
   String lastUpdatedTime = '';
   String clientId =
       'mqtt_${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(1000)}';
   GoogleMapController? _mapController;
+  MapController? _openStreetMapController; // For OpenStreetMap
   CameraPosition? _currentCameraPosition;
   late MqttServerClient client;
   LatLng? busLocation; // Nullable to handle the initial null case
@@ -101,6 +115,12 @@ class TrackingComponentState extends State<TrackingComponent>
     );
     _animationController.addListener(_onAnimationUpdate);
 
+    // Initialize OpenStreetMap controller
+    _openStreetMapController = MapController();
+
+    // Load MapTiler style
+    _loadMapStyle();
+
     // Initialize bus icon
     _initializeBusIcon();
 
@@ -151,8 +171,16 @@ class TrackingComponentState extends State<TrackingComponent>
   // Center camera on bus location
   Future<void> _centerOnBusLocation() async {
     final locationToCenter = _animatedBusLocation ?? busLocation;
-    if (locationToCenter != null && _mapController != null && isMapReady) {
-      try {
+    if (locationToCenter == null || !isMapReady) {
+      log(
+        '⚠️ [MAP] Cannot center: busLocation=${busLocation != null}, isMapReady=$isMapReady',
+      );
+      return;
+    }
+
+    try {
+      // Use Google Maps controller if available
+      if (_mapController != null) {
         await _mapController!.animateCamera(
           CameraUpdate.newLatLngZoom(locationToCenter, 17.0),
         );
@@ -160,14 +188,18 @@ class TrackingComponentState extends State<TrackingComponent>
           target: locationToCenter,
           zoom: 17.0,
         );
-        log('✅ [MAP] Camera centered on bus location');
-      } catch (e) {
-        log('❌ [MAP] Error centering camera: $e');
+        log('✅ [MAP] Camera centered on bus location (Google Maps)');
       }
-    } else {
-      log(
-        '⚠️ [MAP] Cannot center: busLocation=${busLocation != null}, controller=${_mapController != null}, isMapReady=$isMapReady',
-      );
+      // Use OpenStreetMap controller if available
+      else if (_openStreetMapController != null) {
+        _openStreetMapController!.move(
+          _toLatLong2(locationToCenter),
+          17.0,
+        );
+        log('✅ [MAP] Camera centered on bus location (OpenStreetMap)');
+      }
+    } catch (e) {
+      log('❌ [MAP] Error centering camera: $e');
     }
   }
 
@@ -862,6 +894,19 @@ class TrackingComponentState extends State<TrackingComponent>
     return (math.atan2(y, x) * 180 / math.pi + 360) % 360;
   }
 
+  // Helper method to convert Google Maps LatLng to latlong2 LatLng
+  latlong2.LatLng _toLatLong2(LatLng latLng) {
+    return latlong2.LatLng(latLng.latitude, latLng.longitude);
+  }
+
+  // Load MapTiler style
+  Future<void> _loadMapStyle() async {
+    _mapStyleFuture = StyleReader(
+      uri: 'https://api.maptiler.com/maps/streets/style.json?key=$_maptilerApiKey',
+      logger: const Logger.console(),
+    ).read();
+  }
+
   // Calculate distance between two LatLng points in meters using haversine formula
   double _calculateDistance(LatLng start, LatLng end) {
     const double earthRadius = 6371000; // meters
@@ -949,14 +994,21 @@ class TrackingComponentState extends State<TrackingComponent>
         busPath.add(newLocation);
         
         // Center camera on first location (always, regardless of shouldMoveMap)
-        if (isMapReady && _mapController != null) {
-          _mapController!.animateCamera(
-            CameraUpdate.newLatLngZoom(newLocation, 17.0),
-          );
-          _currentCameraPosition = CameraPosition(
-            target: newLocation,
-            zoom: 17.0,
-          );
+        if (isMapReady) {
+          if (_mapController != null) {
+            _mapController!.animateCamera(
+              CameraUpdate.newLatLngZoom(newLocation, 17.0),
+            );
+            _currentCameraPosition = CameraPosition(
+              target: newLocation,
+              zoom: 17.0,
+            );
+          } else if (_openStreetMapController != null) {
+            _openStreetMapController!.move(
+              _toLatLong2(newLocation),
+              17.0,
+            );
+          }
         }
         
         log('✅ [MQTT] First location set immediately');
@@ -1021,6 +1073,181 @@ class TrackingComponentState extends State<TrackingComponent>
       log('📋 [MQTT] Error type: ${e.runtimeType}');
       log('📋 [MQTT] Stack trace: $stack');
     }
+  }
+
+  // Build Google Maps widget
+  Widget _buildGoogleMap() {
+    return GoogleMap(
+      initialCameraPosition: CameraPosition(
+        target: busLocation ?? const LatLng(25.2959397, 55.4576871),
+        zoom: 17.0,
+      ),
+      onMapCreated: (GoogleMapController controller) async {
+        log('🗺️ [MAP] Map created callback triggered');
+        _mapController = controller;
+
+        // If we already have a bus location, move camera to it
+        if (busLocation != null) {
+          _currentCameraPosition = CameraPosition(
+            target: busLocation!,
+            zoom: 17.0,
+          );
+          await controller.animateCamera(
+            CameraUpdate.newLatLngZoom(busLocation!, 17.0),
+          );
+          log(
+            '📷 [MAP] Camera moved to bus location: ${busLocation!.latitude}, ${busLocation!.longitude}',
+          );
+        } else {
+          _currentCameraPosition = CameraPosition(
+            target: const LatLng(25.2959397, 55.4576871),
+            zoom: 17.0,
+          );
+        }
+
+        setState(() {
+          isMapReady = true; // Set flag when map is ready
+        });
+        log(
+          '✅ [MAP] Map is ready - location updates can move camera',
+        );
+      },
+      mapType: _currentMapType, // User-selectable map type (no extra API calls)
+      zoomControlsEnabled: false,
+      mapToolbarEnabled: false,
+      myLocationButtonEnabled: false,
+      trafficEnabled: false,
+      buildingsEnabled:
+          true, // Enable 3D buildings for beautiful look (cached)
+      indoorViewEnabled: false,
+      compassEnabled: true, // Enable compass for better navigation
+      rotateGesturesEnabled: true,
+      scrollGesturesEnabled: true,
+      tiltGesturesEnabled: true, // Enable tilt for 3D building view
+      zoomGesturesEnabled: true,
+      markers: () {
+        // Use animated location if available, otherwise use regular location
+        final displayLocation = _animatedBusLocation ?? busLocation;
+        if (displayLocation != null) {
+          return {
+            Marker(
+              markerId: const MarkerId('bus_location'),
+              position: displayLocation,
+              rotation: busRotation,
+              icon: _busIcon,
+              anchor: const Offset(0.5, 0.5),
+              flat: true, // Makes marker rotate with map
+              infoWindow: InfoWindow(
+                title: 'School Bus',
+                snippet:
+                    'Bus No: $busNo\nLast Update: $lastUpdatedTime',
+              ),
+              zIndexInt: 1000, // Ensure marker is on top
+              visible: true, // Explicitly set visibility
+              draggable: false,
+              consumeTapEvents: true, // Allow tapping the marker
+            ),
+          };
+        } else {
+          log('⚠️ [MAP] No bus location - marker not created');
+          return <Marker>{};
+        }
+      }(),
+      polylines: busPath.length >= 2
+          ? {
+              Polyline(
+                polylineId: const PolylineId('bus_path'),
+                points: busPath,
+                color: Colors.blue.withValues(alpha: 0.8),
+                width: 5,
+              ),
+            }
+          : <Polyline>{},
+    );
+  }
+
+  // Build OpenStreetMap widget with MapTiler vector tiles
+  Widget _buildOpenStreetMap() {
+    final displayLocation = _animatedBusLocation ?? busLocation;
+    final initialLocation = displayLocation != null
+        ? _toLatLong2(displayLocation)
+        : const latlong2.LatLng(25.2959397, 55.4576871);
+
+    // Ensure style is loaded
+    if (_mapStyleFuture == null) {
+      _loadMapStyle();
+    }
+
+    return FutureBuilder<Style>(
+      future: _mapStyleFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        final style = snapshot.data!;
+        final styleCenter = style.center ?? initialLocation;
+        final styleZoom = style.zoom ?? 17.0;
+
+        return FlutterMap(
+          mapController: _openStreetMapController,
+          options: MapOptions(
+            initialCenter: styleCenter,
+            initialZoom: styleZoom,
+            maxZoom: 18,
+            onMapReady: () {
+              log('🗺️ [MAP] OpenStreetMap ready');
+              setState(() {
+                isMapReady = true;
+              });
+              // If we already have a bus location, move camera to it
+              if (busLocation != null && _openStreetMapController != null) {
+                _openStreetMapController!.move(
+                  _toLatLong2(busLocation!),
+                  17.0,
+                );
+              }
+            },
+          ),
+          children: [
+            VectorTileLayer(
+              theme: style.theme,
+              sprites: style.sprites,
+              tileProviders: style.providers,
+            ),
+            if (displayLocation != null)
+              MarkerLayer(
+                markers: [
+                  flutter_map.Marker(
+                    width: 52,
+                    height: 62,
+                    point: _toLatLong2(displayLocation),
+                    child: Transform.rotate(
+                      angle: busRotation * math.pi / 180,
+                      child: Image.asset(
+                        'assets/location.png',
+                        width: 52,
+                        height: 62,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            if (busPath.length >= 2)
+              PolylineLayer(
+                polylines: [
+                  flutter_map.Polyline(
+                    points: busPath.map((point) => _toLatLong2(point)).toList(),
+                    strokeWidth: 5,
+                    color: Colors.blue.withValues(alpha: 0.8),
+                  ),
+                ],
+              ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -1161,97 +1388,11 @@ class TrackingComponentState extends State<TrackingComponent>
             )
           : Stack(
               children: [
-                GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: busLocation ?? const LatLng(25.2959397, 55.4576871),
-                    zoom: 17.0,
-                  ),
-                  onMapCreated: (GoogleMapController controller) async {
-                    log('🗺️ [MAP] Map created callback triggered');
-                    _mapController = controller;
-
-                    // If we already have a bus location, move camera to it
-                    if (busLocation != null) {
-                      _currentCameraPosition = CameraPosition(
-                        target: busLocation!,
-                        zoom: 17.0,
-                      );
-                      await controller.animateCamera(
-                        CameraUpdate.newLatLngZoom(busLocation!, 17.0),
-                      );
-                      log(
-                        '📷 [MAP] Camera moved to bus location: ${busLocation!.latitude}, ${busLocation!.longitude}',
-                      );
-                    } else {
-                      _currentCameraPosition = CameraPosition(
-                        target: const LatLng(25.2959397, 55.4576871),
-                        zoom: 17.0,
-                      );
-                    }
-
-                    setState(() {
-                      isMapReady = true; // Set flag when map is ready
-                    });
-                    log(
-                      '✅ [MAP] Map is ready - location updates can move camera',
-                    );
-                  },
-                  mapType: _currentMapType, // User-selectable map type (no extra API calls)
-                  zoomControlsEnabled: false,
-                  mapToolbarEnabled: false,
-                  myLocationButtonEnabled: false,
-                  trafficEnabled: false,
-                  buildingsEnabled:
-                      true, // Enable 3D buildings for beautiful look (cached)
-                  indoorViewEnabled: false,
-                  compassEnabled: true, // Enable compass for better navigation
-                  rotateGesturesEnabled: true,
-                  scrollGesturesEnabled: true,
-                  tiltGesturesEnabled: true, // Enable tilt for 3D building view
-                  zoomGesturesEnabled: true,
-                  markers: () {
-                    // Use animated location if available, otherwise use regular location
-                    final displayLocation = _animatedBusLocation ?? busLocation;
-                    if (displayLocation != null) {
-                      // log(
-                        // '📍 [MAP] Creating marker at: ${displayLocation.latitude}, ${displayLocation.longitude}',
-                     // );
-                      // log('📍 [MAP] Marker icon type: ${_busIcon.toString()}');
-                      return {
-                        Marker(
-                          markerId: const MarkerId('bus_location'),
-                          position: displayLocation,
-                          rotation: busRotation,
-                          icon: _busIcon,
-                          anchor: const Offset(0.5, 0.5),
-                          flat: true, // Makes marker rotate with map
-                          infoWindow: InfoWindow(
-                            title: 'School Bus',
-                            snippet:
-                                'Bus No: $busNo\nLast Update: $lastUpdatedTime',
-                          ),
-                          zIndexInt: 1000, // Ensure marker is on top
-                          visible: true, // Explicitly set visibility
-                          draggable: false,
-                          consumeTapEvents: true, // Allow tapping the marker
-                        ),
-                      };
-                    } else {
-                      log('⚠️ [MAP] No bus location - marker not created');
-                      return <Marker>{};
-                    }
-                  }(),
-                  polylines: busPath.length >= 2
-                      ? {
-                          Polyline(
-                            polylineId: const PolylineId('bus_path'),
-                            points: busPath,
-                            color: Colors.blue.withValues(alpha: 0.8),
-                            width: 5,
-                          ),
-                        }
-                      : <Polyline>{},
-                ),
+                // Use Google Maps (comment out to use OpenStreetMap)
+                _buildGoogleMap(),
+                
+                // Use OpenStreetMap (uncomment to use, comment out _buildGoogleMap() above)
+                // _buildOpenStreetMap(),
                 Positioned(
                   top: 5,
                   right: 5,
@@ -1776,6 +1917,16 @@ class TrackingComponentState extends State<TrackingComponent>
       log('✅ [MAP] GoogleMapController disposed');
     } catch (e) {
       log('❌ [MAP] Error disposing GoogleMapController: $e');
+    }
+
+    // Dispose OpenStreetMap Controller
+    try {
+      log('🗺️ [MAP] Disposing OpenStreetMap Controller...');
+      _openStreetMapController?.dispose();
+      _openStreetMapController = null;
+      log('✅ [MAP] OpenStreetMap Controller disposed');
+    } catch (e) {
+      log('❌ [MAP] Error disposing OpenStreetMap Controller: $e');
     }
 
     log('✅ [MQTT] TrackingComponent disposed successfully');
