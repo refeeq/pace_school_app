@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final studentsModel = studentsModelFromJson(jsonString);
-
 import 'dart:convert';
 
 import 'package:hive_flutter/hive_flutter.dart';

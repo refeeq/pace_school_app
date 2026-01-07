@@ -56,7 +56,7 @@ class TrackingComponentState extends State<TrackingComponent>
   //bool showPolyline = false; // Control polyline visibility
   bool isMapReady = false; // Flag to check if map is ready
   bool shouldMoveMap = false; // New flag to toggle map movement (default: false to allow free map exploration)
-  MapType _currentMapType = MapType.normal; // Current map type (no extra API calls)
+  final MapType _currentMapType = MapType.normal; // Current map type (no extra API calls)
   bool isConnecting = false; // Track connection state
   String? connectionError; // Store connection error message
   int retryCount = 0; // Track retry attempts
@@ -545,7 +545,7 @@ class TrackingComponentState extends State<TrackingComponent>
                     // log('   Topic match: ${topic == widget.topic}');
                     // log('   Payload length: ${payload.length} characters');
                     log(
-                      '   Payload preview: ${payload.length > 100 ? payload.substring(0, 100) + "..." : payload}',
+                      '   Payload preview: ${payload.length > 100 ? "${payload.substring(0, 100)}..." : payload}',
                     );
 
                     // Process messages only for our subscribed topic
@@ -1392,7 +1392,7 @@ class TrackingComponentState extends State<TrackingComponent>
                 _buildGoogleMap(),
                 
                 // Use OpenStreetMap (uncomment to use, comment out _buildGoogleMap() above)
-                // _buildOpenStreetMap(),
+               // _buildOpenStreetMap(),
                 Positioned(
                   top: 5,
                   right: 5,

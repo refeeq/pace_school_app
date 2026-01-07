@@ -20,8 +20,16 @@ class BusTrackCubit extends Cubit<BusTrackState> {
       emit(BusTrackState.failure(res.left.message ?? "Something went wrong"));
     } else {
       if (res.right.status!) {
-        log(res.right.data!.toJson().toString());
-        emit(BusTrackState.success(res.right.data!));
+        if (res.right.data != null) {
+          log(res.right.data!.toJson().toString());
+          emit(BusTrackState.success(res.right.data!));
+        } else {
+          emit(
+            BusTrackState.failure(
+              res.right.message ?? 'Something went wrong (no data)',
+            ),
+          );
+        }
       } else {
         emit(
           BusTrackState.failure(res.right.message ?? "Something went wrong"),
