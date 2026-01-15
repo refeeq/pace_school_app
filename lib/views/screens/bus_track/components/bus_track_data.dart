@@ -198,6 +198,7 @@ class BusTrackData extends StatelessWidget {
                                     MaterialPageRoute(
                                       builder: (context) => TrackingComponent(
                                         topic: topic,
+                                        useGoogleMaps: busTrackDataModel.useGoogleMaps ?? true,
                                       ),
                                     ),
                                   );
@@ -572,6 +573,7 @@ class BusTrackData extends StatelessWidget {
                             MaterialPageRoute(
                               builder: (context) => TrackingComponent(
                                 topic: topic,
+                                useGoogleMaps: busTrackDataModel.useGoogleMaps ?? true,
                               ),
                             ),
                           );

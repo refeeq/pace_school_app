@@ -7,11 +7,13 @@ class BusTrackDataModel {
   final List<StudentTrackModel>? studentTrack;
   final List<LiveTrip>? liveTrips;
   final String type;
+  final bool? useGoogleMaps;
   BusTrackDataModel({
     this.transportData,
     this.studentTrack,
     required this.type,
     this.liveTrips,
+    this.useGoogleMaps,
   });
 
   factory BusTrackDataModel.fromJson(Map<String, dynamic> json) =>
@@ -32,6 +34,7 @@ class BusTrackDataModel {
                   (x) => StudentTrackModel.fromJson(x),
                 ),
               ),
+        useGoogleMaps: json["use_google_map"] as bool? ?? true,
       );
 
   Map<String, dynamic> toJson() => {
@@ -42,5 +45,6 @@ class BusTrackDataModel {
     "student_track": studentTrack == null
         ? []
         : List<dynamic>.from(studentTrack!.map((x) => x.toJson())),
+    "use_google_map": useGoogleMaps ?? true,
   };
 }

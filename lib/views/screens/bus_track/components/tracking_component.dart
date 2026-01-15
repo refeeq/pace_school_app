@@ -24,7 +24,12 @@ import 'package:school_app/views/screens/bus_track/repository/bus_track_reposito
 
 class TrackingComponent extends StatefulWidget {
   final String topic;
-  const TrackingComponent({super.key, required this.topic});
+  final bool useGoogleMaps;
+  const TrackingComponent({
+    super.key,
+    required this.topic,
+    this.useGoogleMaps = true,
+  });
 
   @override
   TrackingComponentState createState() => TrackingComponentState();
@@ -1388,11 +1393,10 @@ class TrackingComponentState extends State<TrackingComponent>
             )
           : Stack(
               children: [
-                // Use Google Maps (comment out to use OpenStreetMap)
-                _buildGoogleMap(),
-                
-                // Use OpenStreetMap (uncomment to use, comment out _buildGoogleMap() above)
-               // _buildOpenStreetMap(),
+                // Conditionally render map based on backend flag
+                widget.useGoogleMaps
+                    ? _buildGoogleMap()
+                    : _buildOpenStreetMap(),
                 Positioned(
                   top: 5,
                   right: 5,
