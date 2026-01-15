@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   firebase_core
   maps_launcher
+  pdfx
   permission_handler_windows
   printing
   share_plus

@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:school_app/app.dart';
 import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/models/slider_model.dart';
+import 'package:school_app/core/models/student_menu_model.dart';
 import 'package:school_app/core/provider/student_fee_provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/services/dependecyInjection.dart';
@@ -41,6 +42,7 @@ import '../../../core/provider/leave_provider.dart';
 import '../../components/app_drawer.dart';
 import '../school_information_screen/school_information_screen_view.dart';
 import '../student/circular_screen/circular_screen_view.dart';
+import '../student/library_screen/library_screen_view.dart';
 import '../student/student_fee_statement/student_fee_statement_screen.dart';
 import '../student/student_profile/student_profile_view.dart';
 
@@ -337,6 +339,29 @@ class _HomeViewState extends State<HomeView> {
                                       if (value.studentMenuModel == null) {
                                         return Container();
                                       } else {
+                                        final items = [
+                                          ...value.studentMenuModel!.data
+                                        ];
+                                        final circularIndex = items.indexWhere(
+                                          (e) => e.menuKey == "Circular",
+                                        );
+                                        if (!items.any(
+                                          (e) => e.menuKey == "Library",
+                                        )) {
+                                          final library = StudentMenu(
+                                            id: "Library",
+                                            iconUrl: "",
+                                            subMenu: null,
+                                            weburl: null,
+                                            menuKey: "Library",
+                                            menuValue: "Library",
+                                          );
+                                          if (circularIndex == -1) {
+                                            items.add(library);
+                                          } else {
+                                            items.insert(circularIndex + 1, library);
+                                          }
+                                        }
                                         return GridView.builder(
                                           primary: false,
                                           shrinkWrap: true,
@@ -347,14 +372,9 @@ class _HomeViewState extends State<HomeView> {
                                                 crossAxisSpacing: 2.h,
                                                 mainAxisSpacing: 4.w,
                                               ),
-                                          itemCount: value
-                                              .studentMenuModel!
-                                              .data
-                                              .length,
+                                          itemCount: items.length,
                                           itemBuilder: (BuildContext ctx, index) {
-                                            final item = value
-                                                .studentMenuModel!
-                                                .data[index];
+                                            final item = items[index];
                                             return Hero(
                                               tag: item.id,
                                               child: StudentMenuItemWidget(
@@ -404,6 +424,15 @@ class _HomeViewState extends State<HomeView> {
                                                       MaterialPageRoute(
                                                         builder: (context) =>
                                                             const CircularScreenView(),
+                                                      ),
+                                                    );
+                                                  } else if (menuKey ==
+                                                      "Library") {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            const LibraryScreenView(),
                                                       ),
                                                     );
                                                   } else if (menuKey ==
