@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:observe_internet_connectivity/observe_internet_connectivity.dart';
-import 'package:pdfx/pdfx.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdfx/pdfx.dart' as pdfx;
 import 'package:provider/provider.dart';
+import 'package:turnable_page/turnable_page.dart';
 import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/provider/circular_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
@@ -156,7 +159,7 @@ class _LibraryPdfTileState extends State<_LibraryPdfTile> {
     try {
       final file = await PdfCache.getFile(widget.pdfUrl);
       final bytes = await file.readAsBytes();
-      final doc = await PdfDocument.openData(bytes);
+      final doc = await pdfx.PdfDocument.openData(bytes);
       if (mounted) {
         setState(() {
           _pageCount = doc.pagesCount;
@@ -257,76 +260,54 @@ class LibraryPdfViewer extends StatefulWidget {
 }
 
 class _LibraryPdfViewerState extends State<LibraryPdfViewer> {
-  PdfController? _controller;
   String? _error;
-  String? _localPath;
-  bool _useFallback = false;
-  int _currentPage = 0;
+  String? _cachedFilePath;
+  int _currentPage = 1;
   int _totalPages = 0;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _initializePdfrxCache();
+    _loadCachedFile();
   }
 
-  Future<void> _load() async {
+  Future<void> _initializePdfrxCache() async {
     try {
+      final dir = await getApplicationDocumentsDirectory();
+      final cacheDir = Directory('${dir.path}/pdfrx_cache');
+      if (!await cacheDir.exists()) {
+        await cacheDir.create(recursive: true);
+      }
+      await TurnablePdf.initPDFLoaders();
+    } catch (e) {
+      debugPrint('Failed to initialize pdfrx cache: $e');
+    }
+  }
+
+  Future<void> _loadCachedFile() async {
+    try {
+      // Load from cache (downloads only if not already cached)
       final file = await PdfCache.getFile(widget.url);
-      _localPath = file.path;
+      _cachedFilePath = file.path;
+      
+      // Load page count from cached file
       final bytes = await file.readAsBytes();
-      final doc = await PdfDocument.openData(bytes);
+      final doc = await pdfx.PdfDocument.openData(bytes);
       if (!mounted) return;
-      final controller = PdfController(
-        document: Future.value(doc),
-      );
       setState(() {
-        _controller = controller;
         _totalPages = doc.pagesCount;
-        _currentPage = _totalPages > 0 ? 1 : 0; // Start at page 1 for display
+        _currentPage = _totalPages > 0 ? 1 : 0;
+        _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
-      final msg = e.toString();
-      final isChannelError =
-          msg.contains('PlatformException(channel-error') ||
-              msg.contains('Unable to establish connection on channel');
       setState(() {
-        _useFallback = isChannelError;
-        _error = isChannelError ? null : msg;
+        _error = e.toString();
+        _isLoading = false;
       });
     }
-  }
-
-  void _onPageChanged(int page) {
-    if (mounted && _totalPages > 0) {
-      // Based on behavior showing "page 2 of 2" on first page,
-      // pdfx onPageChanged appears to already provide 1-indexed values
-      // Use page directly and clamp to valid range
-      setState(() {
-        _currentPage = page.clamp(1, _totalPages);
-      });
-    }
-  }
-
-  void _previousPage() {
-    _controller?.previousPage(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _nextPage() {
-    _controller?.nextPage(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
   }
 
   @override
@@ -335,23 +316,22 @@ class _LibraryPdfViewerState extends State<LibraryPdfViewer> {
       decoration: BoxDecoration(gradient: ConstGradient.linearGradient),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: CommonAppBar(title: widget.title),
-        body: _error != null
-            ? Center(child: Text(_error!))
-            : _useFallback
-                ? (_localPath == null
-                    ? const Center(child: CircularProgressIndicator())
-                    : _buildFallbackViewer())
-                : _controller == null
-                    ? const Center(child: CircularProgressIndicator())
-                    : _buildPdfxViewer(),
+        appBar: CommonAppBar(
+          title: widget.title,
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(child: Text(_error!))
+                : _buildCurlViewer(),
       ),
     );
   }
 
-  Widget _buildPdfxViewer() {
-    final canGoPrevious = _currentPage > 1;
-    final canGoNext = _currentPage < _totalPages;
+  Widget _buildCurlViewer() {
+    if (_cachedFilePath == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     return Column(
       children: [
@@ -365,103 +345,63 @@ class _LibraryPdfViewerState extends State<LibraryPdfViewer> {
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: PdfView(
-                controller: _controller!,
-                scrollDirection: Axis.horizontal,
-                onPageChanged: _onPageChanged,
+              child: TurnablePdf.file(
+                _cachedFilePath!,
+                pageViewMode: PageViewMode.single,
+                paperBoundaryDecoration: PaperBoundaryDecoration.modern,
+                settings: FlipSettings(
+                  flippingTime: 800,
+                  swipeDistance: 80.0,
+                  cornerTriggerAreaSize: 0.15,
+                ),
+                onPageChanged: (page, total) {
+                  if (mounted) {
+                    setState(() {
+                      // TurnablePdf provides 0-indexed page numbers (0, 1, 2...)
+                      // Convert to 1-indexed for display (1, 2, 3...)
+                      final newPage = page + 1;
+                      if (newPage < 1) {
+                        _currentPage = 1;
+                      } else if (_totalPages > 0 && newPage > _totalPages) {
+                        _currentPage = _totalPages;
+                      } else {
+                        _currentPage = newPage;
+                      }
+                    });
+                  }
+                },
               ),
             ),
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 4,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                onPressed: canGoPrevious ? _previousPage : null,
-                icon: const Icon(Icons.chevron_left),
-                iconSize: 32,
-                color: canGoPrevious
-                    ? ConstColors.primary
-                    : Colors.grey.shade400,
-              ),
-              const SizedBox(width: 16),
-              Text(
-                'Page $_currentPage of $_totalPages',
-                style: GoogleFonts.nunitoSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(width: 16),
-              IconButton(
-                onPressed: canGoNext ? _nextPage : null,
-                icon: const Icon(Icons.chevron_right),
-                iconSize: 32,
-                color: canGoNext ? ConstColors.primary : Colors.grey.shade400,
-              ),
-            ],
-          ),
-        ),
+        _buildPageIndicator(),
       ],
     );
   }
 
-  Widget _buildFallbackViewer() {
-    return Column(
-      children: [
-        Expanded(
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.black26, width: 1),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: PDFView(
-                filePath: _localPath!,
-                swipeHorizontal: true,
-              ),
-            ),
+  Widget _buildPageIndicator() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Center(
+        child: Text(
+          'Page $_currentPage of $_totalPages',
+          style: GoogleFonts.nunitoSans(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 4,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Center(
-            child: Text(
-              'Swipe horizontally to navigate',
-              style: GoogleFonts.nunitoSans(
-                fontSize: 14,
-                color: Colors.black54,
-              ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
