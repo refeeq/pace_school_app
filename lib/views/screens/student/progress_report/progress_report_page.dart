@@ -1,16 +1,15 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
+import 'package:html_to_pdf_plus/html_to_pdf_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdfx/pdfx.dart';
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/views/components/common_app_bar.dart';
-import 'package:school_app/views/components/html_view.dart';
-import 'package:screenshot/screenshot.dart';
 
 class ProgressReportPage extends StatefulWidget {
   final String title;
@@ -22,8 +21,66 @@ class ProgressReportPage extends StatefulWidget {
 }
 
 class _ProgressReportPageState extends State<ProgressReportPage> {
-  String newHtmlContent = "";
-  final ScreenshotController _screenshotController = ScreenshotController();
+  Uint8List? _pdfBytes;
+  String? _errorMessage;
+  PdfControllerPinch? _pdfController;
+  bool _isConverting = false;
+
+  @override
+  void dispose() {
+    _pdfController?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _convertHtmlToPdf(String htmlContent) async {
+    if (_isConverting) return;
+    setState(() {
+      _isConverting = true;
+      _pdfBytes = null;
+      _errorMessage = null;
+    });
+
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final fileName = 'progress_report_${DateTime.now().millisecondsSinceEpoch}';
+
+      final pdfFile = await HtmlToPdf.convertFromHtmlContent(
+        htmlContent: htmlContent,
+        configuration: PdfConfiguration(
+          targetDirectory: tempDir.path,
+          targetName: fileName,
+          printSize: PrintSize.A4,
+          printOrientation: PrintOrientation.Portrait,
+          linksClickable: true,
+        ),
+      );
+
+      final bytes = await pdfFile.readAsBytes();
+      if (mounted) {
+        setState(() {
+          _isConverting = false;
+          _pdfBytes = bytes;
+          _pdfController?.dispose();
+          _pdfController = PdfControllerPinch(
+            document: PdfDocument.openData(bytes),
+            initialPage: 1,
+          );
+        });
+      }
+
+      // Clean up temp file
+      try {
+        await pdfFile.delete();
+      } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isConverting = false;
+          _errorMessage = 'Failed to generate PDF: $e';
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,14 +89,12 @@ class _ProgressReportPageState extends State<ProgressReportPage> {
       appBar: CommonAppBar(
         title: widget.title,
         actions: [
-          if (newHtmlContent.isNotEmpty)
+          if (_pdfBytes != null)
             IconButton(
               icon: const Icon(Icons.share, color: Colors.white),
               onPressed: () async {
-                var image = await _screenshotController.capture();
-                final pdf = await _generatePdf(context, image!);
                 await Printing.sharePdf(
-                  bytes: await pdf.save(),
+                  bytes: _pdfBytes!,
                   filename: 'progress_report.pdf',
                 );
               },
@@ -53,47 +108,77 @@ class _ProgressReportPageState extends State<ProgressReportPage> {
             case AppStates.Initial_Fetching:
               return const Center(child: CircularProgressIndicator());
             case AppStates.Fetched:
-              Future(
-                () => setState(() {
-                  newHtmlContent = value.progressReport.data;
-                }),
-              );
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Screenshot(
-                  controller: _screenshotController,
-                  child: HtmlView(html: value.progressReport.data),
+              final htmlContent = value.progressReport.data as String?;
+              if (htmlContent == null || htmlContent.isEmpty) {
+                return const Center(child: Text('No report data available'));
+              }
+
+              if (_errorMessage != null) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => _convertHtmlToPdf(htmlContent),
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              if (_pdfBytes == null && !_isConverting) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _convertHtmlToPdf(htmlContent);
+                });
+              }
+              if (_pdfBytes == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              return PdfViewPinch(
+                controller: _pdfController!,
+                builders: PdfViewPinchBuilders<DefaultBuilderOptions>(
+                  options: const DefaultBuilderOptions(
+                    loaderSwitchDuration: Duration(milliseconds: 200),
+                  ),
+                  documentLoaderBuilder: (_) => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                  pageLoaderBuilder: (_) => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                  errorBuilder: (_, error) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Error: ${error.toString()}'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => _convertHtmlToPdf(htmlContent),
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               );
             case AppStates.NoInterNetConnectionState:
               return const Center(child: Text("Internet Connection Error"));
             case AppStates.Error:
               return Center(child: Text("${value.progressReport.message}"));
-            default:
-              return Container();
           }
         },
       ),
     );
-  }
-
-  Future<pw.Document> _generatePdf(
-    BuildContext context,
-    Uint8List imageData,
-  ) async {
-    final pdf = pw.Document();
-
-    final image = pw.MemoryImage(imageData);
-
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        build: (pw.Context context) {
-          return pw.Center(child: pw.Image(image, fit: pw.BoxFit.fill));
-        },
-      ),
-    );
-
-    return pdf;
   }
 }

@@ -65,10 +65,13 @@ class StudentProvider with ChangeNotifier {
           message: respon.left.message.toString(),
         );
       } else {
-        log("${respon.right}");
+        log("Progress Report Provider - Response type: ${respon.right.runtimeType}");
+        log("Progress Report Provider - Response: ${respon.right}");
+        final dataForUi = respon.right.toString();
+        log("Progress Report Provider - Data passed to UI (length: ${dataForUi.length}): ${dataForUi.length > 500 ? '${dataForUi.substring(0, 500)}...' : dataForUi}");
         progressReport = CommonResModel(
           status: AppStates.Fetched,
-          data: respon.right.toString(),
+          data: dataForUi,
         );
         // if (respon.right['status'] == true) {
         //   log("###############################");

@@ -231,6 +231,23 @@ class StudentRepositoryImpl implements StudentRepository {
 
     var response = await dio.post(ApiConstatns.progrssReport, data: data);
 
+    final responseData = response.data;
+    log("Progress Report API - Response type: ${responseData.runtimeType}");
+    if (responseData is Map) {
+      final map = responseData;
+      log("Progress Report API - Keys: ${map.keys.toList()}");
+      for (final entry in map.entries) {
+        final value = entry.value;
+        final preview = value is String && value.length > 200
+            ? '${value.substring(0, 200)}... (total ${value.length} chars)'
+            : value;
+        log("Progress Report API - ${entry.key}: $preview");
+      }
+    } else {
+      final str = responseData.toString();
+      log("Progress Report API - Response: ${str.length > 500 ? '${str.substring(0, 500)}... (total ${str.length} chars)' : str}");
+    }
+
     return Right(response.data);
   }
 

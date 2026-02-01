@@ -220,7 +220,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                 //       .headline6!
                 //       .apply(color: Colors.white),
                 // ),
-                if (kDebugMode)
+                // if (kDebugMode)
                   ListTile(
                     title: const Text(
                       "Log out",
