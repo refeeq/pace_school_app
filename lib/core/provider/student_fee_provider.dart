@@ -35,6 +35,7 @@ class StudentFeeProvider with ChangeNotifier {
   dynamic feeViewRes;
 
   String pending_fee = '';
+  String? _pendingFeeRequestStudentId;
 
   List<Transaction> get dataList =>
       _studentFeeStatementlist; // getters of List of Data
@@ -43,6 +44,7 @@ class StudentFeeProvider with ChangeNotifier {
       studentFeeStatementlistState; // getters of State of Data
 
   Future<void> getStudentFee({required String studentId}) async {
+    _pendingFeeRequestStudentId = studentId;
     totalAmount = 0.0;
     feeListModel = null;
     notifyListeners();
@@ -51,16 +53,26 @@ class StudentFeeProvider with ChangeNotifier {
     bool hasInternet = await InternetConnectivity().hasInternetConnection;
 
     if (!hasInternet) {
+      _pendingFeeRequestStudentId = null;
       feeListState = AppStates.NoInterNetConnectionState;
     } else {
       notifyListeners();
       var respon = await repository.getStudentFee(studCode: studentId);
       if (respon.isLeft) {
+        _pendingFeeRequestStudentId = null;
         log(respon.left.message.toString());
         log(respon.left.key.toString());
         feeListState = AppStates.Error;
       } else {
         if (respon.right.status == true) {
+          final respStudCode = respon.right.studentModel.studcode;
+          if (_pendingFeeRequestStudentId != null &&
+              respStudCode != _pendingFeeRequestStudentId) {
+            _pendingFeeRequestStudentId = null;
+            notifyListeners();
+            return;
+          }
+          _pendingFeeRequestStudentId = null;
           feeListState = AppStates.Fetched;
           //  showToast(respon.right.message);
           log(respon.right.data.toString());
@@ -177,8 +189,10 @@ class StudentFeeProvider with ChangeNotifier {
     }
 
     notifyListeners();
+    final effectiveStudCode =
+        studentModel?.studcode ?? studcode;
     var respon = await repository.getStudentFeeSubmit(
-      studCode: studcode,
+      studCode: effectiveStudCode,
       list: feeslistSelected,
     );
     if (respon.isLeft) {
@@ -201,7 +215,7 @@ class StudentFeeProvider with ChangeNotifier {
             builder: (context) => SuccessScreen(
               isPayment: true,
               reponseUrl: respon.right.data,
-              userId: studcode,
+              userId: effectiveStudCode,
             ),
           ),
         );

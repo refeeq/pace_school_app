@@ -37,11 +37,12 @@ class SelectStudentWidget extends StatelessWidget {
                   scrollDirection: Axis.horizontal,
                   itemBuilder: (context, index) => GestureDetector(
                     onTap: () {
+                      final selected = studentProvider.studentsModel!.data[index];
                       Provider.of<StudentProvider>(
                         context,
                         listen: false,
                       ).selectStudent(
-                        studentProvider.studentsModel!.data[index],
+                        selected,
                         index: index,
                       );
                       onchanged(index);
