@@ -85,6 +85,8 @@ class _EditEmiratesIdScreenState extends State<EditEmiratesIdScreen> {
                           ),
                           const SizedBox(height: 20),
                           CustomtextFormFieldBorder(
+                            enabled: true,
+                            readOnly: true,
                             hintText: "Emirates ID",
                             keyboardType: TextInputType.number,
                             textEditingController: _emiratesIdController,
