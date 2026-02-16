@@ -1,32 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
+import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/border_with_text_widget.dart';
 import 'package:school_app/views/components/profile_tile.dart';
-import 'package:school_app/views/screens/student/student_profile/edit_emirates_id.dart';
-
-bool _isExpiredOrToday(String? dateStr) {
-  if (dateStr == null || dateStr.isEmpty) return false;
-  final formats = [
-    DateFormat('dd/MM/yyyy'),
-    DateFormat('MM/dd/yyyy'),
-    DateFormat('yyyy-MM-dd'),
-    DateFormat.yMMMd(),
-  ];
-  DateTime? parsed;
-  for (final f in formats) {
-    try {
-      parsed = f.parse(dateStr);
-      break;
-    } catch (_) {}
-  }
-  if (parsed == null) return false;
-  final today = DateTime.now();
-  final normalized = DateTime(parsed.year, parsed.month, parsed.day);
-  final normalizedToday = DateTime(today.year, today.month, today.day);
-  return !normalized.isAfter(normalizedToday);
-}
+import 'package:school_app/views/screens/student/student_profile/student_eid_request_screen.dart';
+import 'package:school_app/views/screens/student/student_profile/student_passport_request_screen.dart';
 
 class DocumentDetailWidget extends StatelessWidget {
   const DocumentDetailWidget({super.key});
@@ -39,6 +18,18 @@ class DocumentDetailWidget extends StatelessWidget {
           return const SizedBox.shrink();
         }
         final data = value.studentDetailModel!.data;
+        final eidExpiryStatus = getDocumentExpiryStatus(data.emiratesIdExp);
+        final ppExpiryStatus = getDocumentExpiryStatus(data.ppExpDate);
+        final eidColor = eidExpiryStatus == DocumentExpiryStatus.expired
+            ? Colors.red.shade500
+            : eidExpiryStatus == DocumentExpiryStatus.expiringSoon
+                ? Colors.orange
+                : null;
+        final ppColor = ppExpiryStatus == DocumentExpiryStatus.expired
+            ? Colors.red.shade500
+            : ppExpiryStatus == DocumentExpiryStatus.expiringSoon
+                ? Colors.orange
+                : null;
 
         return Padding(
           padding: const EdgeInsets.all(8.0),
@@ -50,23 +41,23 @@ class DocumentDetailWidget extends StatelessWidget {
                 const SizedBox(height: 5),
                 Builder(
                   builder: (context) {
-                    final canEdit = true;
-                    // _isExpiredOrToday(data.emiratesId);
                     void navigate() {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const EditEmiratesIdScreen(),
+                          builder: (context) =>
+                              const StudentEidRequestScreen(),
                         ),
                       );
                     }
 
                     return InkWell(
-                      onTap: canEdit ? navigate : null,
+                      onTap: navigate,
                       child: ProfileTile(
-                        canEdit: canEdit,
+                        canEdit: false,
                         label: "Emirates ID",
                         value: data.emiratesId,
+                        valueColor: eidColor,
                       ),
                     );
                   },
@@ -74,29 +65,45 @@ class DocumentDetailWidget extends StatelessWidget {
                 const SizedBox(height: 5),
                 Builder(
                   builder: (context) {
-                    final canEdit = true;
-                    //_isExpiredOrToday(data.emiratesIdExp);
                     void navigate() {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const EditEmiratesIdScreen(),
+                          builder: (context) =>
+                              const StudentEidRequestScreen(),
                         ),
                       );
                     }
 
                     return InkWell(
-                      onTap: canEdit ? navigate : null,
+                      onTap: navigate,
                       child: ProfileTile(
-                        canEdit: canEdit,
+                        canEdit: true,
                         label: "Emirates ID Expiry date",
                         value: data.emiratesIdExp,
+                        valueColor: eidColor,
                       ),
                     );
                   },
                 ),
                 const SizedBox(height: 5),
-                ProfileTile(label: "Passport Number", value: data.passno),
+                InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const StudentPassportRequestScreen(),
+                      ),
+                    );
+                  },
+                  child: ProfileTile(
+                    canEdit: true,
+                    label: "Passport Number",
+                    value: data.passno,
+                    valueColor: ppColor,
+                  ),
+                ),
                 const SizedBox(height: 5),
                 ProfileTile(
                   label: "Passport Issue Date",
@@ -106,6 +113,7 @@ class DocumentDetailWidget extends StatelessWidget {
                 ProfileTile(
                   label: "Passport Expiry Date",
                   value: data.ppExpDate,
+                  valueColor: ppColor,
                 ),
               ],
             ),

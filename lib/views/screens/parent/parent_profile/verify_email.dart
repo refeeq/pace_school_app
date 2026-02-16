@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/provider/parent_provider.dart';
+import 'package:school_app/core/provider/parent_update_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/no_data_widget.dart';
@@ -31,17 +32,29 @@ class _VerifyEmailState extends State<VerifyEmail> {
   TextEditingController controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  /// Pre-populate email from parent profile (parentProfileTab API).
+  void _prePopulateFromParentProfile() {
+    final parentProvider = Provider.of<ParentProvider>(context, listen: false);
+    final common = parentProvider.parentProfileListModel?.common;
+    if (common == null) return;
+    final isFather = widget.relation.toLowerCase() == 'father';
+    final str = (isFather ? common.email : common.memail).trim();
+    if (str.isNotEmpty && str != 'null') {
+      emailcontroller.text = str;
+    }
+  }
+
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ParentProvider>(
         context,
         listen: false,
       ).updateParentOtpStatus();
+      if (mounted) _prePopulateFromParentProfile();
     });
     startTimer();
-    // TODO: implement initState
-    super.initState();
   }
 
   @override
@@ -293,10 +306,22 @@ class _VerifyEmailState extends State<VerifyEmail> {
                     otp: controller.text,
                     context: context,
                   )
-                  .then((value) {
+                  .then((_) async {
+                    // After successful OTP verification, also create a request entry
+                    final parentUpdateProvider =
+                        Provider.of<ParentUpdateProvider>(
+                      context,
+                      listen: false,
+                    );
+                    await parentUpdateProvider.submitFatherEmailRequest(
+                      email: emailcontroller.text,
+                      context: context,
+                    );
                     emailcontroller.clear();
 
-                    Navigator.pop(context);
+                    if (mounted) {
+                      Navigator.pop(context);
+                    }
                   });
             }
           },

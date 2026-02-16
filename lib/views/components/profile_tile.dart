@@ -6,12 +6,15 @@ class ProfileTile extends StatelessWidget {
   final String label;
   final String value;
   final bool canEdit;
+  /// Optional custom color for the value text. Overrides isRed when set.
+  final Color? valueColor;
   const ProfileTile({
     super.key,
     required this.label,
     required this.value,
     this.isRed = false,
     this.canEdit = false,
+    this.valueColor,
   });
 
   @override
@@ -58,14 +61,20 @@ class ProfileTile extends StatelessWidget {
                       value.isEmpty ? " _ " : value,
                       style: GoogleFonts.nunitoSans(
                         textStyle: TextStyle(
-                          color: isRed ? Colors.red : const Color(0xFF000203),
+                          color: valueColor ??
+                              (isRed ? Colors.red : const Color(0xFF000203)),
                           fontSize: 14,
-                          fontWeight: isRed ? FontWeight.w800 : FontWeight.w700,
+                          fontWeight: (valueColor != null || isRed)
+                              ? FontWeight.w800
+                              : FontWeight.w700,
                         ),
                       ),
                     ),
                   ),
-                  if (canEdit) Icon(Icons.edit, size: 18),
+                  
+                  if (canEdit) ...[
+                  SizedBox(width: 5,),
+                  Icon(Icons.edit, size: 18),]
                 ],
               ),
             ],

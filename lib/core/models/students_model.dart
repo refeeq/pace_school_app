@@ -55,6 +55,10 @@ class StudentModel {
   final String acYearId;
   @HiveField(7)
   final String photo;
+  @HiveField(8)
+  final String statusLabel;
+  @HiveField(9)
+  final String statusColour;
   StudentModel({
     required this.studcode,
     required this.fullname,
@@ -64,29 +68,35 @@ class StudentModel {
     required this.acdyear,
     required this.acYearId,
     required this.photo,
+    this.statusLabel = "",
+    this.statusColour = "",
   });
 
   factory StudentModel.fromJson(Map<String, dynamic> json) => StudentModel(
-    studcode: json["studcode"],
-    fullname: json["fullname"],
-    datumClass: json["class"],
-    section: json["section"],
-    studStat: json["stud_stat"],
-    acdyear: json["acdyear"],
-    acYearId: json["ac_year_id"],
-    photo: json["photo"],
-  );
+        studcode: json["studcode"],
+        fullname: json["fullname"],
+        datumClass: json["class"],
+        section: json["section"],
+        studStat: json["stud_stat"],
+        acdyear: json["acdyear"],
+        acYearId: json["ac_year_id"],
+        photo: json["photo"],
+        statusLabel: json["status_label"] ?? "",
+        statusColour: json["status_colour"] ?? "",
+      );
 
   Map<String, dynamic> toJson() => {
-    "studcode": studcode,
-    "fullname": fullname,
-    "class": datumClass,
-    "section": section,
-    "stud_stat": studStat,
-    "acdyear": acdyear,
-    "ac_year_id": acYearId,
-    "photo": photo,
-  };
+        "studcode": studcode,
+        "fullname": fullname,
+        "class": datumClass,
+        "section": section,
+        "stud_stat": studStat,
+        "acdyear": acdyear,
+        "ac_year_id": acYearId,
+        "photo": photo,
+        "status_label": statusLabel,
+        "status_colour": statusColour,
+      };
 }
 
 class StudentsModel {

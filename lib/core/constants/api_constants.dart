@@ -47,6 +47,18 @@ class ApiConstatns {
   static String progrssReport = '${baseUrl}progrssReport';
   static String updateStudentEmiratesID = '${baseUrl}updateStudentEmiratesID';
 
+  // parent update requests
+  static String requestPassportUpdate = '${baseUrl}requestPassportUpdate';
+  static String requestStudentEidUpdate = '${baseUrl}requestEidUpdate';
+  static String requestStudentPhotoUpdate = '${baseUrl}requestPhotoUpdate';
+  static String requestFatherPhotoUpdate = '${baseUrl}requestFatherPhotoUpdate';
+  static String requestMotherPhotoUpdate = '${baseUrl}requestMotherPhotoUpdate';
+  static String requestFatherEmailUpdate = '${baseUrl}requestFatherEmailUpdate';
+  static String requestFatherEidUpdate = '${baseUrl}requestFatherEidUpdate';
+  static String requestMotherEidUpdate = '${baseUrl}requestMotherEidUpdate';
+  static String requestAddressUpdate = '${baseUrl}requestAddressUpdate';
+  static String getParentUpdateRequests = '${baseUrl}getParentUpdateRequests';
+
   //open House
   static String openHouse = '${baseUrl}openHouse';
   static String addOpenhouseApp = '${baseUrl}addOpenhouseApp';

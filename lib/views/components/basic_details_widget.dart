@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
+import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/profile_tile.dart';
 
 import 'border_with_text_widget.dart';
@@ -37,6 +38,27 @@ class BasicDetailWidget extends StatelessWidget {
               ),
 
               const SizedBox(height: 5),
+              if (value.studentDetailModel!.data.statusLabel.isNotEmpty)
+                ProfileTile(
+                  label: "Student Status",
+                  value: value.studentDetailModel!.data.statusLabel,
+                  valueColor:
+                   parseRgbColor(
+                    value.studentDetailModel!.data.statusColour,
+                  ),
+                ),
+              if (value.studentDetailModel!.data.statusLabel.isNotEmpty)
+                const SizedBox(height: 5),
+
+              if (value.studentDetailModel!.data.studentReregLabel.isNotEmpty) ...[
+                ProfileTile(
+                  label: "Re-Registration Status",
+                  value: value.studentDetailModel!.data.studentReregLabel,
+                ),
+                const SizedBox(height: 5),
+              ],
+
+              // const SizedBox(height: 5),
               ProfileTile(
                 label: "Date of Birth",
                 value: value.studentDetailModel!.data.datbirth,

@@ -39,6 +39,8 @@ class Common {
   final String primaryContact;
   final dynamic fEid;
   final dynamic mEid;
+  final dynamic fEidExp;
+  final dynamic mEidExp;
   final dynamic communityId;
   final dynamic flatNo;
   final dynamic buildingName;
@@ -71,6 +73,8 @@ class Common {
     required this.primaryContact,
     required this.fEid,
     required this.mEid,
+    required this.fEidExp,
+    required this.mEidExp,
     required this.communityId,
     required this.flatNo,
     required this.buildingName,
@@ -104,6 +108,8 @@ class Common {
         primaryContact: json["primary_contact"] ?? "",
         fEid: json["f_eid"] ?? "",
         mEid: json["m_eid"] ?? "",
+        fEidExp: json["f_eid_exp"] ?? "",
+        mEidExp: json["m_eid_exp"] ?? "",
         communityId: json["community_id"] ?? "",
         flatNo: json["flat_no"] ?? "",
         buildingName: json["building_name"] ?? "",
@@ -137,6 +143,8 @@ class Common {
         "primary_contact": primaryContact,
         "f_eid": fEid,
         "m_eid": mEid,
+        "f_eid_exp": fEidExp,
+        "m_eid_exp": mEidExp,
         "community_id": communityId,
         "flat_no": flatNo,
         "building_name": buildingName,

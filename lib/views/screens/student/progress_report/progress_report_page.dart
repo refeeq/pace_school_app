@@ -32,6 +32,15 @@ class _ProgressReportPageState extends State<ProgressReportPage> {
     super.dispose();
   }
 
+  /// Sanitizes the report title for use as a filename (e.g. "Periodic Test 1" -> "Periodic_Test_1")
+  String _sanitizeFilename(String title) {
+    if (title.trim().isEmpty) return 'progress_report';
+    return title
+        .trim()
+        .replaceAll(RegExp(r'[/\\:*?"<>|]'), '')
+        .replaceAll(RegExp(r'\s+'), '_');
+  }
+
   Future<void> _convertHtmlToPdf(String htmlContent) async {
     if (_isConverting) return;
     setState(() {
@@ -93,9 +102,10 @@ class _ProgressReportPageState extends State<ProgressReportPage> {
             IconButton(
               icon: const Icon(Icons.share, color: Colors.white),
               onPressed: () async {
+                final filename = _sanitizeFilename(widget.title);
                 await Printing.sharePdf(
                   bytes: _pdfBytes!,
-                  filename: 'progress_report.pdf',
+                  filename: '$filename.pdf',
                 );
               },
             ),

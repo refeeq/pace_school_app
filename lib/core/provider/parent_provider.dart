@@ -101,11 +101,11 @@ class ParentProvider with ChangeNotifier {
       } else {
         if (respon.right['status'] == true) {
           parentMobileOtpState = AppStates.Fetched;
-          showToast(respon.right["message"].toString(), context);
+          showToast(respon.right["message"].toString(), context, type: ToastType.success);
           log(respon.right.toString());
         } else {
           parentMobileOtpState = AppStates.Error;
-          showToast(respon.right["message"].toString(), context);
+          showToast(respon.right["message"].toString(), context, type: ToastType.error);
         }
       }
     }
@@ -135,13 +135,11 @@ class ParentProvider with ChangeNotifier {
       } else {
         if (respon.right['status'] == true) {
           parentOtpState = AppStates.Fetched;
-          showToast(respon.right["message"].toString(), context);
-          // showToast(respon.right.message);
+          showToast(respon.right["message"].toString(), context, type: ToastType.success);
           log(respon.right.toString());
-          // parentProfileListModel = respon.right;
         } else {
           parentOtpState = AppStates.Error;
-          showToast(respon.right["message"].toString(), context);
+          showToast(respon.right["message"].toString(), context, type: ToastType.error);
         }
       }
     }
@@ -184,13 +182,11 @@ class ParentProvider with ChangeNotifier {
         if (respon.right['status'] == true) {
           getParentDetailsList();
           parentOtpState = AppStates.Unintialized;
-          showToast(respon.right["message"].toString(), context);
-
+          showToast(respon.right["message"].toString(), context, type: ToastType.success);
           log(respon.right.toString());
-          // parentProfileListModel = respon.right;
         } else {
           parentOtpState = AppStates.Error;
-          showToast(respon.right["message"].toString(), context);
+          showToast(respon.right["message"].toString(), context, type: ToastType.error);
         }
       }
     }
@@ -223,11 +219,11 @@ class ParentProvider with ChangeNotifier {
         if (respon.right['status'] == true) {
           getParentDetailsList();
           parentMobileOtpState = AppStates.Unintialized;
-          showToast(respon.right["message"].toString(), context);
+          showToast(respon.right["message"].toString(), context, type: ToastType.success);
           log(respon.right.toString());
         } else {
           parentMobileOtpState = AppStates.Error;
-          showToast(respon.right["message"].toString(), context);
+          showToast(respon.right["message"].toString(), context, type: ToastType.error);
         }
       }
     }

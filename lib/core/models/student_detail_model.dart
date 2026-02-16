@@ -33,6 +33,13 @@ class Data {
   final String emiratesId;
   final String emiratesIdExp;
   final String photo;
+  final String statusLabel;
+  final String statusShortcode;
+  final String statusColour;
+  final String statusFinalStat;
+  final dynamic studentReregistered;
+  final String studentReregStat;
+  final String studentReregLabel;
   Data({
     required this.studcode,
     required this.fullname,
@@ -55,6 +62,13 @@ class Data {
     required this.emiratesId,
     required this.emiratesIdExp,
     required this.photo,
+    this.statusLabel = "",
+    this.statusShortcode = "",
+    this.statusColour = "",
+    this.statusFinalStat = "0",
+    this.studentReregistered,
+    this.studentReregStat = "",
+    this.studentReregLabel = "",
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
@@ -79,6 +93,13 @@ class Data {
         emiratesId: json["emirates_id"] ?? "",
         emiratesIdExp: json["emirates_id_exp"] ?? "",
         photo: json["photo"] ?? "",
+        statusLabel: json["status_label"] ?? "",
+        statusShortcode: json["status_shortcode"] ?? "",
+        statusColour: json["status_colour"] ?? "",
+        statusFinalStat: json["status_final_stat"]?.toString() ?? "0",
+        studentReregistered: json["student_reregistered"],
+        studentReregStat: json["student_rereg_stat"]?.toString() ?? "",
+        studentReregLabel: json["student_rereg_label"] ?? "",
       );
 
   Map<String, dynamic> toJson() => {
@@ -103,6 +124,13 @@ class Data {
         "emirates_id": emiratesId,
         "emirates_id_exp": emiratesIdExp,
         "photo": photo,
+        "status_label": statusLabel,
+        "status_shortcode": statusShortcode,
+        "status_colour": statusColour,
+        "status_final_stat": statusFinalStat,
+        "student_reregistered": studentReregistered,
+        "student_rereg_stat": studentReregStat,
+        "student_rereg_label": studentReregLabel,
       };
 }
 

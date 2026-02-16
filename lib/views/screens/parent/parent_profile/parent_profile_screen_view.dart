@@ -14,6 +14,7 @@ import 'package:school_app/views/components/no_internet_connection.dart';
 import 'package:school_app/views/components/shimmer_student_profile.dart';
 import 'package:school_app/views/screens/parent/parent_profile/verify_email.dart';
 import 'package:school_app/views/screens/parent/parent_profile/verify_mobile.dart';
+import 'package:school_app/views/screens/parent/parent_update/parent_update_hub_screen.dart';
 
 import '../../../components/profile_tile.dart';
 import '../../../components/shimmer_profile.dart';
@@ -76,8 +77,8 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                         CircleAvatar(
                                           backgroundColor:
                                               value.parentSelected == index
-                                              ? Colors.blue
-                                              : Colors.white,
+                                                  ? Colors.blue
+                                                  : Colors.white,
                                           radius: 30.r,
                                           child: CircleAvatar(
                                             radius: 28.5.r,
@@ -203,7 +204,7 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                     SizedBox(height: 6.h),
                                     InkWell(
                                       onTap: () {
-                                        if (value
+                                         if (value
                                             .parentProfileListModel!
                                             .data[value.parentSelected]
                                             .email
@@ -222,6 +223,7 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                         }
                                       },
                                       child: ProfileTile(
+                                        canEdit: true,
                                         isRed: value
                                             .parentProfileListModel!
                                             .data[value.parentSelected]
@@ -367,6 +369,31 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                           ],
                         ),
                       ),
+                      SizedBox(height: 12.h),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: ConstColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: 12.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ParentUpdateHubScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.edit),
+                          label: const Text('Update Profile'),
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -384,7 +411,6 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                     Future(() {
                       value.getParentDetailsList();
                     });
-                    //     Navigator.pop(context);
                   }
                 },
               );

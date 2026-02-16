@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/provider/student_provider.dart';
+import 'package:school_app/core/utils/utils.dart';
 
 class SelectStudentWidget extends StatelessWidget {
   final void Function(int index) onchanged;
@@ -57,27 +58,56 @@ class SelectStudentWidget extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.end,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            CircleAvatar(
-                              backgroundColor:
-                                  studentProvider
-                                          .selectedStudentModel(context)
-                                          .studcode ==
-                                      studentProvider
-                                          .studentsModel!
-                                          .data[index]
-                                          .studcode
-                                  ? Colors.blue
-                                  : Colors.white,
-                              radius: 30,
-                              child: CircleAvatar(
-                                radius: 28,
-                                backgroundImage: NetworkImage(
-                                  studentProvider
-                                      .studentsModel!
-                                      .data[index]
-                                      .photo,
-                                ),
-                              ),
+                            Builder(
+                              builder: (context) {
+                                final student =
+                                    studentProvider.studentsModel!.data[index];
+                                final isSelected =
+                                    studentProvider.selectedStudentModel(context)
+                                            .studcode ==
+                                        student.studcode;
+                                final statusColour = student.statusColour
+                                        .isNotEmpty
+                                    ? parseRgbColor(student.statusColour)
+                                    : null;
+                                return Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: isSelected
+                                          ? Colors.blue
+                                          : Colors.white,
+                                      radius: 30,
+                                      child: CircleAvatar(
+                                        radius: 28,
+                                        backgroundImage: NetworkImage(
+                                          studentProvider
+                                              .studentsModel!
+                                              .data[index]
+                                              .photo,
+                                        ),
+                                      ),
+                                    ),
+                                    if (statusColour != null)
+                                      Positioned(
+                                        right: 0,
+                                        bottom: 0,
+                                        child: Container(
+                                          width: 14,
+                                          height: 14,
+                                          decoration: BoxDecoration(
+                                            color: statusColour,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.white,
+                                              width: 2,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              },
                             ),
                             const SizedBox(height: 5),
                             Text(

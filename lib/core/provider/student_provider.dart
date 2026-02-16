@@ -272,7 +272,7 @@ class StudentProvider with ChangeNotifier {
     if (!hasInternet) {
       updateStudentDocState = AppStates.NoInterNetConnectionState;
       notifyListeners();
-      showToast("No internet connection!", context);
+      showToast("No internet connection!", context, type: ToastType.error);
       return false;
     }
 
@@ -286,20 +286,20 @@ class StudentProvider with ChangeNotifier {
       log(respon.left.message.toString());
       log(respon.left.key.toString());
       updateStudentDocState = AppStates.Error;
-      showToast(respon.left.message ?? "Failed to update details", context);
+      showToast(respon.left.message ?? "Failed to update details", context, type: ToastType.error);
       notifyListeners();
       return false;
     } else {
       final data = respon.right;
       if (data['status'] == true) {
         updateStudentDocState = AppStates.Fetched;
-        showToast(data["message"].toString(), context);
+        showToast(data["message"].toString(), context, type: ToastType.success);
         await getStudentDetail(studCode: studCode);
         notifyListeners();
         return true;
       } else {
         updateStudentDocState = AppStates.Error;
-        showToast(data["message"].toString(), context);
+        showToast(data["message"].toString(), context, type: ToastType.error);
         notifyListeners();
         return false;
       }

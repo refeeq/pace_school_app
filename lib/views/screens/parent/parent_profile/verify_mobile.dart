@@ -32,11 +32,24 @@ class _VerifyMobileState extends State<VerifyMobile> {
   TextEditingController otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
+  /// Pre-populate mobile from parent profile (parentProfileTab API).
+  void _prePopulateFromParentProfile() {
+    final parentProvider = Provider.of<ParentProvider>(context, listen: false);
+    final common = parentProvider.parentProfileListModel?.common;
+    if (common == null) return;
+    final isFather = widget.relation.toLowerCase() == 'father';
+    final str = (isFather ? common.mobile : common.mmob).trim();
+    if (str.isNotEmpty && str != 'null') {
+      mobileController.text = str;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ParentProvider>(context, listen: false).updateParentMobileOtpStatus();
+      if (mounted) _prePopulateFromParentProfile();
     });
   }
 
