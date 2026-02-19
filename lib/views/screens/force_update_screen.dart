@@ -172,7 +172,7 @@ class ForceUpdateScreen extends StatelessWidget {
         // Try alternative path with capital A
         try {
           return Lottie.asset(
-            'assets/animations/Update-App.json',
+            'assets/animations/Update-app.json',
             fit: BoxFit.contain,
             repeat: true,
             animate: true,
