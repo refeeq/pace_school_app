@@ -26,11 +26,12 @@ class VerifyEmail extends StatefulWidget {
 }
 
 class _VerifyEmailState extends State<VerifyEmail> {
-  late Timer _timer;
+  Timer? _timer;
   int _start = 60;
   TextEditingController emailcontroller = TextEditingController();
   TextEditingController controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _disposed = false;
 
   /// Pre-populate email from parent profile (parentProfileTab API).
   void _prePopulateFromParentProfile() {
@@ -48,6 +49,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       Provider.of<ParentProvider>(
         context,
         listen: false,
@@ -64,10 +66,11 @@ class _VerifyEmailState extends State<VerifyEmail> {
       appBar: AppBar(),
       body: Form(
         key: _formKey,
-        child: Column(
-          children: [
-            Consumer<ParentProvider>(
-              builder: (context, value, child) {
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Consumer<ParentProvider>(
+                builder: (context, value, child) {
                 switch (value.parentOtpState) {
                   case AppStates.Unintialized:
                     return Padding(
@@ -161,7 +164,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                               child: PinCodeTextField(
                                 controller: controller,
                                 appContext: context,
-
+                                autoDisposeControllers: false,
                                 length: 5,
                                 enableActiveFill: true,
 
@@ -271,7 +274,8 @@ class _VerifyEmailState extends State<VerifyEmail> {
                 }
               },
             ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: Padding(
@@ -299,14 +303,17 @@ class _VerifyEmailState extends State<VerifyEmail> {
                   listen: false,
                 ).parentOtpState ==
                 AppStates.Fetched) {
+              final email = emailcontroller.text;
+              final otp = controller.text;
               Provider.of<ParentProvider>(context, listen: false)
                   .verifyEmailOtp(
                     relation: widget.relation,
-                    email: emailcontroller.text,
-                    otp: controller.text,
+                    email: email,
+                    otp: otp,
                     context: context,
                   )
                   .then((_) async {
+                    if (!mounted) return;
                     // After successful OTP verification, also create a request entry
                     final parentUpdateProvider =
                         Provider.of<ParentUpdateProvider>(
@@ -314,12 +321,11 @@ class _VerifyEmailState extends State<VerifyEmail> {
                       listen: false,
                     );
                     await parentUpdateProvider.submitFatherEmailRequest(
-                      email: emailcontroller.text,
+                      email: email,
                       context: context,
                     );
-                    emailcontroller.clear();
-
                     if (mounted) {
+                      emailcontroller.clear();
                       Navigator.pop(context);
                     }
                   });
@@ -355,25 +361,32 @@ class _VerifyEmailState extends State<VerifyEmail> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    if (_disposed) return;
+    _disposed = true;
+    _timer?.cancel();
+    emailcontroller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
   void startTimer() {
-    setState(() {
-      _start = 60;
-      const oneSec = Duration(seconds: 1);
-      _timer = Timer.periodic(oneSec, (Timer timer) {
-        if (_start == 0) {
-          setState(() {
-            timer.cancel();
-          });
-        } else {
-          setState(() {
-            _start--;
-          });
-        }
-      });
+    _timer?.cancel();
+    _start = 60;
+    const oneSec = Duration(seconds: 1);
+    _timer = Timer.periodic(oneSec, (Timer timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_start == 0) {
+        timer.cancel();
+        _timer = null;
+        setState(() {});
+      } else {
+        setState(() {
+          _start--;
+        });
+      }
     });
   }
 }

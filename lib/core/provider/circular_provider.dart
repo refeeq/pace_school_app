@@ -33,7 +33,7 @@ class CircularProvider with ChangeNotifier {
       } else {
         circularListState = AppStates.Fetched;
         //  showToast(respon.right.message);
-        log("response${respon.right}");
+        log('studentCircular response fetched successfully');
         List<CircularModel> list = List<CircularModel>.from(
           respon.right["data"].map((x) => CircularModel.fromJson(x)),
         );

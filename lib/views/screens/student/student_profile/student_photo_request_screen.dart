@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +8,7 @@ import 'package:school_app/core/provider/parent_update_provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/core/utils/utils.dart';
+import 'package:school_app/core/utils/image_processing_helper.dart';
 import 'package:school_app/views/components/common_app_bar.dart';
 import 'package:school_app/views/components/slect_student.dart';
 
@@ -23,6 +23,7 @@ class StudentPhotoRequestScreen extends StatefulWidget {
 class _StudentPhotoRequestScreenState extends State<StudentPhotoRequestScreen> {
   String? _photoPath;
   bool _initialLoadDone = false;
+  bool _isProcessingImage = false;
 
   @override
   Widget build(BuildContext context) {
@@ -103,12 +104,20 @@ class _StudentPhotoRequestScreenState extends State<StudentPhotoRequestScreen> {
                           const SizedBox(height: 16),
                           Center(
                             child: OutlinedButton.icon(
-                              onPressed: _pickPhoto,
-                              icon: const Icon(Icons.photo),
+                              onPressed: _isProcessingImage ? null : _pickPhoto,
+                              icon: _isProcessingImage
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.photo),
                               label: Text(
-                                _photoPath == null
-                                    ? 'Choose photo'
-                                    : 'Change photo',
+                                _isProcessingImage
+                                    ? 'Processing...'
+                                    : _photoPath == null
+                                        ? 'Choose photo'
+                                        : 'Change photo',
                               ),
                             ),
                           ),
@@ -166,17 +175,35 @@ class _StudentPhotoRequestScreenState extends State<StudentPhotoRequestScreen> {
 
   Future<void> _pickPhoto() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['jpg', 'jpeg', 'png'],
-      );
-      if (result != null && result.files.single.path != null) {
+      setState(() {
+        _isProcessingImage = true;
+      });
+
+      // Use the image processing helper to pick and process image
+      final processedImagePath = await ImageProcessingHelper.pickAndProcessImage(context);
+
+      if (processedImagePath != null) {
         setState(() {
-          _photoPath = result.files.single.path!;
+          _photoPath = processedImagePath;
+          _isProcessingImage = false;
         });
+      } else {
+        setState(() {
+          _isProcessingImage = false;
+        });
+        // User cancelled or error occurred - don't show error if user cancelled
+        if (mounted) {
+          // Only show error if it wasn't a cancellation
+          // The helper returns null for cancellation, which is fine
+        }
       }
     } catch (e) {
-      showToast("Failed to pick image", context, type: ToastType.error);
+      setState(() {
+        _isProcessingImage = false;
+      });
+      if (mounted) {
+        showToast("Failed to process image: ${e.toString()}", context, type: ToastType.error);
+      }
     }
   }
 

@@ -77,12 +77,14 @@ class CommunicationRepositoryImpl implements CommunicationRepository {
       return Left(response.left);
     } else {
       if (response.right['status'] == false) {
-        log(response.right.toString());
-        log(response.right['message']);
+        // log(response.right.toString());
+        // log(response.right['message']);
+        log('getCommunications response - status false');
         return const Right([]);
       } else {
         //  showToast(response.right['message']);
-        log(response.right.toString());
+        // log(response.right.toString());
+        log('getCommunications response fetched successfully');
 
         return Right(response.right);
       }

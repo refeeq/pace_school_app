@@ -59,11 +59,12 @@ class CommunicationProvider with ChangeNotifier {
         log(respon.left.key.toString());
         communicationDetailState = DataState.Error;
       } else {
-        log("Communication Response\n${respon.right}");
+        // log("Communication Response\n${respon.right}");
+        log('getCommunicationsBifur response fetched successfully');
         if (respon.right['status'] == true) {
           communicationDetailState = DataState.Fetched;
           //   showToast(respon.right.message);
-          log(respon.right.toString());
+          // log(respon.right.toString());
           List<CommunicationDetailModel> list =
               List<CommunicationDetailModel>.from(
                 respon.right["data"].map(
@@ -109,7 +110,7 @@ class CommunicationProvider with ChangeNotifier {
           communicationListState = AppStates.Fetched;
 
           //   showToast(respon.right.message);
-          log(respon.right.toString());
+          log('getCommunications response fetched successfully');
           communicationList = List<CommunicationTileModel>.from(
             respon.right["data"].map((x) => CommunicationTileModel.fromJson(x)),
           );
@@ -141,7 +142,7 @@ class CommunicationProvider with ChangeNotifier {
 
           await Hive.box("communication").put("count", respon.right['count']);
           //   showToast(respon.right.message);
-          log(respon.right.toString());
+          log('getCommunicationStudentList response fetched successfully');
           communicationStudentList = List<CommunicationStudentModel>.from(
             respon.right["data"].map(
               (x) => CommunicationStudentModel.fromJson(x),
@@ -164,7 +165,7 @@ class CommunicationProvider with ChangeNotifier {
 
       await Hive.box("communication").put("count", respon.right['count']);
       //   showToast(respon.right.message);
-      log(respon.right.toString());
+      log('getCommunicationStudentList response fetched successfully');
       communicationStudentList = List<CommunicationStudentModel>.from(
         respon.right["data"].map((x) => CommunicationStudentModel.fromJson(x)),
       );

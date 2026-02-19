@@ -16,9 +16,7 @@ class SelectStudentWidget extends StatelessWidget {
       builder: (context, studentProvider, child) {
         switch (studentProvider.studentListState) {
           case AppStates.Unintialized:
-            Future(() {
-              studentProvider.getStudents();
-            });
+            // getStudents is triggered by bottom_nav initState; avoid duplicate call
             return Container();
           case AppStates.Initial_Fetching:
             return Container();

@@ -17,6 +17,7 @@ import 'package:school_app/core/services/dependecyInjection.dart';
 import 'package:school_app/core/themes/const_gradient.dart';
 import 'package:school_app/views/components/communication_icon.dart';
 import 'package:school_app/views/components/notification_icon.dart';
+import 'package:school_app/views/components/profile_icon.dart';
 import 'package:school_app/views/screens/parent/parent_profile/parent_profile_screen_view.dart';
 import 'package:upgrader/upgrader.dart';
 
@@ -26,6 +27,7 @@ import '../../../core/services/auto_update.dart';
 import '../../../core/themes/const_colors.dart';
 import '../parent/communication_checker.dart';
 import '../parent/parent_notification_screen/parent_notification_screen_view.dart';
+import '../force_update_screen.dart';
 import 'home_screen_view.dart';
 
 class HomeScreenView extends StatefulWidget {
@@ -40,6 +42,18 @@ class _HomeScreenViewState extends State<HomeScreenView>
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
+    return Consumer<StudentProvider>(
+      builder: (context, studentProvider, _) {
+        if (studentProvider.updateRequired) {
+          log('[FORCE_UPDATE] 🚫 App access blocked - showing ForceUpdateScreen');
+          return const ForceUpdateScreen();
+        }
+        return _buildHomeContent(context);
+      },
+    );
+  }
+
+  Widget _buildHomeContent(BuildContext context) {
     var list = [
       const HomeView(),
       const ParentProfileScreenView(),
@@ -256,10 +270,8 @@ class _HomeScreenViewState extends State<HomeScreenView>
                                   mainAxisSize: MainAxisSize.min,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Image.asset(
-                                      "assets/bottom/profile_selected.png",
-                                      height: 35,
-                                      width: 35,
+                                    ProfileIcon(
+                                      isSelected: provider.index == 1,
                                     ),
                                     SizedBox(width: 0.w),
                                     Text(
@@ -274,10 +286,8 @@ class _HomeScreenViewState extends State<HomeScreenView>
                                 )
                               : Padding(
                                   padding: const EdgeInsets.all(8.0),
-                                  child: Image.asset(
-                                    "assets/bottom/profile_unselected.png",
-                                    height: 35,
-                                    width: 35,
+                                  child: ProfileIcon(
+                                    isSelected: provider.index == 1,
                                   ),
                                 ),
                         ),
@@ -367,16 +377,36 @@ class _HomeScreenViewState extends State<HomeScreenView>
       if (Platform.isAndroid) {
         final status = await Permission.notification.status;
         if (status.isGranted) {
-          initNotification(context);
+          // Initialize notifications only once per app lifetime
+          if (!FirebaseNotificationService.isInitialized) {
+            initNotification(context);
+          }
         } else {
           await Hive.box('notification').put("notification", false);
         }
       } else {
-        var settings = await FirebaseMessaging.instance
-            .getNotificationSettings();
-        if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-          initNotification(context);
+        // iOS: first check existing settings
+        var settings =
+            await FirebaseMessaging.instance.getNotificationSettings();
+
+        if (settings.authorizationStatus == AuthorizationStatus.notDetermined) {
+          // Permission dialog has never been shown – request it now
+          settings = await FirebaseMessaging.instance.requestPermission(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+        }
+
+        if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+            settings.authorizationStatus == AuthorizationStatus.provisional) {
+          // Now that permission is granted, proceed with notification setup
+          if (!FirebaseNotificationService.isInitialized) {
+            initNotification(context);
+          }
+          await Hive.box('notification').put("notification", true);
         } else {
+          // Permission denied
           await Hive.box('notification').put("notification", false);
         }
       }
@@ -387,7 +417,7 @@ class _HomeScreenViewState extends State<HomeScreenView>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
+  void didChangeAppLifecycleState(AppLifecycleState state) {
     if (!kDebugMode) {
       if (state == AppLifecycleState.resumed) {
         checkNotificationPermissionStatus();
@@ -406,7 +436,7 @@ class _HomeScreenViewState extends State<HomeScreenView>
   }
 
   @override
-  void didChangeDependencies() async {
+  void didChangeDependencies() {
     Provider.of<NotificationProvider>(
       context,
       listen: false,

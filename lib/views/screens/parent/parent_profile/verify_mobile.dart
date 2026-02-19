@@ -31,6 +31,7 @@ class _VerifyMobileState extends State<VerifyMobile> {
   TextEditingController mobileController = TextEditingController();
   TextEditingController otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _disposed = false;
 
   /// Pre-populate mobile from parent profile (parentProfileTab API).
   void _prePopulateFromParentProfile() {
@@ -60,10 +61,11 @@ class _VerifyMobileState extends State<VerifyMobile> {
       appBar: const CommonAppBar(title: "Verify Mobile"),
       body: Form(
         key: _formKey,
-        child: Column(
-          children: [
-            Consumer<ParentProvider>(
-              builder: (context, value, child) {
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Consumer<ParentProvider>(
+                builder: (context, value, child) {
                 switch (value.parentMobileOtpState) {
                   case AppStates.Unintialized:
                     return Padding(
@@ -157,6 +159,7 @@ class _VerifyMobileState extends State<VerifyMobile> {
                               child: PinCodeTextField(
                                 controller: otpController,
                                 appContext: context,
+                                autoDisposeControllers: false,
                                 length: 5,
                                 enableActiveFill: true,
                                 blinkWhenObscuring: true,
@@ -232,7 +235,8 @@ class _VerifyMobileState extends State<VerifyMobile> {
                 }
               },
             ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: Padding(
@@ -293,6 +297,8 @@ class _VerifyMobileState extends State<VerifyMobile> {
 
   @override
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     _timer?.cancel();
     mobileController.dispose();
     otpController.dispose();
@@ -304,13 +310,23 @@ class _VerifyMobileState extends State<VerifyMobile> {
     const oneSec = Duration(seconds: 1);
     _start = 60;
     _timer = Timer.periodic(oneSec, (Timer timer) {
+      if (!mounted || _disposed) {
+        timer.cancel();
+        _timer = null;
+        return;
+      }
       if (_start == 0) {
         timer.cancel();
         _timer = null;
+        if (mounted && !_disposed) {
+          setState(() {});
+        }
       } else {
-        setState(() {
-          _start--;
-        });
+        if (mounted && !_disposed) {
+          setState(() {
+            _start--;
+          });
+        }
       }
     });
   }

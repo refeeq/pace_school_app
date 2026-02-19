@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:observe_internet_connectivity/observe_internet_connectivity.dart';
 import 'package:provider/provider.dart';
+import 'package:school_app/core/provider/parent_provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/core/utils/utils.dart';
@@ -187,6 +188,8 @@ class _StudentProfileViewState extends State<StudentProfileView> {
           listen: false,
         ).selectedStudentModel(context).studcode,
       );
+      // Fetch parent details so Update Profile screens can pre-populate when accessed from student profile
+      Provider.of<ParentProvider>(context, listen: false).getParentDetailsList();
     });
     super.didChangeDependencies();
   }

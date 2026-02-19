@@ -254,4 +254,10 @@ class _ListViewWidgetState extends State<ListViewWidget> {
       ],
     );
   }
+
+  @override
+  void dispose() {
+    scrollController.dispose();
+    super.dispose();
+  }
 }

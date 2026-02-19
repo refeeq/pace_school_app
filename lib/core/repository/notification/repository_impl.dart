@@ -35,14 +35,16 @@ class NotificationRepositoryImpl implements NotificationRepository {
       return Left(response.left);
     } else {
       if (response.right['status'] == false) {
-        log(response.right.toString());
+        // log(response.right.toString());
+        log('getNotifications response - status false');
         if (kDebugMode) {
           //   showToast(response.right['message']);
         }
         return const Right([]);
       } else {
         //  showToast(response.right['message']);
-        log(response.right.toString());
+        // log(response.right.toString());
+        log('getNotifications response fetched successfully');
 
         return Right(response.right);
       }
@@ -70,13 +72,15 @@ class NotificationRepositoryImpl implements NotificationRepository {
       return Left(response.left);
     } else {
       if (response.right['status'] == false) {
-        log(response.right.toString());
+        // log(response.right.toString());
+        log('readNotification response - status false');
 
         /// showToast(response.right['message']);
         return const Right([]);
       } else {
         //  showToast(response.right['message']);
-        log(response.right.toString());
+        // log(response.right.toString());
+        log('readNotification response fetched successfully');
 
         return Right(response.right);
       }

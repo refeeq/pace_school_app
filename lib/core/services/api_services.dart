@@ -44,7 +44,24 @@ class DioAPIServices {
   void _logResponse(String url, dynamic data, [int? statusCode]) {
     final status = statusCode != null ? ' [$statusCode]' : '';
     log('[$_logTag] <-- $url$status', name: _logTag);
-    log('[$_logTag]     response: $data', name: _logTag);
+    // Use short messages for verbose APIs instead of full response
+    if (url.contains('getNotifications')) {
+      log('[$_logTag]     getNotifications response fetched successfully', name: _logTag);
+    } else if (url.contains('studentDetails')) {
+      log('[$_logTag]     studentDetails response fetched successfully', name: _logTag);
+    } else if (url.contains('studentProfile')) {
+      log('[$_logTag]     studentProfile response fetched successfully', name: _logTag);
+    } else if (url.contains('getCommunications')) {
+      log('[$_logTag]     getCommunications response fetched successfully', name: _logTag);
+    } else if (url.contains('studentMenu')) {
+      log('[$_logTag]     studentMenu response fetched successfully', name: _logTag);
+    } else if (url.contains('studentCircular')) {
+      log('[$_logTag]     studentCircular response fetched successfully', name: _logTag);
+    } else if (url.contains('progrssReport')) {
+      log('[$_logTag]     progress report response fetched successfully', name: _logTag);
+    } else {
+      log('[$_logTag]     response: $data', name: _logTag);
+    }
   }
 
   void _logError(String url, Object e, [dynamic responseData]) {
