@@ -206,6 +206,7 @@
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				6133459523AD7BE4C675BCBA /* [CP] Embed Pods Frameworks */,
+				F1XPDF1UMDSYM0000012345AB /* Generate PDFium dSYM */,
 				2FD8065CAC7D309A1184457F /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
@@ -348,6 +349,21 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build\n";
+		};
+		F1XPDF1UMDSYM0000012345AB /* Generate PDFium dSYM */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Generate PDFium dSYM";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Generate PDFium.framework dSYM for archive (optional; may fail if binary has no debug symbols)\nset +e\nAPP_PATH=\"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app\"\nFRAMEWORK_PATH=\"${APP_PATH}/Frameworks/PDFium.framework\"\nBINARY_PATH=\"${FRAMEWORK_PATH}/PDFium\"\nif [ ! -f \"${BINARY_PATH}\" ]; then\n  BINARY_PATH=\"${FRAMEWORK_PATH}/pdfium\"\nfi\ncase \"${CONFIGURATION}\" in Release*) RELEASE=1 ;; *) RELEASE= ;; esac\nif [ -f \"${BINARY_PATH}\" ] && [ -n \"${RELEASE}\" ]; then\n  DSYM_OUT=\"${CONFIGURATION_BUILD_DIR}/PDFium.framework.dSYM\"\n  dsymutil \"${BINARY_PATH}\" -o \"${DSYM_OUT}\" 2>/dev/null || true\n  if [ -d \"${DSYM_OUT}\" ]; then\n    echo \"Generated PDFium.framework.dSYM for archive\"\n  fi\nfi\nset -e\n";
+			showEnvVarsInLog = 0;
 		};
 		A119D129BB177D868BC2B440 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;

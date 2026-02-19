@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/config/app_status.dart';
+import 'package:school_app/core/provider/parent_provider.dart';
 import 'package:school_app/core/provider/parent_update_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/core/utils/utils.dart';
@@ -22,6 +23,75 @@ class _AddressUpdateScreenState extends State<AddressUpdateScreen> {
   final TextEditingController _buildingNameController = TextEditingController();
   final TextEditingController _comNumberController = TextEditingController();
   final TextEditingController _communityIdController = TextEditingController();
+
+  /// Pre-populate address fields from parent profile (parentProfileTab API).
+  /// Matches the pattern used in verify_email, verify_mobile, and parent_eid_request screens.
+  void _prePopulateFromParentProfile() {
+    final parentProvider = Provider.of<ParentProvider>(context, listen: false);
+    final common = parentProvider.parentProfileListModel?.common;
+    if (common == null) return;
+
+    _setController(
+      _homeAddressController,
+      common.homeadd,
+    );
+    _setController(
+      _flatNoController,
+      common.flatNo,
+    );
+    _setController(
+      _buildingNameController,
+      common.buildingName,
+    );
+    _setController(
+      _comNumberController,
+      common.comNumber,
+    );
+    _setController(
+      _communityIdController,
+      common.communityId,
+    );
+  }
+
+  void _setController(TextEditingController ctrl, dynamic value) {
+    final str = value == null
+        ? ''
+        : (value is String ? value : value.toString()).trim();
+    if (str.isNotEmpty && str != 'null') {
+      ctrl.text = str;
+    }
+  }
+
+  Widget _buildLabeledField({
+    required String label,
+    required Widget child,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(
+            label,
+            style: GoogleFonts.nunitoSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        child,
+      ],
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _prePopulateFromParentProfile();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,32 +115,47 @@ class _AddressUpdateScreenState extends State<AddressUpdateScreen> {
                 style: GoogleFonts.nunitoSans(fontSize: 17),
               ),
               const SizedBox(height: 20),
-              CustomtextFormFieldBorder(
-                hintText: "Home address / Area",
-                textEditingController: _homeAddressController,
-                maxLines: 2,
+              _buildLabeledField(
+                label: "Home address / Area",
+                child: CustomtextFormFieldBorder(
+                  hintText: "Enter home address or area",
+                  textEditingController: _homeAddressController,
+                  maxLines: 2,
+                ),
               ),
               const SizedBox(height: 12),
-              CustomtextFormFieldBorder(
-                hintText: "Flat number",
-                textEditingController: _flatNoController,
+              _buildLabeledField(
+                label: "Flat number",
+                child: CustomtextFormFieldBorder(
+                  hintText: "Enter flat number",
+                  textEditingController: _flatNoController,
+                ),
               ),
               const SizedBox(height: 12),
-              CustomtextFormFieldBorder(
-                hintText: "Building name",
-                textEditingController: _buildingNameController,
+              _buildLabeledField(
+                label: "Building name",
+                child: CustomtextFormFieldBorder(
+                  hintText: "Enter building name",
+                  textEditingController: _buildingNameController,
+                ),
               ),
               const SizedBox(height: 12),
-              CustomtextFormFieldBorder(
-                hintText: "Community / Contact number",
-                textEditingController: _comNumberController,
-                keyboardType: TextInputType.phone,
+              _buildLabeledField(
+                label: "Community / Contact number",
+                child: CustomtextFormFieldBorder(
+                  hintText: "Enter contact number",
+                  textEditingController: _comNumberController,
+                  keyboardType: TextInputType.phone,
+                ),
               ),
               const SizedBox(height: 12),
-              CustomtextFormFieldBorder(
-                hintText: "Community ID (optional)",
-                textEditingController: _communityIdController,
-                keyboardType: TextInputType.number,
+              _buildLabeledField(
+                label: "Community ID (optional)",
+                child: CustomtextFormFieldBorder(
+                  hintText: "Enter community ID if applicable",
+                  textEditingController: _communityIdController,
+                  keyboardType: TextInputType.number,
+                ),
               ),
               const SizedBox(height: 8),
               Text(

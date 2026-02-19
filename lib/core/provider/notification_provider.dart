@@ -36,6 +36,15 @@ class NotificationProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clears all cached user data. Call on logout.
+  void clearOnLogout() {
+    getAllNotificationState = DataState.Uninitialized;
+    _currentPageNumber = 0;
+    _didLastLoad = false;
+    _notificationList = [];
+    notifyListeners();
+  }
+
   Future<void> getAllNotificationCount() async {
     bool hasInternet = await InternetConnectivity().hasInternetConnection;
     if (hasInternet) {

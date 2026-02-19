@@ -130,6 +130,27 @@ class StudentProvider with ChangeNotifier {
     _documentWarningsFetched = false;
   }
 
+  /// Clears all cached user data. Call on logout.
+  void clearOnLogout() {
+    _selectedStudentModel = null;
+    studentsModel = null;
+    studID = '';
+    studentListState = AppStates.Unintialized;
+    studentDetailModel = null;
+    studentDetail = AppStates.Unintialized;
+    studentMenuModel = null;
+    studentMenu = AppStates.Unintialized;
+    progressReportState = AppStates.Unintialized;
+    expamReportModel = ExamReportModel(status: AppStates.Unintialized);
+    progressReport = CommonResModel(status: AppStates.Unintialized);
+    documentWarnings = [];
+    _documentWarningsFetched = false;
+    _documentWarningsFetching = false;
+    _updateRequired = false;
+    _appVersionData = null;
+    notifyListeners();
+  }
+
   /// Compares two semantic version strings (e.g. "1.1.12" vs "1.1.13").
   /// Returns -1 if v1 < v2, 0 if equal, 1 if v1 > v2. On parse error returns 0.
   static int _compareVersions(String v1, String v2) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:observe_internet_connectivity/observe_internet_connectivity.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +17,8 @@ import 'package:school_app/views/components/no_internet_connection.dart';
 import 'package:school_app/views/components/shimmer_student_profile.dart';
 import 'package:school_app/views/screens/parent/parent_profile/verify_email.dart';
 import 'package:school_app/views/screens/parent/parent_profile/verify_mobile.dart';
+import 'package:school_app/core/bloc/AuthBloc/auth_listener_bloc.dart';
+import 'package:school_app/core/services/logout_service.dart';
 import 'package:school_app/views/screens/parent/parent_update/parent_update_hub_screen.dart';
 
 import '../../../components/profile_tile.dart';
@@ -31,6 +34,50 @@ class ParentProfileScreenView extends StatefulWidget {
 
 class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
   PageController pageController = PageController(initialPage: 0);
+  int _logoutTapCount = 0;
+  DateTime? _lastLogoutTapTime;
+
+  void _onFamilyCodeTap(BuildContext context) {
+    const tapWindow = Duration(seconds: 2);
+    final now = DateTime.now();
+    if (_lastLogoutTapTime != null &&
+        now.difference(_lastLogoutTapTime!) > tapWindow) {
+      _logoutTapCount = 0;
+    }
+    _lastLogoutTapTime = now;
+    _logoutTapCount++;
+    if (_logoutTapCount >= 7) {
+      _logoutTapCount = 0;
+      _showLogoutConfirmation(context);
+    }
+  }
+
+  Future<void> _showLogoutConfirmation(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Log out'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Log out'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      await clearAllUserDataOnLogout(context);
+      if (context.mounted) {
+        context.read<AuthListenerBloc>().add(AuthLoggedOutEvent());
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,12 +222,17 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                               .relation,
                                         ),
                                         SizedBox(height: 6.h),
-                                        ProfileTile(
-                                          label: "Family Code",
-                                          value: value
-                                              .parentProfileListModel!
-                                              .data[value.parentSelected]
-                                              .famcode,
+                                        GestureDetector(
+                                          onTap: () =>
+                                              _onFamilyCodeTap(context),
+                                          behavior: HitTestBehavior.opaque,
+                                          child: ProfileTile(
+                                            label: "Family Code",
+                                            value: value
+                                                .parentProfileListModel!
+                                                .data[value.parentSelected]
+                                                .famcode,
+                                          ),
                                         ),
                                         SizedBox(height: 6.h),
                                         InkWell(
@@ -300,12 +352,17 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                               .relation,
                                         ),
                                         SizedBox(height: 6.h),
-                                        ProfileTile(
-                                          label: "Family Code",
-                                          value: value
-                                              .parentProfileListModel!
-                                              .data[value.parentSelected]
-                                              .famcode,
+                                        GestureDetector(
+                                          onTap: () =>
+                                              _onFamilyCodeTap(context),
+                                          behavior: HitTestBehavior.opaque,
+                                          child: ProfileTile(
+                                            label: "Family Code",
+                                            value: value
+                                                .parentProfileListModel!
+                                                .data[value.parentSelected]
+                                                .famcode,
+                                          ),
                                         ),
                                         SizedBox(height: 6.h),
                                         ProfileTile(

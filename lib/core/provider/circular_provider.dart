@@ -17,6 +17,16 @@ class CircularProvider with ChangeNotifier {
   List<CircularModel>? circularListModel;
   List<CircularModel>? parentCircularList;
 
+  /// Clears all cached user data. Call on logout.
+  void clearOnLogout() {
+    circularListState = AppStates.Unintialized;
+    parentCircularListState = AppStates.Unintialized;
+    studentModel = null;
+    circularListModel = null;
+    parentCircularList = null;
+    notifyListeners();
+  }
+
   Future<void> getCircularList({String? studCode}) async {
     circularListState = AppStates.Initial_Fetching;
     bool hasInternet = await InternetConnectivity().hasInternetConnection;

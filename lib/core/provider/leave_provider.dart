@@ -135,4 +135,16 @@ class LeaveProvider with ChangeNotifier {
     applyLeaveState = state;
     notifyListeners();
   }
+
+  /// Clears all cached user data. Call on logout.
+  void clearOnLogout() {
+    leaveReasonList = [];
+    selectedLeaveReasonModel = null;
+    leaveReasonFetchState = AppStates.Unintialized;
+    applyLeaveState = AppStates.Unintialized;
+    error = '';
+    leaveList = [];
+    leaveListFetchState = AppStates.Unintialized;
+    notifyListeners();
+  }
 }

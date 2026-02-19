@@ -49,16 +49,20 @@ class _ParentUpdateHistoryScreenState extends State<ParentUpdateHistoryScreen> {
                 },
               );
             case AppStates.Error:
-              return const NoDataWidget(
-                imagePath: 'assets/images/no_data.svg',
-                content: 'Something went wrong. Please try again later.',
+              return const Center(
+                child: NoDataWidget(
+                  imagePath: 'assets/images/no_data.svg',
+                  content: 'Something went wrong. Please try again later.',
+                ),
               );
             case AppStates.Fetched:
               final model = value.historyModel;
               if (model == null || model.data.isEmpty) {
-                return const NoDataWidget(
-                  imagePath: 'assets/images/no_data.svg',
-                  content: 'No requests found.',
+                return const Center(
+                  child: NoDataWidget(
+                    imagePath: 'assets/images/no_data.svg',
+                    content: 'No requests found.',
+                  ),
                 );
               }
               return ListView.builder(

@@ -250,6 +250,25 @@ class StudentFeeProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clears all cached user data. Call on logout.
+  void clearOnLogout() {
+    feeslistnew = [];
+    studentModel = null;
+    totalAmount = 0.0;
+    feeListModel = null;
+    feeListState = AppStates.Unintialized;
+    feeViewState = AppStates.Unintialized;
+    studentFeeStatementlist = [];
+    studentFeeStatementlistState = DataState.Uninitialized;
+    _currentPageNumber = 0;
+    _didLastLoad = false;
+    _studentFeeStatementlist = [];
+    feeViewRes = null;
+    pending_fee = '';
+    _pendingFeeRequestStudentId = null;
+    notifyListeners();
+  }
+
   Future<void> viewRcpt({required String type, no, studCode}) async {
     feeViewState = AppStates.Initial_Fetching;
     feeViewRes = null;

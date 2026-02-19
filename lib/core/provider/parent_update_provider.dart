@@ -29,6 +29,14 @@ class ParentUpdateProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clears all cached user data. Call on logout.
+  void clearOnLogout() {
+    _requestStates.clear();
+    historyState = AppStates.Unintialized;
+    historyModel = null;
+    notifyListeners();
+  }
+
   Future<bool> _ensureInternet(BuildContext context) async {
     final hasInternet = await InternetConnectivity().hasInternetConnection;
     if (!hasInternet) {

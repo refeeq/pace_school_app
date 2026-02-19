@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/app.dart';
+import 'package:school_app/core/services/logout_service.dart';
 import 'package:school_app/core/provider/contactus_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/core/themes/const_gradient.dart';
@@ -220,17 +221,13 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                 //       .headline6!
                 //       .apply(color: Colors.white),
                 // ),
-                // if (kDebugMode)
+                if (kDebugMode)
                   ListTile(
                     title: const Text(
                       "Log out",
                       style: TextStyle(color: Colors.black),
                     ),
-                    onTap: () {
-                      context.read<AuthListenerBloc>().add(
-                        AuthLoggedOutEvent(),
-                      );
-                    },
+                    onTap: () => _handleLogout(context),
                   ),
                 // DrawerTile(name: icons[5], text: "FAQ", onTap: () {}),
                 // DrawerTile(name: icons[6], text: "Contact us", onTap: () {}),
@@ -285,5 +282,34 @@ class _DrawerWidgetState extends State<DrawerWidget> {
     init();
     // TODO: implement initState
     super.initState();
+  }
+
+  Future<void> _handleLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Log out'),
+        content: const Text(
+          'Are you sure you want to log out?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Log out'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      await clearAllUserDataOnLogout(context);
+      if (context.mounted) {
+        context.read<AuthListenerBloc>().add(AuthLoggedOutEvent());
+      }
+    }
   }
 }

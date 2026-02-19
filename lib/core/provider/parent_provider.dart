@@ -78,6 +78,16 @@ class ParentProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clears all cached user data. Call on logout.
+  void clearOnLogout() {
+    parentProfileModel = null;
+    parentDetail = AppStates.Unintialized;
+    parentProfileListModel = null;
+    parentDetailListState = AppStates.Unintialized;
+    parentSelected = 0;
+    notifyListeners();
+  }
+
   Future<void> sendMobileOtp({
     required String relation,
     required String mobile,

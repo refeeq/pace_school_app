@@ -27,6 +27,20 @@ class CommunicationProvider with ChangeNotifier {
   int count = 0;
   bool _didLastLoad =
       false; // Property through which we can check if last page have been loaded from API or not
+  /// Clears all cached user data. Call on logout.
+  void clearOnLogout() {
+    studentModel = null;
+    studentListState = AppStates.Unintialized;
+    communicationStudentList = [];
+    communicationListState = AppStates.Unintialized;
+    communicationList = [];
+    communicationDetailState = DataState.Uninitialized;
+    communicationDetailList = [];
+    _currentPageNumber = 0;
+    _didLastLoad = false;
+    notifyListeners();
+  }
+
   Future<void> getCommunicationDetailList(
     String studentId,
     String type, {

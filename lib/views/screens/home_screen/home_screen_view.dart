@@ -10,7 +10,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:observe_internet_connectivity/observe_internet_connectivity.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/app.dart';
-import 'package:school_app/core/bloc/AuthBloc/auth_listener_bloc.dart';
 import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/models/slider_model.dart';
 import 'package:school_app/core/models/student_menu_model.dart';
@@ -124,18 +123,9 @@ class _HomeViewState extends State<HomeView> {
                   ),
                   title: Text(AppEnivrornment.appFullName),
                   actions: [
-                    InkWell(
-                      
-                      onLongPress: () {
-                         context.read<AuthListenerBloc>().add(
-                        AuthLoggedOutEvent(),
-                      );
-                      },
-                      child: CircleAvatar(
-                        radius: 25,
-                        
-                        backgroundImage: AssetImage(AppEnivrornment.appImageName),
-                      ),
+                    CircleAvatar(
+                      radius: 25,
+                      backgroundImage: AssetImage(AppEnivrornment.appImageName),
                     ),
                     const SizedBox(width: 10),
                   ],
