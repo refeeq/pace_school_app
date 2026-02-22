@@ -114,7 +114,6 @@ class StudentProvider with ChangeNotifier {
 
           checkDocument(data.emiratesIdExp, 'Emirates ID');
           checkDocument(data.ppExpDate, 'Passport');
-          checkDocument(data.visaExpDate, 'Visa');
         }
       }
       documentWarnings = warnings;
