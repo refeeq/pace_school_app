@@ -45,6 +45,8 @@ class ApiConstatns {
   static String viewFeeRcpt = '${baseUrl}studView';
   static String availableProgrssReport = '${baseUrl}availableProgrssReport';
   static String progrssReport = '${baseUrl}progrssReport';
+  static String getReportNamesByClass = '${baseUrl}getReportNamesByClass';
+  static String getReportCardHtml = '${baseUrl}getReportCardHtml';
   static String updateStudentEmiratesID = '${baseUrl}updateStudentEmiratesID';
 
   // parent update requests

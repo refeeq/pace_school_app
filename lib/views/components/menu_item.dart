@@ -69,15 +69,32 @@ class _StudentMenuItemWidgetState extends State<StudentMenuItemWidget> {
                             )
                           : Image.network(
                               widget.homeTile.iconUrl,
+                              height: 45.h,
+                              fit: BoxFit.contain,
                               errorBuilder: (context, error, stackTrace) =>
                                   Icon(
                                 widget.homeTile.menuKey == "Library"
                                     ? Icons.menu_book_rounded
                                     : Icons.apps_rounded,
                                 size: 40.h,
-                                color: ConstColors.secondary,
+                                color: ConstColors.primary,
                               ),
-                              height: 45.h,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return SizedBox(
+                                  height: 45.h,
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: ConstColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                     ),
                   ],

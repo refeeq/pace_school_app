@@ -21,6 +21,7 @@ import 'package:school_app/views/screens/student/fees_screen/fees_screen_view.da
 import 'package:school_app/views/screens/student/leave_application/leave_application_screen.dart';
 import 'package:school_app/views/screens/student/library_screen/library_screen_view.dart';
 import 'package:school_app/views/screens/student/progress_report/progress_report_exams_page.dart';
+import 'package:school_app/views/screens/student/report_card/report_card_list_page.dart';
 import 'package:school_app/views/screens/student/student_fee_statement/student_fee_statement_screen.dart';
 import 'package:school_app/views/screens/student/student_profile/student_profile_view.dart';
 
@@ -96,6 +97,13 @@ Future<bool> navigateToMenuScreen({
           studcode ?? studentProvider.selectedStudentModel(context).studcode,
         );
         state.push(MaterialPageRoute(builder: (_) => const ProgressReportExamListPage()));
+        break;
+      case 'Report Card':
+      case 'ReportCard':
+        studentProvider.getReportNamesByClass(
+          studcode ?? studentProvider.selectedStudentModel(context).studcode,
+        );
+        state.push(MaterialPageRoute(builder: (_) => const ReportCardListPage()));
         break;
       case 'OpenHouse':
         state.push(MaterialPageRoute(builder: (_) => const OpenHousePage()));

@@ -11,12 +11,14 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/models/common_res_model.dart';
 import 'package:school_app/core/models/exam_report_model.dart';
+import 'package:school_app/core/models/report_card_model.dart';
 import 'package:school_app/core/models/student_detail_model.dart';
 import 'package:school_app/core/models/student_menu_model.dart';
 import 'package:school_app/core/models/students_model.dart';
 import 'package:school_app/core/notification/fcm_topic_service.dart';
 import 'package:school_app/core/repository/student/repository.dart';
 import 'package:school_app/core/services/dependecyInjection.dart';
+import 'package:school_app/core/utils/error_message_utils.dart';
 import 'package:school_app/core/utils/utils.dart';
 
 /// Represents a document expiry warning for a student.
@@ -59,6 +61,11 @@ class StudentProvider with ChangeNotifier {
     status: AppStates.Unintialized,
   );
   CommonResModel progressReport = CommonResModel(
+    status: AppStates.Unintialized,
+  );
+  ReportNamesResponse? reportNamesData;
+  AppStates reportNamesState = AppStates.Unintialized;
+  CommonResModel reportCardHtml = CommonResModel(
     status: AppStates.Unintialized,
   );
   PageControllerState pageControllerState = PageControllerState.Uninitialized;
@@ -142,6 +149,9 @@ class StudentProvider with ChangeNotifier {
     progressReportState = AppStates.Unintialized;
     expamReportModel = ExamReportModel(status: AppStates.Unintialized);
     progressReport = CommonResModel(status: AppStates.Unintialized);
+    reportNamesData = null;
+    reportNamesState = AppStates.Unintialized;
+    reportCardHtml = CommonResModel(status: AppStates.Unintialized);
     documentWarnings = [];
     _documentWarningsFetched = false;
     _documentWarningsFetching = false;
@@ -323,6 +333,140 @@ class StudentProvider with ChangeNotifier {
           expamReportModel = ExamReportModel(
             status: AppStates.Error,
             message: jsonDecode(respon.right)['message'],
+          );
+        }
+      }
+    }
+    notifyListeners();
+  }
+
+  Future<void> getReportNamesByClass(String admissionNo) async {
+    reportNamesState = AppStates.Initial_Fetching;
+    reportNamesData = null;
+    notifyListeners();
+
+    bool hasInternet = await InternetConnectivity().hasInternetConnection;
+    if (!hasInternet) {
+      log('[getReportNamesByClass] No internet connection');
+      reportNamesState = AppStates.NoInterNetConnectionState;
+    } else {
+      var respon = await repository.getReportNamesByClass(admissionNo: admissionNo);
+      if (respon.isLeft) {
+        log('[getReportNamesByClass] Provider: repository returned Left - ${respon.left.message}');
+        reportNamesState = AppStates.Error;
+        reportNamesData = null;
+      } else {
+        dynamic raw = respon.right;
+        log('[getReportNamesByClass] Provider: raw type=${raw.runtimeType}, raw=$raw');
+        if (raw is String) {
+          try {
+            raw = jsonDecode(raw);
+            log('[getReportNamesByClass] Provider: parsed JSON string, raw=$raw');
+          } catch (e) {
+            log('[getReportNamesByClass] Provider: ERROR - failed to parse JSON: $e');
+            reportNamesState = AppStates.Error;
+            reportNamesData = null;
+            notifyListeners();
+            return;
+          }
+        }
+        if (raw is Map<String, dynamic>) {
+          final status = raw['status'];
+          log('[getReportNamesByClass] Provider: status=$status (type=${status.runtimeType})');
+          if (status == true) {
+            final data = raw['data'];
+            log('[getReportNamesByClass] Provider: data type=${data?.runtimeType}, data=$data');
+            if (data is Map<String, dynamic>) {
+              reportNamesData = ReportNamesResponse.fromJson(data);
+              reportNamesState = AppStates.Fetched;
+              log('[getReportNamesByClass] Provider: success, reports=${reportNamesData?.reports.length ?? 0}');
+            } else {
+              log('[getReportNamesByClass] Provider: ERROR - data is not Map, data=$data');
+              reportNamesState = AppStates.Error;
+              reportNamesData = null;
+            }
+          } else {
+            log('[getReportNamesByClass] Provider: ERROR - status != true, message=${raw['message']}');
+            reportNamesState = AppStates.Error;
+            reportNamesData = null;
+          }
+        } else {
+          log('[getReportNamesByClass] Provider: ERROR - raw is not Map, raw=$raw');
+          reportNamesState = AppStates.Error;
+          reportNamesData = null;
+        }
+      }
+    }
+    notifyListeners();
+  }
+
+  Future<void> getReportCardHtml(String admissionNo, String reportId) async {
+    reportCardHtml = CommonResModel(status: AppStates.Initial_Fetching);
+    notifyListeners();
+
+    bool hasInternet = await InternetConnectivity().hasInternetConnection;
+    if (!hasInternet) {
+      reportCardHtml = CommonResModel(
+        status: AppStates.NoInterNetConnectionState,
+      );
+    } else {
+      var respon = await repository.getReportCardHtml(
+        admissionNo: admissionNo,
+        reportId: reportId,
+      );
+      if (respon.isLeft) {
+        log(respon.left.message.toString());
+        reportCardHtml = CommonResModel(
+          status: AppStates.Error,
+          message: respon.left.message.toString(),
+        );
+      } else {
+        final raw = respon.right;
+        String? htmlContent;
+        String? apiMessage;
+
+        Map<String, dynamic>? parsed;
+        if (raw is Map<String, dynamic>) {
+          parsed = raw;
+        } else if (raw is String && raw.trim().isNotEmpty) {
+          if (raw.trim().startsWith('{')) {
+            try {
+              parsed = jsonDecode(raw) as Map<String, dynamic>?;
+            } catch (_) {
+              parsed = null;
+            }
+          } else {
+            htmlContent = raw;
+          }
+        }
+
+        if (parsed != null) {
+          apiMessage = parsed['message']?.toString();
+          if (parsed['status'] == true) {
+            final data = parsed['data'];
+            if (data is String && data.trim().isNotEmpty) {
+              htmlContent = data;
+            } else if (data is Map<String, dynamic>) {
+              final html = data['html'];
+              if (html is String && html.trim().isNotEmpty) {
+                htmlContent = html;
+              }
+            }
+          }
+        }
+
+        if (htmlContent != null && htmlContent.trim().isNotEmpty) {
+          reportCardHtml = CommonResModel(
+            status: AppStates.Fetched,
+            data: htmlContent,
+          );
+        } else {
+          reportCardHtml = CommonResModel(
+            status: AppStates.Error,
+            message: sanitizeErrorMessage(
+              apiMessage,
+              fallback: 'Unable to load the report card. Please try again.',
+            ),
           );
         }
       }

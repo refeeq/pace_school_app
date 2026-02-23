@@ -16,6 +16,7 @@ import 'package:school_app/views/components/web_view_screen.dart';
 import 'package:school_app/views/screens/contact_us/contact_us.dart';
 import 'package:school_app/views/screens/family_fee/cubit/family_fee_cubit.dart';
 import 'package:school_app/views/screens/family_fee/pages/family_fee_screen.dart';
+import 'package:school_app/views/screens/student/report_card/report_card_list_page.dart';
 import 'package:school_app/views/screens/home_screen/home_screen_shimmer.dart';
 import 'package:school_app/views/screens/parent/parent_settings_screen/parent_settings_screen_view.dart';
 import 'package:school_app/views/screens/school_information_screen/school_information_screen_view.dart';
@@ -24,6 +25,11 @@ import 'package:school_app/views/screens/sibilingRegister/page/sibiling_registra
 import '../../core/bloc/AuthBloc/auth_listener_bloc.dart';
 import '../../core/provider/student_provider.dart';
 import 'shimmer_student_profile.dart';
+
+bool _isReportCardMenu(String menuKey) {
+  final k = menuKey.trim();
+  return k == 'Report Card' || k == 'ReportCard';
+}
 
 class DrawerTile extends StatelessWidget {
   final String text;
@@ -49,7 +55,29 @@ class DrawerTile extends StatelessWidget {
                 height: 24,
                 width: 24,
                 color: ConstColors.primary,
-                errorBuilder: (context, error, stackTrace) => Container(),
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => Icon(
+                  Icons.grid_view_rounded,
+                  size: 24,
+                  color: ConstColors.primary,
+                ),
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: Center(
+                      child: SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: ConstColors.primary,
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
               const SizedBox(width: 16),
               Text(
@@ -204,6 +232,25 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => const FamilyFeeScreen(),
+                            ),
+                          );
+                        } else if (_isReportCardMenu(Provider.of<StudentProvider>(
+                              context,
+                              listen: false,
+                            ).studentsModel!.menu[index].menuKey)) {
+                          final studcode = Provider.of<StudentProvider>(
+                            context,
+                            listen: false,
+                          ).selectedStudentModel(context).studcode;
+                          Provider.of<StudentProvider>(
+                            context,
+                            listen: false,
+                          ).getReportNamesByClass(studcode);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const ReportCardListPage(),
                             ),
                           );
                         } else {

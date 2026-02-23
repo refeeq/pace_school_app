@@ -15,6 +15,7 @@ import 'package:school_app/core/models/student_menu_model.dart';
 import 'package:school_app/core/models/students_model.dart';
 import 'package:school_app/core/repository/student/repository.dart';
 import 'package:school_app/core/services/api_services.dart';
+import 'package:school_app/core/utils/error_message_utils.dart';
 
 class StudentRepositoryImpl implements StudentRepository {
   final DioAPIServices apiServices;
@@ -308,5 +309,88 @@ class StudentRepositoryImpl implements StudentRepository {
     var response = await dio.post(ApiConstatns.viewFeeRcpt, data: data);
     log("response ${response.data}");
     return Right(response.data);
+  }
+
+  @override
+  Future<Either<MyError, dynamic>> getReportNamesByClass({
+    required String admissionNo,
+  }) async {
+    try {
+      var userData = Hive.box<AuthModel>(USERDB);
+      userData.values;
+      AuthModel authModel = userData.get(0) as AuthModel;
+      var data = FormData.fromMap({
+        "token": authModel.token,
+        "famcode": authModel.famcode,
+        "admission_no": admissionNo,
+      });
+      log('[getReportNamesByClass] --> POST ${ApiConstatns.getReportNamesByClass}');
+      log('[getReportNamesByClass]     params: admission_no=$admissionNo, famcode=${authModel.famcode}');
+      Dio dio = Dio();
+      var response = await dio.post(
+        ApiConstatns.getReportNamesByClass,
+        data: data,
+      );
+      log('[getReportNamesByClass] <-- statusCode: ${response.statusCode}');
+      log('[getReportNamesByClass]     response (full): ${response.data}');
+      return Right(response.data);
+    } catch (e, st) {
+      log('[getReportNamesByClass] ERROR: $e');
+      log('[getReportNamesByClass] stackTrace: $st');
+      if (e is DioException && e.response != null) {
+        log('[getReportNamesByClass]     response.data: ${e.response?.data}');
+        log('[getReportNamesByClass]     response.statusCode: ${e.response?.statusCode}');
+      }
+      return Left(
+        MyError(
+          key: AppError.unknown,
+          message: toUserFriendlyErrorMessage(e),
+        ),
+      );
+    }
+  }
+
+  @override
+  Future<Either<MyError, dynamic>> getReportCardHtml({
+    required String admissionNo,
+    required String reportId,
+  }) async {
+    try {
+      var userData = Hive.box<AuthModel>(USERDB);
+      userData.values;
+      AuthModel authModel = userData.get(0) as AuthModel;
+      var data = FormData.fromMap({
+        "token": authModel.token,
+        "famcode": authModel.famcode,
+        "admission_no": admissionNo,
+        "report_id": reportId,
+      });
+      log('[getReportCardHtml] --> POST ${ApiConstatns.getReportCardHtml}');
+      log('[getReportCardHtml]     params: admission_no=$admissionNo, report_id=$reportId, famcode=${authModel.famcode}');
+      Dio dio = Dio();
+      var response = await dio.post(
+        ApiConstatns.getReportCardHtml,
+        data: data,
+      );
+      log('[getReportCardHtml] <-- statusCode: ${response.statusCode}');
+      final dataPreview = response.data is String
+          ? 'String(length=${(response.data as String).length})'
+          : response.data;
+      log('[getReportCardHtml]     response type: ${response.data.runtimeType}, preview: $dataPreview');
+      return Right(response.data);
+    } catch (e, st) {
+      log('[getReportCardHtml] ERROR: $e');
+      log('[getReportCardHtml] stackTrace: $st');
+      if (e is DioException && e.response != null) {
+        log('[getReportCardHtml]     response.data: ${e.response?.data}');
+        log('[getReportCardHtml]     response.statusCode: ${e.response?.statusCode}');
+      }
+      return Left(
+        MyError(
+          key: AppError.unknown,
+          message: toUserFriendlyErrorMessage(e),
+        ),
+      );
+    }
   }
 }

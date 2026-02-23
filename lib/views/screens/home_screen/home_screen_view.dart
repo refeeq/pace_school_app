@@ -35,6 +35,7 @@ import 'package:school_app/views/screens/student/attendence_screen/attendence_sc
 import 'package:school_app/views/screens/student/fees_screen/fees_screen_view.dart';
 import 'package:school_app/views/screens/student/leave_application/leave_application_screen.dart';
 import 'package:school_app/views/screens/student/progress_report/progress_report_exams_page.dart';
+import 'package:school_app/views/screens/student/report_card/report_card_list_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/provider/attendance_provider.dart';
@@ -540,6 +541,27 @@ class _HomeViewState extends State<HomeView> {
                                                       MaterialPageRoute(
                                                         builder: (context) =>
                                                             const BusTrackPage(),
+                                                      ),
+                                                    );
+                                                  } else if (menuKey
+                                                              .trim() ==
+                                                          "Report Card" ||
+                                                      menuKey.trim() ==
+                                                          "ReportCard") {
+                                                    Provider.of<
+                                                          StudentProvider
+                                                        >(
+                                                          context,
+                                                          listen: false,
+                                                        )
+                                                        .getReportNamesByClass(
+                                                          studcode,
+                                                        );
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            const ReportCardListPage(),
                                                       ),
                                                     );
                                                   } else if (menuKey ==
