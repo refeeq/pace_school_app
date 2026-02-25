@@ -33,6 +33,9 @@ class ReportCardItem {
   final String acYearId;
   final String klass;
   final String section;
+  /// Optional exam ID from getReportNamesByClass; used by getReportCardHtml.
+  /// If absent, report.id is used as fallback.
+  final String? exmId;
 
   ReportCardItem({
     required this.id,
@@ -42,6 +45,7 @@ class ReportCardItem {
     required this.acYearId,
     required this.klass,
     required this.section,
+    this.exmId,
   });
 
   factory ReportCardItem.fromJson(Map<String, dynamic> json) => ReportCardItem(
@@ -52,6 +56,12 @@ class ReportCardItem {
         acYearId: (json["ac_year_id"] ?? '').toString(),
         klass: (json["class"] ?? '').toString(),
         section: (json["section"] ?? '').toString(),
+        exmId: () {
+          final v = json["exm_id"];
+          if (v == null) return null;
+          final s = v.toString().trim();
+          return s.isEmpty ? null : s;
+        }(),
       );
 
   Map<String, dynamic> toJson() => {
@@ -62,6 +72,7 @@ class ReportCardItem {
         "ac_year_id": acYearId,
         "class": klass,
         "section": section,
+        if (exmId != null) "exm_id": exmId,
       };
 
   bool matchesClass(ClassHistoryItem c) =>

@@ -352,31 +352,41 @@ class StudentRepositoryImpl implements StudentRepository {
 
   @override
   Future<Either<MyError, dynamic>> getReportCardHtml({
-    required String admissionNo,
     required String reportId,
+    required String exmId,
+    required String acYearId,
+    required String admissionNo,
   }) async {
+    log('[getReportCardHtml] --> POST ${ApiConstatns.getReportCardHtml}');
+    log('[getReportCardHtml]     params: report_id=$reportId, exm_id=$exmId, ac_year_id=$acYearId, admission_no=$admissionNo');
     try {
       var userData = Hive.box<AuthModel>(USERDB);
       userData.values;
       AuthModel authModel = userData.get(0) as AuthModel;
+      log('[getReportCardHtml]     famcode=${authModel.famcode}');
       var data = FormData.fromMap({
         "token": authModel.token,
         "famcode": authModel.famcode,
-        "admission_no": admissionNo,
         "report_id": reportId,
+        "exm_id": exmId,
+        "ac_year_id": acYearId,
+        "admission_no": admissionNo,
       });
-      log('[getReportCardHtml] --> POST ${ApiConstatns.getReportCardHtml}');
-      log('[getReportCardHtml]     params: admission_no=$admissionNo, report_id=$reportId, famcode=${authModel.famcode}');
       Dio dio = Dio();
       var response = await dio.post(
         ApiConstatns.getReportCardHtml,
         data: data,
       );
       log('[getReportCardHtml] <-- statusCode: ${response.statusCode}');
-      final dataPreview = response.data is String
-          ? 'String(length=${(response.data as String).length})'
-          : response.data;
-      log('[getReportCardHtml]     response type: ${response.data.runtimeType}, preview: $dataPreview');
+      final respData = response.data;
+      if (respData is Map<String, dynamic>) {
+        final status = respData['status'];
+        final dataMap = respData['data'];
+        final htmlLen = dataMap is Map ? (dataMap['html']?.toString().length ?? 0) : 0;
+        log('[getReportCardHtml]     response: status=$status, data.html length=$htmlLen');
+      } else {
+        log('[getReportCardHtml]     response type: ${respData.runtimeType}');
+      }
       return Right(response.data);
     } catch (e, st) {
       log('[getReportCardHtml] ERROR: $e');
@@ -393,4 +403,5 @@ class StudentRepositoryImpl implements StudentRepository {
       );
     }
   }
+
 }

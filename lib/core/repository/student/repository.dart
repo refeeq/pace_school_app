@@ -48,7 +48,9 @@ abstract class StudentRepository {
     required String admissionNo,
   });
   Future<Either<MyError, dynamic>> getReportCardHtml({
-    required String admissionNo,
     required String reportId,
+    required String exmId,
+    required String acYearId,
+    required String admissionNo,
   });
 }

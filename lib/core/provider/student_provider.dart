@@ -18,7 +18,6 @@ import 'package:school_app/core/models/students_model.dart';
 import 'package:school_app/core/notification/fcm_topic_service.dart';
 import 'package:school_app/core/repository/student/repository.dart';
 import 'package:school_app/core/services/dependecyInjection.dart';
-import 'package:school_app/core/utils/error_message_utils.dart';
 import 'package:school_app/core/utils/utils.dart';
 
 /// Represents a document expiry warning for a student.
@@ -400,77 +399,94 @@ class StudentProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> getReportCardHtml(String admissionNo, String reportId) async {
+  Future<void> getReportCardHtml(String admissionNo, ReportCardItem report) async {
+    log('[getReportCardHtml] Provider: START admissionNo=$admissionNo, report.id=${report.id}, report.reportName=${report.reportName}');
     reportCardHtml = CommonResModel(status: AppStates.Initial_Fetching);
     notifyListeners();
 
     bool hasInternet = await InternetConnectivity().hasInternetConnection;
+    log('[getReportCardHtml] Provider: internet check result=$hasInternet');
     if (!hasInternet) {
+      log('[getReportCardHtml] Provider: No internet - setting NoInterNetConnectionState');
       reportCardHtml = CommonResModel(
         status: AppStates.NoInterNetConnectionState,
       );
-    } else {
-      var respon = await repository.getReportCardHtml(
-        admissionNo: admissionNo,
-        reportId: reportId,
+      notifyListeners();
+      return;
+    }
+
+    final exmId = report.exmId ?? report.id;
+    log('[getReportCardHtml] Provider: calling repository with reportId=${report.id}, exmId=$exmId, acYearId=${report.acYearId}');
+    var respon = await repository.getReportCardHtml(
+      reportId: report.id,
+      exmId: exmId,
+      acYearId: report.acYearId,
+      admissionNo: admissionNo,
+    );
+
+    if (respon.isLeft) {
+      log('[getReportCardHtml] Provider: repository returned Left - ${respon.left.message}');
+      reportCardHtml = CommonResModel(
+        status: AppStates.Error,
+        message: respon.left.message ?? 'Failed to load report card',
       );
-      if (respon.isLeft) {
-        log(respon.left.message.toString());
-        reportCardHtml = CommonResModel(
-          status: AppStates.Error,
-          message: respon.left.message.toString(),
-        );
-      } else {
-        final raw = respon.right;
-        String? htmlContent;
-        String? apiMessage;
-
-        Map<String, dynamic>? parsed;
-        if (raw is Map<String, dynamic>) {
-          parsed = raw;
-        } else if (raw is String && raw.trim().isNotEmpty) {
-          if (raw.trim().startsWith('{')) {
-            try {
-              parsed = jsonDecode(raw) as Map<String, dynamic>?;
-            } catch (_) {
-              parsed = null;
-            }
-          } else {
-            htmlContent = raw;
-          }
-        }
-
-        if (parsed != null) {
-          apiMessage = parsed['message']?.toString();
-          if (parsed['status'] == true) {
-            final data = parsed['data'];
-            if (data is String && data.trim().isNotEmpty) {
-              htmlContent = data;
-            } else if (data is Map<String, dynamic>) {
-              final html = data['html'];
-              if (html is String && html.trim().isNotEmpty) {
-                htmlContent = html;
-              }
-            }
-          }
-        }
-
-        if (htmlContent != null && htmlContent.trim().isNotEmpty) {
-          reportCardHtml = CommonResModel(
-            status: AppStates.Fetched,
-            data: htmlContent,
-          );
-        } else {
+    } else {
+      dynamic raw = respon.right;
+      log('[getReportCardHtml] Provider: repository returned Right, raw type=${raw.runtimeType}');
+      if (raw is String) {
+        log('[getReportCardHtml] Provider: raw is String, parsing JSON...');
+        try {
+          raw = jsonDecode(raw);
+          log('[getReportCardHtml] Provider: JSON parsed successfully');
+        } catch (e) {
+          log('[getReportCardHtml] Provider: ERROR - failed to parse JSON: $e');
           reportCardHtml = CommonResModel(
             status: AppStates.Error,
-            message: sanitizeErrorMessage(
-              apiMessage,
-              fallback: 'Unable to load the report card. Please try again.',
-            ),
+            message: 'Invalid response',
           );
+          notifyListeners();
+          return;
         }
       }
+      if (raw is Map<String, dynamic>) {
+        final status = raw['status'];
+        final data = raw['data'];
+        log('[getReportCardHtml] Provider: parsed status=$status, data type=${data?.runtimeType}');
+        if (status == true && data != null && data is Map<String, dynamic>) {
+          final html = data['html'];
+          final htmlLen = html is String ? html.length : 0;
+          final htmlNonEmpty = html is String && html.trim().isNotEmpty;
+          log('[getReportCardHtml] Provider: data.html length=$htmlLen, isNonEmpty=$htmlNonEmpty');
+          if (htmlNonEmpty) {
+            log('[getReportCardHtml] Provider: SUCCESS - setting Fetched with HTML');
+            reportCardHtml = CommonResModel(
+              status: AppStates.Fetched,
+              data: html,
+            );
+          } else {
+            log('[getReportCardHtml] Provider: ERROR - html is null or empty');
+            reportCardHtml = CommonResModel(
+              status: AppStates.Error,
+              message: 'No report data available',
+            );
+          }
+        } else {
+          final msg = (raw['message'] ?? 'Failed to load report card').toString();
+          log('[getReportCardHtml] Provider: ERROR - status != true or invalid data, message=$msg');
+          reportCardHtml = CommonResModel(
+            status: AppStates.Error,
+            message: msg,
+          );
+        }
+      } else {
+        log('[getReportCardHtml] Provider: ERROR - raw is not Map, raw=$raw');
+        reportCardHtml = CommonResModel(
+          status: AppStates.Error,
+          message: 'Invalid response',
+        );
+      }
     }
+    log('[getReportCardHtml] Provider: DONE, final status=${reportCardHtml.status}');
     notifyListeners();
   }
 

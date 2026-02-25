@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/config/app_status.dart';
@@ -6,7 +8,7 @@ import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/views/components/common_app_bar.dart';
 import 'package:school_app/views/components/slect_student.dart';
-import 'package:school_app/views/screens/student/report_card/report_card_detail_page.dart';
+import 'package:school_app/views/screens/student/report_card/report_card_view_page.dart';
 
 class ReportCardListPage extends StatelessWidget {
   const ReportCardListPage({super.key});
@@ -261,16 +263,17 @@ class _ReportCardTile extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8),
       child: InkWell(
         onTap: () {
-          Provider.of<StudentProvider>(context, listen: false)
-              .getReportCardHtml(admissionNo, report.id);
+          log('[ReportCardListPage] _ReportCardTile onTap: report.id=${report.id}, report.reportName=${report.reportName}, admissionNo=$admissionNo');
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ReportCardDetailPage(
-                title: report.reportName,
+              builder: (context) => ReportCardViewPage(
+                report: report,
+                admissionNo: admissionNo,
               ),
             ),
           );
+          log('[ReportCardViewPage] Navigator.push completed for report ${report.id}');
         },
         borderRadius: BorderRadius.circular(8),
         child: Container(
