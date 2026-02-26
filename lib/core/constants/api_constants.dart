@@ -30,6 +30,7 @@ class ApiConstatns {
   static String readNotification = '${baseUrl}readNotifications';
   static String contactUs = '${baseUrl}contactUs';
   static String guestContactUs = '${baseUrl}guestContactUs';
+  static String getContactUsHistory = '${baseUrl}getContactUsHistory';
   static String studentFeeLedger = '${baseUrl}studentFeeLedger';
   static String getCommunicationStudentList = '${baseUrl}getComStudents';
   static String getCommunicationTileList = '${baseUrl}getCommunications';

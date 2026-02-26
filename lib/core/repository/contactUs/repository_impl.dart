@@ -7,6 +7,7 @@ import 'package:school_app/core/constants/api_constants.dart';
 import 'package:school_app/core/constants/db_constants.dart';
 import 'package:school_app/core/error/error_exception.dart';
 import 'package:school_app/core/models/auth_model.dart';
+import 'package:school_app/core/models/contact_us_history_model.dart';
 import 'package:school_app/core/repository/contactUs/repository.dart';
 import 'package:school_app/core/services/api_services.dart';
 
@@ -92,5 +93,37 @@ class ContactUsRepositoryImpl implements ContactUsRepository {
         return Right(response.right);
       }
     }
+  }
+
+  @override
+  Future<Either<MyError, List<ContactUsHistoryItem>>> getContactUsHistory() async {
+    var userData = Hive.box<AuthModel>(USERDB);
+    AuthModel authModel = userData.get(0) as AuthModel;
+
+    var data = FormData.fromMap({
+      "token": authModel.token,
+      "famcode": authModel.famcode,
+    });
+    var response = await apiServices.postAPI(
+      url: ApiConstatns.getContactUsHistory,
+      body: data,
+    );
+
+    if (response.isLeft) {
+      log(response.left.message!);
+      return Left(response.left);
+    }
+    if (response.right['status'] != true) {
+      log(response.right.toString());
+      return Left(
+        MyError(
+          key: AppError.unknown,
+          message: response.right['message']?.toString() ?? 'Failed to load history',
+        ),
+      );
+    }
+    final listData = response.right['data'];
+    final list = ContactUsHistoryItem.listFromJson(listData);
+    return Right(list);
   }
 }

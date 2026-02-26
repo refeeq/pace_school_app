@@ -76,7 +76,7 @@ class _GuestContactUsScreenState extends State<GuestContactUsScreen> {
                       keyboardType: TextInputType.text,
                     ),
                     const SizedBox(height: 10),
-                    state is ContactUsLoading
+                    state.submissionLoading
                         ? const Center(child: CircularProgressIndicator())
                         : SubmitButton(
                             onTap: () {
@@ -251,7 +251,7 @@ class _GuestContactUsScreenState extends State<GuestContactUsScreen> {
             );
           },
           listener: (context, state) => {
-            if (state is ContactUsSuccess)
+            if (state.submissionSuccessMessage != null)
               {
                 nameController.clear(),
                 emailController.clear(),
@@ -285,7 +285,7 @@ class _GuestContactUsScreenState extends State<GuestContactUsScreen> {
                   ),
                 ),
               }
-            else if (state is ContactUsFailure)
+            else if (state.submissionFailureMessage != null)
               {
                 showDialog(
                   context: context,
@@ -300,7 +300,7 @@ class _GuestContactUsScreenState extends State<GuestContactUsScreen> {
                           Center(child: Icon(Icons.error_outline, size: 60.sp)),
                           const SizedBox(height: 20),
                           Text(
-                            state.message,
+                            state.submissionFailureMessage!,
                             style: Theme.of(context).textTheme.titleLarge,
                             textAlign: TextAlign.center,
                           ),
