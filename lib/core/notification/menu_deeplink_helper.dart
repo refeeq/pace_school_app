@@ -18,6 +18,7 @@ import 'package:school_app/views/screens/school_information_screen/school_inform
 import 'package:school_app/views/screens/student/attendence_screen/attendence_screen_view.dart';
 import 'package:school_app/views/screens/student/circular_screen/circular_screen_view.dart';
 import 'package:school_app/views/screens/student/fees_screen/fees_screen_view.dart';
+import 'package:school_app/views/screens/student/fees_screen/fee_sub_menu_view.dart';
 import 'package:school_app/views/screens/student/leave_application/leave_application_screen.dart';
 import 'package:school_app/views/screens/student/library_screen/library_screen_view.dart';
 import 'package:school_app/views/screens/student/progress_report/progress_report_exams_page.dart';
@@ -113,6 +114,33 @@ Future<bool> navigateToMenuScreen({
           admissionNo: studcode ?? studentProvider.selectedStudentModel(context).studcode,
         );
         state.push(MaterialPageRoute(builder: (_) => const BusTrackPage()));
+        break;
+      case 'Fee':
+        {
+          final menuModel = studentProvider.studentMenuModel;
+          if (menuModel == null) {
+            log('menu_deeplink: Fee menu requested but studentMenuModel is null');
+            return false;
+          }
+          StudentMenu? feeMenu;
+          for (final menu in menuModel.data) {
+            if (menu.menuKey == 'Fee' &&
+                menu.subMenu != null &&
+                menu.subMenu!.isNotEmpty) {
+              feeMenu = menu;
+              break;
+            }
+          }
+          if (feeMenu == null) {
+            log('menu_deeplink: Fee menu not found or has no submenu');
+            return false;
+          }
+          state.push(
+            MaterialPageRoute(
+              builder: (_) => FeeSubMenuView(feeMenu: feeMenu!),
+            ),
+          );
+        }
         break;
       case 'internalWeb':
         final loadUrl = url?.trim();

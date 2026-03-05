@@ -293,6 +293,16 @@ class _ContactUsHistoryTile extends StatelessWidget {
                       ),
                 ),
               ],
+            ] else ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 8),
+              Text(
+                'Reply: Pending',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                    ),
+              ),
             ],
           ],
         ),

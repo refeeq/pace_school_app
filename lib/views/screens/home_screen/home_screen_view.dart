@@ -12,7 +12,6 @@ import 'package:provider/provider.dart';
 import 'package:school_app/app.dart';
 import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/models/slider_model.dart';
-import 'package:school_app/core/models/student_menu_model.dart';
 import 'package:school_app/core/provider/student_fee_provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/services/dependecyInjection.dart';
@@ -33,6 +32,7 @@ import 'package:school_app/views/screens/open_house/screens/open_house_page.dart
 import 'package:school_app/views/screens/sibilingRegister/page/sibiling_registration_list.dart';
 import 'package:school_app/views/screens/student/attendence_screen/attendence_screen_view.dart';
 import 'package:school_app/views/screens/student/fees_screen/fees_screen_view.dart';
+import 'package:school_app/views/screens/student/fees_screen/fee_sub_menu_view.dart';
 import 'package:school_app/views/screens/student/leave_application/leave_application_screen.dart';
 import 'package:school_app/views/screens/student/progress_report/progress_report_exams_page.dart';
 import 'package:school_app/views/screens/student/report_card/report_card_list_page.dart';
@@ -43,7 +43,6 @@ import '../../../core/provider/leave_provider.dart';
 import '../../components/app_drawer.dart';
 import '../school_information_screen/school_information_screen_view.dart';
 import '../student/circular_screen/circular_screen_view.dart';
-import '../student/library_screen/library_screen_view.dart';
 import '../student/student_fee_statement/student_fee_statement_screen.dart';
 import '../student/student_profile/student_profile_view.dart';
 
@@ -338,12 +337,8 @@ class _HomeViewState extends State<HomeView> {
                                       if (value.studentMenuModel == null) {
                                         return Container();
                                       } else {
-                                        final items = [
-                                          ...value.studentMenuModel!.data
-                                        ];
-                                        final circularIndex = items.indexWhere(
-                                          (e) => e.menuKey == "Circular",
-                                        );
+                                        final items =
+                                            [...value.studentMenuModel!.data];
                                         // if (!items.any(
                                         //   (e) => e.menuKey == "Library",
                                         // )) {
@@ -441,6 +436,18 @@ class _HomeViewState extends State<HomeView> {
                                                       MaterialPageRoute(
                                                         builder: (context) =>
                                                             SchoolInformationScreenView(),
+                                                      ),
+                                                    );
+                                                  } else if (menuKey == "Fee" &&
+                                                      item.subMenu != null &&
+                                                      item.subMenu!.isNotEmpty) {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            FeeSubMenuView(
+                                                          feeMenu: item,
+                                                        ),
                                                       ),
                                                     );
                                                   } else if (menuKey ==
