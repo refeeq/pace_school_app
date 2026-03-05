@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/models/student_menu_model.dart';
@@ -25,6 +26,8 @@ import 'package:school_app/views/screens/student/progress_report/progress_report
 import 'package:school_app/views/screens/student/report_card/report_card_list_page.dart';
 import 'package:school_app/views/screens/student/student_fee_statement/student_fee_statement_screen.dart';
 import 'package:school_app/views/screens/student/student_profile/student_profile_view.dart';
+import 'package:school_app/views/screens/family_fee/cubit/family_fee_cubit.dart';
+import 'package:school_app/views/screens/family_fee/pages/family_fee_screen.dart';
 
 /// Navigates to the appropriate student menu screen based on [menuKey].
 /// [studcode] is optional: if provided, the student is selected and menu is fetched first.
@@ -141,6 +144,17 @@ Future<bool> navigateToMenuScreen({
             ),
           );
         }
+        break;
+      case 'FamilyFee':
+      case 'Family Fee':
+      case 'familyFee':
+      case 'family_fee':
+        BlocProvider.of<FamilyFeeCubit>(context).fetchfee();
+        state.push(
+          MaterialPageRoute(
+            builder: (_) => const FamilyFeeScreen(),
+          ),
+        );
         break;
       case 'internalWeb':
         final loadUrl = url?.trim();
