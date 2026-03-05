@@ -92,9 +92,23 @@ class StudentProvider with ChangeNotifier {
     _documentWarningsFetching = true;
     try {
       final warnings = <DocumentWarning>[];
-      final students = studentsModel!.data;
+      // Only consider active students for document expiry alerts
+      final students = studentsModel!.data
+          .where((s) => s.statusLabel.toLowerCase() == 'active')
+          .toList();
+
+      if (students.isEmpty) {
+        documentWarnings = [];
+        _documentWarningsFetched = true;
+        Hive.box('documentExpiry').put('count', 0);
+        notifyListeners();
+        return;
+      }
+
       final results = await Future.wait(
-        students.map((s) => repository.getStudentDetails(studCode: s.studcode)),
+        students.map(
+          (s) => repository.getStudentDetails(studCode: s.studcode),
+        ),
       );
       for (var i = 0; i < results.length; i++) {
         final respon = results[i];

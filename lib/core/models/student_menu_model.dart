@@ -30,7 +30,9 @@ class StudentMenu {
   factory StudentMenu.fromJson(Map<String, dynamic> json) => StudentMenu(
         id: json["id"],
         iconUrl: json["icon_url"] ?? "",
-        weburl: json['url'],
+        // Backend may send either `url` or `web_url`. Prefer `url` but
+        // fall back to `web_url` to support both structures.
+        weburl: (json['url'] ?? json['web_url']) as String?,
         subMenu: json["sub_menu"] == null
             ? null
             : List<StudentMenu>.from(

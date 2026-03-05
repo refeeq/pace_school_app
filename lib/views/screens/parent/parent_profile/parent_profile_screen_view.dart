@@ -250,7 +250,6 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                             );
                                           },
                                           child: ProfileTile(
-                                            canEdit: true,
                                             label: "Mobile Number",
                                             value: value
                                                 .parentProfileListModel!
@@ -280,7 +279,6 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                             }
                                           },
                                           child: ProfileTile(
-                                            canEdit: true,
                                             isRed: value
                                                 .parentProfileListModel!
                                                 .data[value.parentSelected]

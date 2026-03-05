@@ -78,7 +78,6 @@ class DocumentDetailWidget extends StatelessWidget {
                     return InkWell(
                       onTap: navigate,
                       child: ProfileTile(
-                        canEdit: true,
                         label: "Emirates ID Expiry date",
                         value: data.emiratesIdExp,
                         valueColor: eidColor,
@@ -98,7 +97,6 @@ class DocumentDetailWidget extends StatelessWidget {
                     );
                   },
                   child: ProfileTile(
-                    canEdit: true,
                     label: "Passport Number",
                     value: data.passno,
                     valueColor: ppColor,

@@ -40,6 +40,7 @@ class Data {
   final dynamic studentReregistered;
   final String studentReregStat;
   final String studentReregLabel;
+  final String studentReregStatusHex;
   Data({
     required this.studcode,
     required this.fullname,
@@ -69,6 +70,7 @@ class Data {
     this.studentReregistered,
     this.studentReregStat = "",
     this.studentReregLabel = "",
+    this.studentReregStatusHex = "",
   });
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
@@ -100,6 +102,7 @@ class Data {
         studentReregistered: json["student_reregistered"],
         studentReregStat: json["student_rereg_stat"]?.toString() ?? "",
         studentReregLabel: json["student_rereg_label"] ?? "",
+        studentReregStatusHex: json["student_rereg_status_hex"] ?? "",
       );
 
   Map<String, dynamic> toJson() => {
@@ -131,6 +134,7 @@ class Data {
         "student_reregistered": studentReregistered,
         "student_rereg_stat": studentReregStat,
         "student_rereg_label": studentReregLabel,
+        "student_rereg_status_hex": studentReregStatusHex,
       };
 }
 

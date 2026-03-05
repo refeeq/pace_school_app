@@ -54,6 +54,12 @@ class BasicDetailWidget extends StatelessWidget {
                 ProfileTile(
                   label: "Re-Registration Status",
                   value: value.studentDetailModel!.data.studentReregLabel,
+                  valueColor: value
+                          .studentDetailModel!.data.studentReregStatusHex.isNotEmpty
+                      ? HexColor(
+                          value.studentDetailModel!.data.studentReregStatusHex,
+                        )
+                      : null,
                 ),
                 const SizedBox(height: 5),
               ],

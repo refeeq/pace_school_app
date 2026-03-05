@@ -583,7 +583,8 @@ class _HomeViewState extends State<HomeView> {
                                                       ),
                                                     );
                                                   } else if (menuKey ==
-                                                      "externalWeb") {
+                                                          "externalWeb" ||
+                                                      menuKey == "WhatsApp") {
                                                     if (await canLaunch(
                                                       item.weburl!,
                                                     )) {

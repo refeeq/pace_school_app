@@ -28,6 +28,7 @@ import 'package:school_app/views/screens/student/student_fee_statement/student_f
 import 'package:school_app/views/screens/student/student_profile/student_profile_view.dart';
 import 'package:school_app/views/screens/family_fee/cubit/family_fee_cubit.dart';
 import 'package:school_app/views/screens/family_fee/pages/family_fee_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Navigates to the appropriate student menu screen based on [menuKey].
 /// [studcode] is optional: if provided, the student is selected and menu is fetched first.
@@ -157,22 +158,58 @@ Future<bool> navigateToMenuScreen({
         );
         break;
       case 'internalWeb':
-        final loadUrl = url?.trim();
-        if (loadUrl != null && loadUrl.isNotEmpty) {
-          final studentMenu = StudentMenu(
-            id: '0',
-            menuKey: 'internalWeb',
-            menuValue: 'Activity Fee',
-            iconUrl: '',
-            subMenu: null,
-            weburl: loadUrl,
-          );
-          state.push(MaterialPageRoute(
-            builder: (_) => InternalWebPage(studentMenu: studentMenu),
-          ));
-        } else {
-          log('menu_deeplink: internalWeb requires url in data');
-          return false;
+        {
+          final loadUrl = url?.trim();
+          if (loadUrl != null && loadUrl.isNotEmpty) {
+            // Derive a sensible title from the URL so that different
+            // internal web pages (e.g. Activity Fee vs Re-Registration)
+            // show the correct title even though they share the same
+            // menu_key ("internalWeb").
+            String menuTitle = 'Activity Fee';
+            final lowerUrl = loadUrl.toLowerCase();
+            if (lowerUrl.contains('reregfee')) {
+              menuTitle = 'Re-Registration';
+            } else if (lowerUrl.contains('activityfee')) {
+              menuTitle = 'Activity Fee';
+            }
+
+            final studentMenu = StudentMenu(
+              id: '0',
+              menuKey: 'internalWeb',
+              menuValue: menuTitle,
+              iconUrl: '',
+              subMenu: null,
+              weburl: loadUrl,
+            );
+            state.push(MaterialPageRoute(
+              builder: (_) => InternalWebPage(studentMenu: studentMenu),
+            ));
+          } else {
+            log('menu_deeplink: internalWeb requires url in data');
+            return false;
+          }
+        }
+        break;
+      case 'externalWeb':
+      case 'WhatsApp':
+        {
+          final loadUrl = url?.trim();
+          if (loadUrl != null && loadUrl.isNotEmpty) {
+            try {
+              if (await canLaunch(loadUrl)) {
+                await launch(loadUrl);
+              } else {
+                log('menu_deeplink: externalWeb cannot launch url: $loadUrl');
+                return false;
+              }
+            } catch (e) {
+              log('menu_deeplink: externalWeb error launching url: $e');
+              return false;
+            }
+          } else {
+            log('menu_deeplink: externalWeb requires url in data');
+            return false;
+          }
         }
         break;
       default:
