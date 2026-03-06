@@ -22,12 +22,9 @@ android {
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        // Align Java with Flutter's bundled JDK (17)
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     flavorDimensions += "default"
@@ -113,6 +110,11 @@ android {
             // proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
+}
+
+// Ensure Kotlin uses the same JVM target as Java (17)
+kotlin {
+    jvmToolchain(17)
 }
 
 flutter {
