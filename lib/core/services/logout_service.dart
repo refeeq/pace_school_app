@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
@@ -20,26 +22,26 @@ import 'package:school_app/core/provider/student_provider.dart';
 /// Call this before firing AuthLoggedOutEvent to ensure no stale data
 /// persists when a different user logs in.
 Future<void> clearAllUserDataOnLogout(BuildContext context) async {
-  // 1. Unsubscribe from FCM topics
-  try {
-    await FcmTopicService.unsubscribeFromAllTopics();
-  } catch (_) {
-    // Continue with logout even if topic unsubscription fails
-  }
+  // 1. Unsubscribe from FCM topics in background (don't block logout - avoids delay)
+  unawaited(
+    FcmTopicService.unsubscribeFromAllTopics().catchError((_) {}),
+  );
 
-  // 2. Clear all user-specific Hive boxes
-  await Hive.box<ParentModel>(PARENTDB).clear();
-  await Hive.box('communication').clear();
-  await Hive.box('notificationCount').clear();
-  await Hive.box('documentExpiry').clear();
-  await Hive.box('allNotification').clear();
-  await Hive.box('fcm_topics').clear();
-  await Hive.box<AuthModel>(USERDB).clear();
-
-  // 3. Reset all providers
+  // 2. Reset providers first (need context before tree rebuilds)
   if (context.mounted) {
     _resetProviders(context);
   }
+
+  // 3. Clear Hive boxes in parallel, then USERDB last (triggers UI switch to login)
+  await Future.wait([
+    Hive.box<ParentModel>(PARENTDB).clear(),
+    Hive.box('communication').clear(),
+    Hive.box('notificationCount').clear(),
+    Hive.box('documentExpiry').clear(),
+    Hive.box('allNotification').clear(),
+    Hive.box('fcm_topics').clear(),
+  ]);
+  await Hive.box<AuthModel>(USERDB).clear();
 }
 
 void _resetProviders(BuildContext context) {

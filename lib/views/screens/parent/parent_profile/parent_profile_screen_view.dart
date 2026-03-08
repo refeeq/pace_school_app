@@ -71,12 +71,21 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
         ],
       ),
     );
-    if (confirmed == true && context.mounted) {
-      await clearAllUserDataOnLogout(context);
-      if (context.mounted) {
-        context.read<AuthListenerBloc>().add(AuthLoggedOutEvent());
-      }
-    }
+    if (confirmed != true || !context.mounted) return;
+    final navigator = Navigator.of(context);
+    final authBloc = context.read<AuthListenerBloc>();
+    if (!context.mounted) return;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black26,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+    await clearAllUserDataOnLogout(context);
+    navigator.pop(); // dismiss loader
+    authBloc.add(AuthLoggedOutEvent());
   }
 
   @override

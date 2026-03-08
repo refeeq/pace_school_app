@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:school_app/core/notification/fcm_topic_service.dart';
 
 import '../../constants/db_constants.dart';
 import '../../models/auth_model.dart';
@@ -33,19 +32,10 @@ class AuthListenerBloc extends Bloc<AuthListenerEvent, AuthListenerState> {
 
   void _mapLogoutButtonPressedToState(
     AuthLoggedOutEvent event,
-    Emitter<AuthListenerState> emitter,
-  ) async {
-    // Unsubscribe from FCM topics before clearing auth data
-    try {
-      await FcmTopicService.unsubscribeFromAllTopics();
-      log("FCM topics unsubscribed on logout");
-    } catch (e) {
-      log("Error unsubscribing from FCM topics on logout: $e");
-      // Continue with logout even if topic unsubscription fails
-    }
-    
-    await Hive.box<AuthModel>(USERDB).clear();
-    log("_mapLogoutButtonPressedToState");
-    emitter(AuthLoggedOut());
+    Emitter<AuthListenerState> emit,
+  ) {
+    // Data already cleared by clearAllUserDataOnLogout; just emit state
+    log("AuthLoggedOutEvent handled");
+    emit(AuthLoggedOut());
   }
 }
