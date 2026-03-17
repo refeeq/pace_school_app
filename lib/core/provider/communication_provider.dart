@@ -176,7 +176,6 @@ class CommunicationProvider with ChangeNotifier {
     if (respon.right['status'] == true) {
       // studentListState = AppStates.Fetched;
       await Hive.box('communication').clear();
-
       await Hive.box("communication").put("count", respon.right['count']);
       //   showToast(respon.right.message);
       log('getCommunicationStudentList response fetched successfully');
@@ -184,6 +183,31 @@ class CommunicationProvider with ChangeNotifier {
         respon.right["data"].map((x) => CommunicationStudentModel.fromJson(x)),
       );
     }
+    notifyListeners();
+  }
+
+  /// Set unread count for a given student locally (used to keep avatar badge in sync with tiles).
+  void setStudentUnread(String studentId, int unread) {
+    final index = communicationStudentList.indexWhere(
+      (s) => s.studcode == studentId,
+    );
+    if (index == -1) return;
+
+    final current = communicationStudentList[index];
+    final clampedUnread = unread.clamp(0, 9999);
+
+    communicationStudentList[index] = CommunicationStudentModel(
+      studcode: current.studcode,
+      fullname: current.fullname,
+      communicationStudentModelClass: current.communicationStudentModelClass,
+      section: current.section,
+      studStat: current.studStat,
+      acdyear: current.acdyear,
+      acYearId: current.acYearId,
+      photo: current.photo,
+      unread: clampedUnread,
+      lastMessage: current.lastMessage,
+    );
     notifyListeners();
   }
 }

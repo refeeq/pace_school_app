@@ -3,24 +3,30 @@
 class ClassHistoryItem {
   final String acYearId;
   final String klass;
+  /// Display label for grade (e.g. "06", "KG1"); falls back to [klass] if absent.
+  final String? _displayGrade;
+  String get displayGrade => _displayGrade?.isNotEmpty == true ? _displayGrade! : klass;
   final String section;
 
   ClassHistoryItem({
     required this.acYearId,
     required this.klass,
+    String? displayGrade,
     required this.section,
-  });
+  }) : _displayGrade = displayGrade;
 
   factory ClassHistoryItem.fromJson(Map<String, dynamic> json) =>
       ClassHistoryItem(
         acYearId: (json["ac_year_id"] ?? '').toString(),
         klass: (json["class"] ?? '').toString(),
+        displayGrade: (json["display_grade"] ?? json["class"] ?? '').toString(),
         section: (json["section"] ?? '').toString(),
       );
 
   Map<String, dynamic> toJson() => {
         "ac_year_id": acYearId,
         "class": klass,
+        "display_grade": displayGrade,
         "section": section,
       };
 }

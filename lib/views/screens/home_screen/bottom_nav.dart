@@ -11,6 +11,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/notification/firebase_notification.dart';
 import 'package:school_app/core/provider/notification_provider.dart';
+import 'package:school_app/core/provider/communication_provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/repository/repository.dart';
 import 'package:school_app/core/services/dependecyInjection.dart';
@@ -479,8 +480,13 @@ class _HomeScreenViewState extends State<HomeScreenView>
   void initState() {
     if (mounted) {
       Future(
-        () =>
-            Provider.of<StudentProvider>(context, listen: false).getStudents(),
+        () {
+          Provider.of<StudentProvider>(context, listen: false).getStudents();
+          // Preload communication student list so bottom tab badge is ready
+          // before the user opens the Communication tab.
+          Provider.of<CommunicationProvider>(context, listen: false)
+              .getStudentList();
+        },
       );
     }
     checkNotificationPermissionStatus();

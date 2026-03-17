@@ -98,7 +98,7 @@ class ReportCardListPage extends StatelessWidget {
       final classReports =
           reports.where((r) => r.matchesClass(classItem)).toList();
       return _ClassTileData(
-        label: 'Grade ${classItem.klass} ${classItem.section}'.trim(),
+        label: '${classItem.displayGrade} ${classItem.section}'.trim(),
         reports: classReports,
       );
     }).toList();

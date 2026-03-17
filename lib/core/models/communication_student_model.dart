@@ -35,19 +35,24 @@ class CommunicationStudentModel {
   final String lastMessage;
   final int unread;
 
-  factory CommunicationStudentModel.fromJson(Map<String, dynamic> json) =>
-      CommunicationStudentModel(
-        studcode: json["studcode"],
-        fullname: json["fullname"],
-        communicationStudentModelClass: json["class"],
-        section: json["section"],
-        studStat: json["stud_stat"],
-        acdyear: json["acdyear"],
-        acYearId: json["ac_year_id"],
-        photo: json["photo"],
-        unread: json["unread"],
-        lastMessage: json["last_msg"] ?? "",
-      );
+  factory CommunicationStudentModel.fromJson(Map<String, dynamic> json) {
+    final unread = json["unread"];
+    final int unreadCount = unread is int
+        ? unread
+        : (unread is String ? int.tryParse(unread) ?? 0 : 0);
+    return CommunicationStudentModel(
+      studcode: json["studcode"],
+      fullname: json["fullname"],
+      communicationStudentModelClass: json["class"],
+      section: json["section"],
+      studStat: json["stud_stat"],
+      acdyear: json["acdyear"],
+      acYearId: json["ac_year_id"],
+      photo: json["photo"],
+      unread: unreadCount,
+      lastMessage: json["last_msg"] ?? "",
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         "studcode": studcode,

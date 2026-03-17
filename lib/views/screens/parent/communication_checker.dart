@@ -27,6 +27,7 @@ class _CommunicationCheckerState extends State<CommunicationChecker> {
             Container(
               color: Colors.white,
               child: SelectStudentWidget(
+                showCommunicationUnread: true,
                 onchanged: (index) {
                   Provider.of<CommunicationProvider>(
                     context,
@@ -56,9 +57,10 @@ class _CommunicationCheckerState extends State<CommunicationChecker> {
 
   @override
   void initState() {
-    Future(
-      () => Provider.of<StudentProvider>(context, listen: false).getStudents(),
-    );
     super.initState();
+    Future(() {
+      Provider.of<StudentProvider>(context, listen: false).getStudents();
+      Provider.of<CommunicationProvider>(context, listen: false).getStudentList();
+    });
   }
 }

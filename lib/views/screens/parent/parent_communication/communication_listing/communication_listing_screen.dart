@@ -136,21 +136,36 @@ class _CommunicationListingScreenState
               case AppStates.Fetched:
                 return ListView.builder(
                   shrinkWrap: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   itemCount: provider.communicationList.length,
                   itemBuilder: (context, index) {
                     CommunicationTileModel model =
                         provider.communicationList[index];
 
-                    return // Figma Flutter Generator 01chatitemWidget - INSTANCE
-                    InkWell(
+                    return InkWell(
                       onTap: () {
-                        var count = Hive.box("communication").get('count');
+                        final openedCount = model.cnt;
+                        var totalCount = Hive.box("communication").get('count');
+
                         setState(() {
-                          count = count - model.cnt;
+                          totalCount = totalCount - openedCount;
                           model.cnt = 0;
                         });
+
                         Hive.box("communication").put("new", '');
-                        Hive.box("communication").put('count', count);
+                        Hive.box("communication").put('count', totalCount);
+
+                        // Sync the student's unread badge with remaining tile counts.
+                        final remainingForStudent = provider.communicationList
+                            .fold<int>(0, (sum, tile) => sum + tile.cnt);
+                        Provider.of<CommunicationProvider>(
+                          context,
+                          listen: false,
+                        ).setStudentUnread(
+                              widget.studentId,
+                              remainingForStudent,
+                            );
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(

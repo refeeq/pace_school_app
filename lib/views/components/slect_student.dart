@@ -2,18 +2,26 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/config/app_status.dart';
+import 'package:school_app/core/models/communication_student_model.dart';
+import 'package:school_app/core/provider/communication_provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/utils/utils.dart';
 
 class SelectStudentWidget extends StatelessWidget {
   final void Function(int index) onchanged;
+  /// When true, shows unread communication badge per student (Communication tab only).
+  final bool showCommunicationUnread;
 
-  const SelectStudentWidget({super.key, required this.onchanged});
+  const SelectStudentWidget({
+    super.key,
+    required this.onchanged,
+    this.showCommunicationUnread = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<StudentProvider>(
-      builder: (context, studentProvider, child) {
+    return Consumer2<StudentProvider, CommunicationProvider>(
+      builder: (context, studentProvider, communicationProvider, child) {
         switch (studentProvider.studentListState) {
           case AppStates.Unintialized:
             // getStudents is triggered by bottom_nav initState; avoid duplicate call
@@ -34,6 +42,7 @@ class SelectStudentWidget extends StatelessWidget {
                   itemCount: studentProvider.studentsModel!.data.length,
                   shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
                   itemBuilder: (context, index) => GestureDetector(
                     onTap: () {
                       final selected = studentProvider.studentsModel!.data[index];
@@ -49,7 +58,6 @@ class SelectStudentWidget extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.only(right: 8.0),
                       child: SizedBox(
-                        //  width: 100,
                         height: 100,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -64,10 +72,17 @@ class SelectStudentWidget extends StatelessWidget {
                                     studentProvider.selectedStudentModel(context)
                                             .studcode ==
                                         student.studcode;
-                                final statusColour = student.statusColour
-                                        .isNotEmpty
-                                    ? parseRgbColor(student.statusColour)
-                                    : null;
+                                final statusColour =
+                                    student.statusColour.isNotEmpty
+                                        ? parseRgbColor(student.statusColour)
+                                        : null;
+                                final int unread = showCommunicationUnread
+                                    ? _unreadForStudent(
+                                        communicationProvider
+                                            .communicationStudentList,
+                                        student.studcode,
+                                      )
+                                    : 0;
                                 return Stack(
                                   clipBehavior: Clip.none,
                                   children: [
@@ -99,6 +114,49 @@ class SelectStudentWidget extends StatelessWidget {
                                             border: Border.all(
                                               color: Colors.white,
                                               width: 2,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    if (unread > 0)
+                                      Positioned(
+                                        right: -2,
+                                        top: -2,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          constraints: const BoxConstraints(
+                                            minWidth: 22,
+                                            minHeight: 22,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.white,
+                                              width: 2,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black
+                                                    .withValues(alpha: 0.25),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 1),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              unread > 99
+                                                  ? '99+'
+                                                  : unread.toString(),
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                              ),
                                             ),
                                           ),
                                         ),
@@ -136,5 +194,15 @@ class SelectStudentWidget extends StatelessWidget {
         }
       },
     );
+  }
+
+  static int _unreadForStudent(
+    List<CommunicationStudentModel> list,
+    String studcode,
+  ) {
+    for (final s in list) {
+      if (s.studcode == studcode) return s.unread;
+    }
+    return 0;
   }
 }

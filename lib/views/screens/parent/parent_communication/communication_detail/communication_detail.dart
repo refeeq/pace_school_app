@@ -42,6 +42,7 @@ class _CommunicationDetailScreenState extends State<CommunicationDetailScreen> {
             Container(
               color: Colors.white,
               child: SelectStudentWidget(
+                showCommunicationUnread: true,
                 onchanged: (index) {
                   Provider.of<CommunicationProvider>(
                     context,

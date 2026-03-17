@@ -60,12 +60,17 @@ class AppointmentDetailsDialog extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.subject, size: 25, color: Colors.grey),
                       SizedBox(width: 5.w),
-                      Text(
-                        activeOpenHouseModel.subject,
-                        style: const TextStyle(fontSize: 12),
+                      Expanded(
+                        child: Text(
+                          activeOpenHouseModel.subject,
+                          style: const TextStyle(fontSize: 12),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),
@@ -82,16 +87,19 @@ class AppointmentDetailsDialog extends StatelessWidget {
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               formatDateString(
                                 activeOpenHouseModel.ohDate.toString(),
                               ),
                               style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
                             ),
                             Text(
                               "${activeOpenHouseModel.from} - ${activeOpenHouseModel.to}",
                               style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),

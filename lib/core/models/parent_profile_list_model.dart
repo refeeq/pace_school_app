@@ -10,6 +10,50 @@ ParentProfileListModel parentProfileListModelFromJson(String str) =>
 String parentProfileListModelToJson(ParentProfileListModel data) =>
     json.encode(data.toJson());
 
+class Emirate {
+  final int id;
+  final String emirate;
+
+  Emirate({
+    required this.id,
+    required this.emirate,
+  });
+
+  factory Emirate.fromJson(Map<String, dynamic> json) => Emirate(
+        id: json["id"] ?? 0,
+        emirate: json["emirate"] ?? "",
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "emirate": emirate,
+      };
+}
+
+class Community {
+  final int id;
+  final int emirateId;
+  final String communityName;
+
+  Community({
+    required this.id,
+    required this.emirateId,
+    required this.communityName,
+  });
+
+  factory Community.fromJson(Map<String, dynamic> json) => Community(
+        id: json["id"] ?? 0,
+        emirateId: json["emirate_id"] ?? 0,
+        communityName: json["community_name"] ?? "",
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "emirate_id": emirateId,
+        "community_name": communityName,
+      };
+}
+
 class Common {
   final String famcode;
 
@@ -44,6 +88,7 @@ class Common {
   final dynamic communityId;
   final dynamic flatNo;
   final dynamic buildingName;
+  final String communityName;
 
   Common({
     required this.famcode,
@@ -78,6 +123,7 @@ class Common {
     required this.communityId,
     required this.flatNo,
     required this.buildingName,
+    required this.communityName,
   });
 
   factory Common.fromJson(Map<String, dynamic> json) => Common(
@@ -113,6 +159,7 @@ class Common {
         communityId: json["community_id"] ?? "",
         flatNo: json["flat_no"] ?? "",
         buildingName: json["building_name"] ?? "",
+        communityName: json["community_name"] ?? "",
       );
 
   Map<String, dynamic> toJson() => {
@@ -148,6 +195,7 @@ class Common {
         "community_id": communityId,
         "flat_no": flatNo,
         "building_name": buildingName,
+        "community_name": communityName,
       };
 }
 
@@ -198,16 +246,21 @@ class Datum {
         "offcity": offcity,
         "rescity": rescity,
         "relation": relation,
+        "photo": photo,
       };
 }
 
 class ParentProfileListModel {
+  final List<Emirate> emirate;
+  final List<Community> community;
   final bool status;
-
   final String message;
   final List<Datum> data;
   final Common common;
+
   ParentProfileListModel({
+    required this.emirate,
+    required this.community,
     required this.status,
     required this.message,
     required this.data,
@@ -216,13 +269,25 @@ class ParentProfileListModel {
 
   factory ParentProfileListModel.fromJson(Map<String, dynamic> json) =>
       ParentProfileListModel(
-        status: json["status"] ?? "",
+        emirate: json["emirate"] != null
+            ? List<Emirate>.from(
+                json["emirate"].map((x) => Emirate.fromJson(x)))
+            : [],
+        community: json["community"] != null
+            ? List<Community>.from(
+                json["community"].map((x) => Community.fromJson(x)))
+            : [],
+        status: json["status"] == true,
         message: json["message"] ?? "",
-        data: List<Datum>.from(json["data"].map((x) => Datum.fromJson(x))),
-        common: Common.fromJson(json["common"]),
+        data: json["data"] != null
+            ? List<Datum>.from(json["data"].map((x) => Datum.fromJson(x)))
+            : [],
+        common: Common.fromJson(json["common"] ?? {}),
       );
 
   Map<String, dynamic> toJson() => {
+        "emirate": List<dynamic>.from(emirate.map((x) => x.toJson())),
+        "community": List<dynamic>.from(community.map((x) => x.toJson())),
         "status": status,
         "message": message,
         "data": List<dynamic>.from(data.map((x) => x.toJson())),
