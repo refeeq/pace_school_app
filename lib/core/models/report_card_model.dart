@@ -3,7 +3,7 @@
 class ClassHistoryItem {
   final String acYearId;
   final String classs;
-  /// Display label for grade (e.g. "06", "KG1"); falls back to [klass] if absent.
+  /// Display label for grade (e.g. "06", "KG1"); falls back to [classs] if absent.
   final String? _displayGrade;
   String get displayGrade => _displayGrade?.isNotEmpty == true ? _displayGrade! : classs;
   final String section;
@@ -37,7 +37,7 @@ class ReportCardItem {
   final String defaultDate;
   final String term;
   final String acYearId;
-  final String klass;
+  final String classs;
   final String section;
   /// Optional exam ID from getReportNamesByClass; used by getReportCardHtml.
   /// If absent, report.id is used as fallback.
@@ -49,7 +49,7 @@ class ReportCardItem {
     required this.defaultDate,
     required this.term,
     required this.acYearId,
-    required this.klass,
+    required this.classs,
     required this.section,
     this.exmId,
   });
@@ -60,7 +60,7 @@ class ReportCardItem {
         defaultDate: (json["default_date"] ?? '').toString(),
         term: (json["term"] ?? '').toString(),
         acYearId: (json["ac_year_id"] ?? '').toString(),
-        klass: (json["class"] ?? '').toString(),
+        classs: (json["class"] ?? '').toString(),
         section: (json["section"] ?? '').toString(),
         exmId: () {
           final v = json["exm_id"];
@@ -76,13 +76,13 @@ class ReportCardItem {
         "default_date": defaultDate,
         "term": term,
         "ac_year_id": acYearId,
-        "class": klass,
+        "class": classs,
         "section": section,
         if (exmId != null) "exm_id": exmId,
       };
 
   bool matchesClass(ClassHistoryItem c) =>
-      acYearId == c.acYearId && klass == c.classs && section == c.section;
+      acYearId == c.acYearId && classs == c.classs && section == c.section;
 }
 
 class ReportCardStudentInfo {
