@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/models/communicatio_tile_model.dart';
 import 'package:school_app/core/provider/communication_provider.dart';
+import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/themes/const_gradient.dart';
 import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/communication_sub_message.dart';
@@ -144,11 +145,23 @@ class _CommunicationListingScreenState
 
                     return InkWell(
                       onTap: () {
+                        final currentStudCode =
+                            Provider.of<StudentProvider>(
+                              context,
+                              listen: false,
+                            ).selectedStudentModel(context).studcode;
+
                         final openedCount = model.cnt;
                         var totalCount = Hive.box("communication").get('count');
 
                         setState(() {
-                          totalCount = totalCount - openedCount;
+                          final int currentTotal =
+                              (totalCount is int ? totalCount : 0);
+                          final int opened = openedCount is int ? openedCount : 0;
+                          final int newTotal =
+                              (currentTotal - opened).clamp(0, 999999);
+
+                          totalCount = newTotal;
                           model.cnt = 0;
                         });
 
@@ -162,7 +175,7 @@ class _CommunicationListingScreenState
                           context,
                           listen: false,
                         ).setStudentUnread(
-                              widget.studentId,
+                              currentStudCode,
                               remainingForStudent,
                             );
 
@@ -170,7 +183,7 @@ class _CommunicationListingScreenState
                           context,
                           MaterialPageRoute(
                             builder: (context) => CommunicationDetailScreen(
-                              studCode: widget.studentId,
+                              studCode: currentStudCode,
                               communicationTileModel: model,
                             ),
                           ),

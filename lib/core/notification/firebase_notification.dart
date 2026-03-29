@@ -460,7 +460,7 @@ class FirebaseNotificationService {
     // Handle foreground messages (app is open)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       printFcmMessage(message, source: 'FOREGROUND');
-      if (message.notification != null) {
+        if (message.notification != null) {
         // Update badge counts
         if (message.data['click_action'] == "COMMUNICATION") {
           int? count = await Hive.box('communication').get('count');
