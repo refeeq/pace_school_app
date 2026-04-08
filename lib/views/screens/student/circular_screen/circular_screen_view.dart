@@ -239,9 +239,16 @@ class _CircularScreenViewState extends State<CircularScreenView> {
                 },
               ),
               Expanded(
-                child: Consumer<CircularProvider>(
-                  builder: (context, value, child) {
-                    switch (value.circularListState) {
+                child: Consumer2<CircularProvider, StudentProvider>(
+                  builder: (context, circularProvider, studentProvider, child) {
+                    final selectedStudent =
+                        studentProvider.selectedStudentModel(context);
+                    final isStudentActive = selectedStudent.statusLabel
+                        .toLowerCase()
+                        .trim() ==
+                        'active';
+
+                    switch (circularProvider.circularListState) {
                       case AppStates.Unintialized:
                       case AppStates.Initial_Fetching:
                         return Shimmer(
@@ -271,7 +278,19 @@ class _CircularScreenViewState extends State<CircularScreenView> {
                           ),
                         );
                       case AppStates.Fetched:
-                        if (value.circularListModel == null) {
+                        if (!isStudentActive) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(24.0),
+                              child: NoDataWidget(
+                                imagePath: "assets/images/no_circular.svg",
+                                content:
+                                    "This student is not active. Circulars are not available for inactive students.",
+                              ),
+                            ),
+                          );
+                        }
+                        if (circularProvider.circularListModel == null) {
                           return const Center(
                             child: NoDataWidget(
                               imagePath: "assets/images/no_circular.svg",
@@ -280,7 +299,7 @@ class _CircularScreenViewState extends State<CircularScreenView> {
                             ),
                           );
                         } else {
-                          return value.circularListModel!.isEmpty
+                          return circularProvider.circularListModel!.isEmpty
                               ? const Center(
                                   child: NoDataWidget(
                                     imagePath: "assets/images/no_circular.svg",
@@ -292,18 +311,29 @@ class _CircularScreenViewState extends State<CircularScreenView> {
                                   padding: const EdgeInsets.all(12.0),
                                   child: ListView.builder(
                                     shrinkWrap: true,
-                                    itemCount: value.circularListModel!.length,
+                                    itemCount: circularProvider
+                                        .circularListModel!.length,
                                     itemBuilder: (context, index) =>
                                         CircularTile(
-                                          circularModel:
-                                              value.circularListModel![index],
+                                          circularModel: circularProvider
+                                              .circularListModel![index],
                                         ),
                                   ),
                                 );
                         }
 
                       case AppStates.Error:
-                        return const Text("Error");
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24.0),
+                            child: Text(
+                              circularProvider.circularListMessage ??
+                                  'Unable to load circulars. Please try again.',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                          ),
+                        );
                       case AppStates.NoInterNetConnectionState:
                         return NoInternetConnection(
                           ontap: () async {

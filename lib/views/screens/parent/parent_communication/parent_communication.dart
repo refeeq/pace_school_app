@@ -177,10 +177,11 @@ class ParentCommunication extends StatelessWidget {
                 return Column(
                   children: [
                     SizedBox(
-                      height: 100,
+                      height: 90,
                       child: ListView.builder(
                         shrinkWrap: true,
                         scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                         itemCount: provider.communicationStudentList.length,
                         itemBuilder: (context, index) {
                           CommunicationStudentModel model =

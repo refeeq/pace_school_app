@@ -465,6 +465,18 @@ flutter build apk --release --flavor pace --target lib/schools/pace/pace_main.da
 flutter build appbundle --release --flavor pace --target lib/schools/pace/pace_main.dart
 ```
 
+```bash
+flutter build appbundle --release --flavor pace --target lib/schools/pace/pace_main.dart
+flutter build appbundle --release --flavor gaes --target lib/schools/gaes/gaes_main.dart
+flutter build appbundle --release --flavor iiss --target lib/schools/iiss/iiss_main.dart
+flutter build appbundle --release --flavor cbsa --target lib/schools/cbsa/cbsa_main.dart
+flutter build appbundle --release --flavor dpsa --target lib/schools/dpsa/dpsa_main.dart
+flutter build appbundle --release --flavor pmbs --target lib/schools/pmbs/pmbs_main.dart
+flutter build appbundle --release --flavor pcbs --target lib/schools/pcbs/pcbs_main.dart
+flutter build appbundle --release --flavor pbss --target lib/schools/pbss/pbss_main.dart
+flutter build appbundle --release --flavor sisd --target lib/schools/sisd/sisd_main.dart
+```
+
 **Install on Device:**
 ```bash
 flutter install --flavor pace --target lib/schools/pace/pace_main.dart

@@ -17,6 +17,8 @@ import 'package:school_app/core/repository/notification/repository.dart';
 import 'package:school_app/core/repository/notification/repository_impl.dart';
 import 'package:school_app/core/repository/parent/repository.dart';
 import 'package:school_app/core/repository/parent/repository_impl.dart';
+import 'package:school_app/core/repository/parent_update/repository.dart';
+import 'package:school_app/core/repository/parent_update/repository_impl.dart';
 import 'package:school_app/core/repository/repository.dart';
 import 'package:school_app/core/repository/repository_impl.dart';
 import 'package:school_app/core/repository/school/repository.dart';
@@ -48,6 +50,9 @@ void serviceLocators() {
   );
   locator.registerLazySingleton<ParentRepository>(
     () => ParentRepositoryimpl(locator()),
+  );
+  locator.registerLazySingleton<ParentUpdateRepository>(
+    () => ParentUpdateRepositoryImpl(locator()),
   );
   locator.registerLazySingleton<AttendanceRepository>(
     () => AttendanceRepositoryImpl(locator()),

@@ -7,6 +7,12 @@ import 'package:school_app/core/provider/notification_provider.dart';
 
 class NavProvider with ChangeNotifier {
   var index = 0;
+  /// Clears navigation state. Call on logout.
+  void clearOnLogout() {
+    index = 0;
+    notifyListeners();
+  }
+
   void changeIndex(int val, BuildContext context) {
     index = val;
     if (val == 2) {

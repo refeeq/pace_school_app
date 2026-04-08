@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/models/communicatio_tile_model.dart';
 import 'package:school_app/core/provider/communication_provider.dart';
+import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/themes/const_gradient.dart';
 import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/communication_sub_message.dart';
@@ -136,26 +137,53 @@ class _CommunicationListingScreenState
               case AppStates.Fetched:
                 return ListView.builder(
                   shrinkWrap: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   itemCount: provider.communicationList.length,
                   itemBuilder: (context, index) {
                     CommunicationTileModel model =
                         provider.communicationList[index];
 
-                    return // Figma Flutter Generator 01chatitemWidget - INSTANCE
-                    InkWell(
+                    return InkWell(
                       onTap: () {
-                        var count = Hive.box("communication").get('count');
+                        final currentStudCode =
+                            Provider.of<StudentProvider>(
+                              context,
+                              listen: false,
+                            ).selectedStudentModel(context).studcode;
+
+                        final openedCount = model.cnt;
+                        var totalCount = Hive.box("communication").get('count');
+
                         setState(() {
-                          count = count - model.cnt;
+                          final int currentTotal =
+                              (totalCount is int ? totalCount : 0);
+                          final int opened = openedCount is int ? openedCount : 0;
+                          final int newTotal =
+                              (currentTotal - opened).clamp(0, 999999);
+
+                          totalCount = newTotal;
                           model.cnt = 0;
                         });
+
                         Hive.box("communication").put("new", '');
-                        Hive.box("communication").put('count', count);
+                        Hive.box("communication").put('count', totalCount);
+
+                        // Sync the student's unread badge with remaining tile counts.
+                        final remainingForStudent = provider.communicationList
+                            .fold<int>(0, (sum, tile) => sum + tile.cnt);
+                        Provider.of<CommunicationProvider>(
+                          context,
+                          listen: false,
+                        ).setStudentUnread(
+                              currentStudCode,
+                              remainingForStudent,
+                            );
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => CommunicationDetailScreen(
-                              studCode: widget.studentId,
+                              studCode: currentStudCode,
                               communicationTileModel: model,
                             ),
                           ),

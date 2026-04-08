@@ -18,6 +18,7 @@ import 'package:school_app/core/provider/leave_provider.dart';
 import 'package:school_app/core/provider/nav_provider.dart';
 import 'package:school_app/core/provider/notification_provider.dart';
 import 'package:school_app/core/provider/parent_provider.dart';
+import 'package:school_app/core/provider/parent_update_provider.dart';
 import 'package:school_app/core/provider/school_provider.dart';
 import 'package:school_app/core/provider/student_fee_provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
@@ -76,6 +77,7 @@ class _MyAppState extends State<MyApp> {
           ChangeNotifierProvider(create: (_) => NavProvider()),
           ChangeNotifierProvider(create: (_) => StudentFeeProvider()),
           ChangeNotifierProvider(create: (_) => ParentProvider()),
+          ChangeNotifierProvider(create: (_) => ParentUpdateProvider()),
           ChangeNotifierProvider(create: (_) => AttendenceProvider()),
           ChangeNotifierProvider(create: (_) => AuthProvider()),
           ChangeNotifierProvider(create: (_) => StudentProvider()),

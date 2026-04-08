@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/core/themes/const_text_style.dart';
 
@@ -39,6 +40,7 @@ class CustomtextFormFieldBorder extends StatelessWidget {
   final int? maxLines;
   final void Function()? onTap;
   final Function(String)? onChanged;
+  final List<TextInputFormatter>? inputFormatters;
   const CustomtextFormFieldBorder({
     super.key,
     required this.hintText,
@@ -52,6 +54,7 @@ class CustomtextFormFieldBorder extends StatelessWidget {
     this.onTap,
     this.onChanged,
     this.keyboardType,
+    this.inputFormatters,
   });
 
   @override
@@ -67,6 +70,7 @@ class CustomtextFormFieldBorder extends StatelessWidget {
       enabled: enabled,
       readOnly: readOnly,
       controller: textEditingController,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         isDense: true,
         filled: true,

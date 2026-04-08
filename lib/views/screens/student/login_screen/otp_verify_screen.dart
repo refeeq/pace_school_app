@@ -277,7 +277,7 @@ class OTpVerify extends StatefulWidget {
 }
 
 class _OTpVerifyState extends State<OTpVerify> {
-  late Timer _timer;
+  Timer? _timer;
   int _start = 60;
 
   TextEditingController controller = TextEditingController();
@@ -395,15 +395,21 @@ class _OTpVerifyState extends State<OTpVerify> {
                                         //  controller: textEditingController,
                                         keyboardType: TextInputType.number,
                                         onSubmitted: (value) {
-                                          BlocProvider.of<LoginBloc>(
-                                            context,
-                                          ).add(
-                                            OtpVerifyingEvent(
-                                              otpNumber: value,
-                                              phonenumber: widget.phoneNumber,
-                                              buildContext: context,
-                                            ),
-                                          );
+                                          if (!mounted) return;
+                                          try {
+                                            BlocProvider.of<LoginBloc>(
+                                              context,
+                                            ).add(
+                                              OtpVerifyingEvent(
+                                                otpNumber: value,
+                                                phonenumber: widget.phoneNumber,
+                                                buildContext: context,
+                                              ),
+                                            );
+                                          } catch (e) {
+                                            // Widget might be disposed, ignore
+                                            return;
+                                          }
                                         },
                                         onCompleted: (v) {},
                                         // onTap: () {
@@ -472,18 +478,29 @@ class _OTpVerifyState extends State<OTpVerify> {
                             else
                               GestureDetector(
                                 onTap: () {
-                                  String otp = controller.text;
+                                  if (!mounted) return;
+                                  
+                                  try {
+                                    String otp = controller.text;
 
-                                  if (otp.length < 5 || otp.isEmpty) {
-                                    showToast("Enter the Otp", context);
-                                  } else {
-                                    BlocProvider.of<LoginBloc>(context).add(
-                                      OtpVerifyingEvent(
-                                        otpNumber: otp,
-                                        phonenumber: widget.phoneNumber,
-                                        buildContext: context,
-                                      ),
-                                    );
+                                    if (otp.length < 5 || otp.isEmpty) {
+                                      if (mounted) {
+                                        showToast("Enter the Otp", context);
+                                      }
+                                    } else {
+                                      if (mounted) {
+                                        BlocProvider.of<LoginBloc>(context).add(
+                                          OtpVerifyingEvent(
+                                            otpNumber: otp,
+                                            phonenumber: widget.phoneNumber,
+                                            buildContext: context,
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  } catch (e) {
+                                    // Controller might be disposed, ignore
+                                    return;
                                   }
                                 },
                                 child: Container(
@@ -527,7 +544,12 @@ class _OTpVerifyState extends State<OTpVerify> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
+    try {
+      controller.dispose();
+    } catch (e) {
+      // Controller might already be disposed, ignore
+    }
     super.dispose();
   }
 
@@ -539,20 +561,26 @@ class _OTpVerifyState extends State<OTpVerify> {
   }
 
   void startTimer() {
-    setState(() {
-      _start = 60;
-      const oneSec = Duration(seconds: 1);
-      _timer = Timer.periodic(oneSec, (Timer timer) {
-        if (_start == 0) {
-          setState(() {
-            timer.cancel();
-          });
-        } else {
+    _timer?.cancel(); // Cancel existing timer if any
+    _start = 60;
+    const oneSec = Duration(seconds: 1);
+    _timer = Timer.periodic(oneSec, (Timer timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_start == 0) {
+        timer.cancel();
+        if (mounted) {
+          setState(() {});
+        }
+      } else {
+        if (mounted) {
           setState(() {
             _start--;
           });
         }
-      });
+      }
     });
   }
 }

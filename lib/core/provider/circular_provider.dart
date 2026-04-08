@@ -17,8 +17,32 @@ class CircularProvider with ChangeNotifier {
   List<CircularModel>? circularListModel;
   List<CircularModel>? parentCircularList;
 
+  /// Error message when circular list cannot be shown (e.g. inactive student).
+  String? circularListMessage;
+
+  /// Clears all cached user data. Call on logout.
+  void clearOnLogout() {
+    circularListState = AppStates.Unintialized;
+    parentCircularListState = AppStates.Unintialized;
+    studentModel = null;
+    circularListModel = null;
+    parentCircularList = null;
+    circularListMessage = null;
+    notifyListeners();
+  }
+
+  static const String _notActiveMessage =
+      'Circulars are not available. This student is not active.';
+
+  /// Returns true only when statusLabel is exactly "Active" (case insensitive).
+  static bool _isActiveStatus(String? label) {
+    if (label == null || label.isEmpty) return false;
+    return label.toLowerCase().trim() == 'active';
+  }
+
   Future<void> getCircularList({String? studCode}) async {
     circularListState = AppStates.Initial_Fetching;
+    circularListMessage = null;
     bool hasInternet = await InternetConnectivity().hasInternetConnection;
     notifyListeners();
     studentModel = null;
@@ -33,12 +57,21 @@ class CircularProvider with ChangeNotifier {
       } else {
         circularListState = AppStates.Fetched;
         //  showToast(respon.right.message);
-        log("response${respon.right}");
-        List<CircularModel> list = List<CircularModel>.from(
-          respon.right["data"].map((x) => CircularModel.fromJson(x)),
-        );
+        log('studentCircular response fetched successfully');
+        final rawData = respon.right["data"];
+        final rawStudentDetails = respon.right["studentDetails"];
+        List<CircularModel> list = [];
+        if (rawData is List) {
+          list = List<CircularModel>.from(
+            rawData.map((x) => x is Map<String, dynamic>
+                ? CircularModel.fromJson(x)
+                : null).whereType<CircularModel>(),
+          );
+        }
         circularListModel = list;
-        studentModel = StudentModel.fromJson(respon.right["studentDetails"]);
+        studentModel = rawStudentDetails is Map<String, dynamic>
+            ? StudentModel.fromJson(rawStudentDetails)
+            : null;
       }
     }
     notifyListeners();

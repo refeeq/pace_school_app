@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/provider/parent_provider.dart';
+import 'package:school_app/core/provider/parent_update_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/no_data_widget.dart';
@@ -25,11 +26,38 @@ class VerifyEmail extends StatefulWidget {
 }
 
 class _VerifyEmailState extends State<VerifyEmail> {
-  late Timer _timer;
+  Timer? _timer;
   int _start = 60;
   TextEditingController emailcontroller = TextEditingController();
   TextEditingController controller = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _disposed = false;
+
+  /// Pre-populate email from parent profile (parentProfileTab API).
+  void _prePopulateFromParentProfile() {
+    final parentProvider = Provider.of<ParentProvider>(context, listen: false);
+    final common = parentProvider.parentProfileListModel?.common;
+    if (common == null) return;
+    final isFather = widget.relation.toLowerCase() == 'father';
+    final str = (isFather ? common.email : common.memail).trim();
+    if (str.isNotEmpty && str != 'null') {
+      emailcontroller.text = str;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Provider.of<ParentProvider>(
+        context,
+        listen: false,
+      ).updateParentOtpStatus();
+      if (mounted) _prePopulateFromParentProfile();
+    });
+    startTimer();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,10 +66,11 @@ class _VerifyEmailState extends State<VerifyEmail> {
       appBar: AppBar(),
       body: Form(
         key: _formKey,
-        child: Column(
-          children: [
-            Consumer<ParentProvider>(
-              builder: (context, value, child) {
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Consumer<ParentProvider>(
+                builder: (context, value, child) {
                 switch (value.parentOtpState) {
                   case AppStates.Unintialized:
                     return Padding(
@@ -135,7 +164,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
                               child: PinCodeTextField(
                                 controller: controller,
                                 appContext: context,
-
+                                autoDisposeControllers: false,
                                 length: 5,
                                 enableActiveFill: true,
 
@@ -239,13 +268,14 @@ class _VerifyEmailState extends State<VerifyEmail> {
                     return NoInternetConnection(ontap: () {});
                   case AppStates.Error:
                     return const NoDataWidget(
-                      imagePath: "assets/images/error.svg",
+                      imagePath: "assets/images/no_data.svg",
                       content: "Something went wrong. Please try again later.",
                     );
                 }
               },
             ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: Padding(
@@ -256,9 +286,14 @@ class _VerifyEmailState extends State<VerifyEmail> {
                 Provider.of<ParentProvider>(
                       context,
                       listen: false,
-                    ).parentOtpState ==
-                    AppStates.Unintialized) {
-              Provider.of<ParentProvider>(context, listen: false).sendOtp(
+                    ).parentOtpState !=
+                    AppStates.Fetched &&
+                Provider.of<ParentProvider>(
+                      context,
+                      listen: false,
+                    ).parentOtpState !=
+                    AppStates.Initial_Fetching) {
+              Provider.of<ParentProvider>(context, listen: false).sendEmailOtp(
                 relation: widget.relation,
                 email: emailcontroller.text,
                 context: context,
@@ -268,17 +303,31 @@ class _VerifyEmailState extends State<VerifyEmail> {
                   listen: false,
                 ).parentOtpState ==
                 AppStates.Fetched) {
+              final email = emailcontroller.text;
+              final otp = controller.text;
               Provider.of<ParentProvider>(context, listen: false)
-                  .verify(
+                  .verifyEmailOtp(
                     relation: widget.relation,
-                    email: emailcontroller.text,
-                    otp: controller.text,
+                    email: email,
+                    otp: otp,
                     context: context,
                   )
-                  .then((value) {
-                    emailcontroller.clear();
-
-                    Navigator.pop(context);
+                  .then((_) async {
+                    if (!mounted) return;
+                    // After successful OTP verification, also create a request entry
+                    final parentUpdateProvider =
+                        Provider.of<ParentUpdateProvider>(
+                      context,
+                      listen: false,
+                    );
+                    await parentUpdateProvider.submitFatherEmailRequest(
+                      email: email,
+                      context: context,
+                    );
+                    if (mounted) {
+                      emailcontroller.clear();
+                      Navigator.pop(context);
+                    }
                   });
             }
           },
@@ -312,38 +361,32 @@ class _VerifyEmailState extends State<VerifyEmail> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    if (_disposed) return;
+    _disposed = true;
+    _timer?.cancel();
+    emailcontroller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
-  @override
-  void initState() {
-    Future(
-      () => Provider.of<ParentProvider>(
-        context,
-        listen: false,
-      ).updateParentOtpStatus(),
-    );
-    startTimer();
-    // TODO: implement initState
-    super.initState();
-  }
-
   void startTimer() {
-    setState(() {
-      _start = 60;
-      const oneSec = Duration(seconds: 1);
-      _timer = Timer.periodic(oneSec, (Timer timer) {
-        if (_start == 0) {
-          setState(() {
-            timer.cancel();
-          });
-        } else {
-          setState(() {
-            _start--;
-          });
-        }
-      });
+    _timer?.cancel();
+    _start = 60;
+    const oneSec = Duration(seconds: 1);
+    _timer = Timer.periodic(oneSec, (Timer timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_start == 0) {
+        timer.cancel();
+        _timer = null;
+        setState(() {});
+      } else {
+        setState(() {
+          _start--;
+        });
+      }
     });
   }
 }

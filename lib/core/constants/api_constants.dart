@@ -30,6 +30,7 @@ class ApiConstatns {
   static String readNotification = '${baseUrl}readNotifications';
   static String contactUs = '${baseUrl}contactUs';
   static String guestContactUs = '${baseUrl}guestContactUs';
+  static String getContactUsHistory = '${baseUrl}getContactUsHistory';
   static String studentFeeLedger = '${baseUrl}studentFeeLedger';
   static String getCommunicationStudentList = '${baseUrl}getComStudents';
   static String getCommunicationTileList = '${baseUrl}getCommunications';
@@ -40,13 +41,26 @@ class ApiConstatns {
   static String applyLeave = '${baseUrl}applyLeave';
   static String updateParentEmailOtp = '${baseUrl}updateParentEmailOtp';
   static String updateParentEmail = '${baseUrl}updateParentEmail';
-  static String updateParentMobileOtp = '${baseUrl}updateParentMobileOtp';
-  static String updateParentMobile = '${baseUrl}updateParentMobile';
+  static String updateParentMobileOtp = '${baseUrl}updateParentPhoneOtp';
+  static String updateParentMobile = '${baseUrl}updateParentPhone';
   static String viewFeeRcpt = '${baseUrl}studView';
   static String availableProgrssReport = '${baseUrl}availableProgrssReport';
   static String progrssReport = '${baseUrl}progrssReport';
-  static String updateStudentDocumentDetails =
-      '${baseUrl}updateStudentDocumentDetails';
+  static String getReportNamesByClass = '${baseUrl}getReportNamesByClass';
+  static String getReportCardHtml = '${baseUrl}getReportCardHtml';
+  static String updateStudentEmiratesID = '${baseUrl}updateStudentEmiratesID';
+
+  // parent update requests
+  static String requestPassportUpdate = '${baseUrl}requestPassportUpdate';
+  static String requestStudentEidUpdate = '${baseUrl}requestEidUpdate';
+  static String requestStudentPhotoUpdate = '${baseUrl}requestPhotoUpdate';
+  static String requestFatherPhotoUpdate = '${baseUrl}requestFatherPhotoUpdate';
+  static String requestMotherPhotoUpdate = '${baseUrl}requestMotherPhotoUpdate';
+  static String requestFatherEmailUpdate = '${baseUrl}requestFatherEmailUpdate';
+  static String requestFatherEidUpdate = '${baseUrl}requestFatherEidUpdate';
+  static String requestMotherEidUpdate = '${baseUrl}requestMotherEidUpdate';
+  static String requestAddressUpdate = '${baseUrl}requestAddressUpdate';
+  static String getParentUpdateRequests = '${baseUrl}getParentUpdateRequests';
 
   //open House
   static String openHouse = '${baseUrl}openHouse';

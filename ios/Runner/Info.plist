@@ -48,7 +48,11 @@
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to the photo library.</string>
+	<string>This app requires access to the photo library to select photos for profile updates.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app requires camera access to take photos for profile updates.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to show your position on the map and track the school bus.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
@@ -71,5 +75,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>GMSApiKey</key>
+	<string>AIzaSyB6Ds4XCDBH00WGcEkw8aQPIkK9l4bpz7U</string>
 </dict>
 </plist>

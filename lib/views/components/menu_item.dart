@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/models/student_menu_model.dart';
+import 'package:school_app/core/themes/const_colors.dart';
 
 class StudentMenuItemWidget extends StatefulWidget {
   final Function() ontap;
@@ -58,12 +59,43 @@ class _StudentMenuItemWidgetState extends State<StudentMenuItemWidget> {
                   children: [
                     Align(
                       alignment: Alignment.center,
-                      child: Image.network(
-                        widget.homeTile.iconUrl,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Container(height: 45.h),
-                        height: 45.h,
-                      ),
+                      child: widget.homeTile.iconUrl.isEmpty
+                          ? Icon(
+                              widget.homeTile.menuKey == "Library"
+                                  ? Icons.menu_book_rounded
+                                  : Icons.apps_rounded,
+                              size: 40.h,
+                              color: ConstColors.primary,
+                            )
+                          : Image.network(
+                              widget.homeTile.iconUrl,
+                              height: 45.h,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Icon(
+                                widget.homeTile.menuKey == "Library"
+                                    ? Icons.menu_book_rounded
+                                    : Icons.apps_rounded,
+                                size: 40.h,
+                                color: ConstColors.primary,
+                              ),
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return SizedBox(
+                                  height: 45.h,
+                                  child: Center(
+                                    child: SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: ConstColors.primary,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                     ),
                   ],
                 ),

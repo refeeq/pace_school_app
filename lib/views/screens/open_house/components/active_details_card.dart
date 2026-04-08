@@ -96,17 +96,23 @@ class ActiveDetailsCardState extends State<ActiveDetailsCard>
                     ),
                     const SizedBox(height: 10),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(Icons.subject, size: 25, color: Colors.grey),
                         SizedBox(width: 5.w),
-                        Text(
-                          widget.activeOpenHouseModel.subject,
-                          style: const TextStyle(fontSize: 12),
+                        Expanded(
+                          child: Text(
+                            widget.activeOpenHouseModel.subject,
+                            style: const TextStyle(fontSize: 12),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 10),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(
                           Icons.calendar_month,
@@ -114,20 +120,25 @@ class ActiveDetailsCardState extends State<ActiveDetailsCard>
                           color: Colors.grey,
                         ),
                         SizedBox(width: 5.w),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              formatDateString(
-                                widget.activeOpenHouseModel.ohDate.toString(),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                formatDateString(
+                                  widget.activeOpenHouseModel.ohDate.toString(),
+                                ),
+                                style: const TextStyle(fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                            Text(
-                              widget.activeOpenHouseModel.from,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
+                              Text(
+                                widget.activeOpenHouseModel.from,
+                                style: const TextStyle(fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

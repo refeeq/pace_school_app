@@ -78,6 +78,16 @@ class ParentProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Clears all cached user data. Call on logout.
+  void clearOnLogout() {
+    parentProfileModel = null;
+    parentDetail = AppStates.Unintialized;
+    parentProfileListModel = null;
+    parentDetailListState = AppStates.Unintialized;
+    parentSelected = 0;
+    notifyListeners();
+  }
+
   Future<void> sendMobileOtp({
     required String relation,
     required String mobile,
@@ -101,17 +111,18 @@ class ParentProvider with ChangeNotifier {
       } else {
         if (respon.right['status'] == true) {
           parentMobileOtpState = AppStates.Fetched;
-          showToast(respon.right["message"].toString(), context);
+          showToast(respon.right["message"].toString(), context, type: ToastType.success);
           log(respon.right.toString());
         } else {
-          showToast(respon.right["message"].toString(), context);
+          parentMobileOtpState = AppStates.Error;
+          showToast(respon.right["message"].toString(), context, type: ToastType.error);
         }
       }
     }
     notifyListeners();
   }
 
-  Future<void> sendOtp({
+  Future<void> sendEmailOtp({
     required String relation,
     required String email,
     required BuildContext context,
@@ -134,12 +145,11 @@ class ParentProvider with ChangeNotifier {
       } else {
         if (respon.right['status'] == true) {
           parentOtpState = AppStates.Fetched;
-          showToast(respon.right["message"].toString(), context);
-          // showToast(respon.right.message);
+          showToast(respon.right["message"].toString(), context, type: ToastType.success);
           log(respon.right.toString());
-          // parentProfileListModel = respon.right;
         } else {
-          showToast(respon.right["message"].toString(), context);
+          parentOtpState = AppStates.Error;
+          showToast(respon.right["message"].toString(), context, type: ToastType.error);
         }
       }
     }
@@ -156,7 +166,7 @@ class ParentProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future verify({
+  Future verifyEmailOtp({
     required String relation,
     required String email,
     required String otp,
@@ -182,12 +192,11 @@ class ParentProvider with ChangeNotifier {
         if (respon.right['status'] == true) {
           getParentDetailsList();
           parentOtpState = AppStates.Unintialized;
-          showToast(respon.right["message"].toString(), context);
-
+          showToast(respon.right["message"].toString(), context, type: ToastType.success);
           log(respon.right.toString());
-          // parentProfileListModel = respon.right;
         } else {
-          showToast(respon.right["message"].toString(), context);
+          parentOtpState = AppStates.Error;
+          showToast(respon.right["message"].toString(), context, type: ToastType.error);
         }
       }
     }
@@ -220,10 +229,11 @@ class ParentProvider with ChangeNotifier {
         if (respon.right['status'] == true) {
           getParentDetailsList();
           parentMobileOtpState = AppStates.Unintialized;
-          showToast(respon.right["message"].toString(), context);
+          showToast(respon.right["message"].toString(), context, type: ToastType.success);
           log(respon.right.toString());
         } else {
-          showToast(respon.right["message"].toString(), context);
+          parentMobileOtpState = AppStates.Error;
+          showToast(respon.right["message"].toString(), context, type: ToastType.error);
         }
       }
     }

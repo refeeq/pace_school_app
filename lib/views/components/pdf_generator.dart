@@ -113,7 +113,7 @@ class PdfGenerationScreenState extends State<PdfGenerationScreen> {
               );
             case AppStates.Error:
               return const NoDataWidget(
-                imagePath: "assets/images/error.svg",
+                imagePath: "assets/images/no_data.svg",
                 content: "Something went wrong. Please try again later.",
               );
           }

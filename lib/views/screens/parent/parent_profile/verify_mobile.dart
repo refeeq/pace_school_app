@@ -31,6 +31,28 @@ class _VerifyMobileState extends State<VerifyMobile> {
   TextEditingController mobileController = TextEditingController();
   TextEditingController otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _disposed = false;
+
+  /// Pre-populate mobile from parent profile (parentProfileTab API).
+  void _prePopulateFromParentProfile() {
+    final parentProvider = Provider.of<ParentProvider>(context, listen: false);
+    final common = parentProvider.parentProfileListModel?.common;
+    if (common == null) return;
+    final isFather = widget.relation.toLowerCase() == 'father';
+    final str = (isFather ? common.mobile : common.mmob).trim();
+    if (str.isNotEmpty && str != 'null') {
+      mobileController.text = str;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ParentProvider>(context, listen: false).updateParentMobileOtpStatus();
+      if (mounted) _prePopulateFromParentProfile();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,10 +61,11 @@ class _VerifyMobileState extends State<VerifyMobile> {
       appBar: const CommonAppBar(title: "Verify Mobile"),
       body: Form(
         key: _formKey,
-        child: Column(
-          children: [
-            Consumer<ParentProvider>(
-              builder: (context, value, child) {
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Consumer<ParentProvider>(
+                builder: (context, value, child) {
                 switch (value.parentMobileOtpState) {
                   case AppStates.Unintialized:
                     return Padding(
@@ -136,6 +159,7 @@ class _VerifyMobileState extends State<VerifyMobile> {
                               child: PinCodeTextField(
                                 controller: otpController,
                                 appContext: context,
+                                autoDisposeControllers: false,
                                 length: 5,
                                 enableActiveFill: true,
                                 blinkWhenObscuring: true,
@@ -205,13 +229,14 @@ class _VerifyMobileState extends State<VerifyMobile> {
                     return NoInternetConnection(ontap: () {});
                   case AppStates.Error:
                     return const NoDataWidget(
-                      imagePath: "assets/images/error.svg",
+                      imagePath: "assets/images/no_data.svg",
                       content: "Something went wrong. Please try again later.",
                     );
                 }
               },
             ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: Padding(
@@ -222,8 +247,13 @@ class _VerifyMobileState extends State<VerifyMobile> {
                 Provider.of<ParentProvider>(
                       context,
                       listen: false,
-                    ).parentMobileOtpState ==
-                    AppStates.Unintialized) {
+                    ).parentMobileOtpState !=
+                    AppStates.Fetched &&
+                Provider.of<ParentProvider>(
+                      context,
+                      listen: false,
+                    ).parentMobileOtpState !=
+                    AppStates.Initial_Fetching) {
               Provider.of<ParentProvider>(context, listen: false).sendMobileOtp(
                 relation: widget.relation,
                 mobile: mobileController.text,
@@ -267,6 +297,8 @@ class _VerifyMobileState extends State<VerifyMobile> {
 
   @override
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     _timer?.cancel();
     mobileController.dispose();
     otpController.dispose();
@@ -278,13 +310,23 @@ class _VerifyMobileState extends State<VerifyMobile> {
     const oneSec = Duration(seconds: 1);
     _start = 60;
     _timer = Timer.periodic(oneSec, (Timer timer) {
+      if (!mounted || _disposed) {
+        timer.cancel();
+        _timer = null;
+        return;
+      }
       if (_start == 0) {
         timer.cancel();
         _timer = null;
+        if (mounted && !_disposed) {
+          setState(() {});
+        }
       } else {
-        setState(() {
-          _start--;
-        });
+        if (mounted && !_disposed) {
+          setState(() {
+            _start--;
+          });
+        }
       }
     });
   }

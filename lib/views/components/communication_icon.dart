@@ -9,18 +9,23 @@ class CommunicationIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
       valueListenable: Hive.box("communication").listenable(),
-      builder: (context, value, child) => Badge.count(
-        isLabelVisible: Hive.box("communication").isNotEmpty &&
-            Hive.box("communication").get('count') != 0,
-        count: Hive.box("communication").get('count') ?? 0,
-        child: Image.asset(
-          isSelected
-              ? "assets/bottom/message_selected.png"
-              : "assets/bottom/message_unselected.png",
-          height: 35,
-          width: 35,
-        ),
-      ),
+      builder: (context, value, child) {
+        final dynamic rawCount = Hive.box("communication").get('count');
+        final int safeCount = (rawCount is int ? rawCount : 0).clamp(0, 999999);
+
+        return Badge.count(
+          isLabelVisible:
+              Hive.box("communication").isNotEmpty && safeCount > 0,
+          count: safeCount,
+          child: Image.asset(
+            isSelected
+                ? "assets/bottom/message_selected.png"
+                : "assets/bottom/message_unselected.png",
+            height: 35,
+            width: 35,
+          ),
+        );
+      },
     );
   }
 }

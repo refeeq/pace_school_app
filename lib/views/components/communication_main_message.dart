@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:school_app/core/models/communication_student_model.dart';
+import 'package:school_app/core/themes/const_colors.dart';
 
 class CommunicationMainMessage extends StatelessWidget {
   final CommunicationStudentModel model;
@@ -10,111 +11,77 @@ class CommunicationMainMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        children: <Widget>[
-          CircleAvatar(radius: 25, backgroundImage: NetworkImage(model.photo)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Text(
-                    '',
-                    textAlign: TextAlign.right,
-                    style: GoogleFonts.nunitoSans(
-                      textStyle: const TextStyle(
-                        color: Color.fromRGBO(114, 134, 233, 1),
-                        fontSize: 13,
-                        letterSpacing:
-                            0 /*percentages not used in flutter. defaulting to zero*/,
-                        fontWeight: FontWeight.normal,
-                        height: 1,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              CircleAvatar(
+                radius: 30,
+                backgroundColor: ConstColors.primary.withValues(alpha: 0.1),
+                backgroundImage: NetworkImage(model.photo),
+              ),
+              if (model.unread > 0)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 22,
+                      minHeight: 22,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.25),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        model.unread > 99
+                            ? '99+'
+                            : model.unread.toString(),
+                        style: GoogleFonts.nunitoSans(
+                          textStyle: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-                Text(
-                  model.fullname,
-                  textAlign: TextAlign.left,
-                  style: GoogleFonts.nunitoSans(
-                    textStyle: const TextStyle(
-                      color: Color.fromRGBO(38, 41, 51, 1),
-                      fontSize: 17,
-                      letterSpacing:
-                          0 /*percentages not used in flutter. defaulting to zero*/,
-                      fontWeight: FontWeight.normal,
-                      height: 1,
-                    ),
-                  ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 90,
+            child: Text(
+              model.fullname,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.nunitoSans(
+                textStyle: const TextStyle(
+                  color: Color.fromRGBO(38, 41, 51, 1),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  height: 1.2,
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 5),
-                          Text(
-                            model.lastMessage.isEmpty
-                                ? ""
-                                : model.lastMessage.substring(
-                                    0,
-                                    model.lastMessage.length > 45
-                                        ? 45
-                                        : model.lastMessage.length,
-                                  ),
-                            textAlign: TextAlign.left,
-                            style: GoogleFonts.nunitoSans(
-                              textStyle: TextStyle(
-                                color: model.unread == 0
-                                    ? const Color.fromRGBO(138, 142, 155, 1)
-                                    : const Color.fromRGBO(114, 134, 233, 1),
-                                fontFamily: 'SF Pro Text',
-                                fontSize: 15,
-                                letterSpacing:
-                                    0 /*percentages not used in flutter. defaulting to zero*/,
-                                fontWeight: FontWeight.normal,
-                                height: 1,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: Container(
-                              width: MediaQuery.of(context).size.width,
-                              height: 1,
-                              decoration: const BoxDecoration(
-                                color: Color.fromRGBO(231, 234, 242, 1),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    model.unread == 0
-                        ? const SizedBox()
-                        : Padding(
-                            padding: const EdgeInsets.only(
-                              bottom: 15.0,
-                              left: 15,
-                            ),
-                            child: CircleAvatar(
-                              radius: 10,
-                              child: Text(
-                                model.unread.toString(),
-                                style: GoogleFonts.nunitoSans(
-                                  textStyle: const TextStyle(fontSize: 10),
-                                ),
-                              ),
-                            ),
-                          ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
         ],

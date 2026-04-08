@@ -27,6 +27,20 @@ class CommunicationProvider with ChangeNotifier {
   int count = 0;
   bool _didLastLoad =
       false; // Property through which we can check if last page have been loaded from API or not
+  /// Clears all cached user data. Call on logout.
+  void clearOnLogout() {
+    studentModel = null;
+    studentListState = AppStates.Unintialized;
+    communicationStudentList = [];
+    communicationListState = AppStates.Unintialized;
+    communicationList = [];
+    communicationDetailState = DataState.Uninitialized;
+    communicationDetailList = [];
+    _currentPageNumber = 0;
+    _didLastLoad = false;
+    notifyListeners();
+  }
+
   Future<void> getCommunicationDetailList(
     String studentId,
     String type, {
@@ -59,11 +73,12 @@ class CommunicationProvider with ChangeNotifier {
         log(respon.left.key.toString());
         communicationDetailState = DataState.Error;
       } else {
-        log("Communication Response\n${respon.right}");
+        // log("Communication Response\n${respon.right}");
+        log('getCommunicationsBifur response fetched successfully');
         if (respon.right['status'] == true) {
           communicationDetailState = DataState.Fetched;
           //   showToast(respon.right.message);
-          log(respon.right.toString());
+          // log(respon.right.toString());
           List<CommunicationDetailModel> list =
               List<CommunicationDetailModel>.from(
                 respon.right["data"].map(
@@ -109,7 +124,7 @@ class CommunicationProvider with ChangeNotifier {
           communicationListState = AppStates.Fetched;
 
           //   showToast(respon.right.message);
-          log(respon.right.toString());
+          log('getCommunications response fetched successfully');
           communicationList = List<CommunicationTileModel>.from(
             respon.right["data"].map((x) => CommunicationTileModel.fromJson(x)),
           );
@@ -141,7 +156,7 @@ class CommunicationProvider with ChangeNotifier {
 
           await Hive.box("communication").put("count", respon.right['count']);
           //   showToast(respon.right.message);
-          log(respon.right.toString());
+          log('getCommunicationStudentList response fetched successfully');
           communicationStudentList = List<CommunicationStudentModel>.from(
             respon.right["data"].map(
               (x) => CommunicationStudentModel.fromJson(x),
@@ -161,14 +176,38 @@ class CommunicationProvider with ChangeNotifier {
     if (respon.right['status'] == true) {
       // studentListState = AppStates.Fetched;
       await Hive.box('communication').clear();
-
       await Hive.box("communication").put("count", respon.right['count']);
       //   showToast(respon.right.message);
-      log(respon.right.toString());
+      log('getCommunicationStudentList response fetched successfully');
       communicationStudentList = List<CommunicationStudentModel>.from(
         respon.right["data"].map((x) => CommunicationStudentModel.fromJson(x)),
       );
     }
+    notifyListeners();
+  }
+
+  /// Set unread count for a given student locally (used to keep avatar badge in sync with tiles).
+  void setStudentUnread(String studentId, int unread) {
+    final index = communicationStudentList.indexWhere(
+      (s) => s.studcode == studentId,
+    );
+    if (index == -1) return;
+
+    final current = communicationStudentList[index];
+    final clampedUnread = unread.clamp(0, 9999);
+
+    communicationStudentList[index] = CommunicationStudentModel(
+      studcode: current.studcode,
+      fullname: current.fullname,
+      communicationStudentModelClass: current.communicationStudentModelClass,
+      section: current.section,
+      studStat: current.studStat,
+      acdyear: current.acdyear,
+      acYearId: current.acYearId,
+      photo: current.photo,
+      unread: clampedUnread,
+      lastMessage: current.lastMessage,
+    );
     notifyListeners();
   }
 }

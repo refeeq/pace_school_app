@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:observe_internet_connectivity/observe_internet_connectivity.dart';
 import 'package:provider/provider.dart';
+import 'package:school_app/core/provider/parent_provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/common_app_bar.dart';
 import 'package:school_app/views/components/slect_student.dart';
+import 'package:school_app/views/screens/parent/parent_update/parent_update_hub_screen.dart';
 import 'package:school_app/views/screens/student/student_profile/student_profile_tab_view.dart';
 
 import '../../../../core/config/app_status.dart';
@@ -104,10 +106,44 @@ class _StudentProfileViewState extends State<StudentProfileView> {
                           content: "Something went wrong",
                         );
                       } else {
-                        return SingleChildScrollView(
-                          child: StudentProfileTabView(
-                            studentDetailModel: value.studentDetailModel!,
-                          ),
+                        return Column(
+                          children: [
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: StudentProfileTabView(
+                                  studentDetailModel: value.studentDetailModel!,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: ConstColors.primary,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const ParentUpdateHubScreen(),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.edit),
+                                  label: const Text('Update Profile'),
+                                ),
+                              ),
+                            ),
+                          ],
                         );
                       }
                     case AppStates.Error:
@@ -152,6 +188,8 @@ class _StudentProfileViewState extends State<StudentProfileView> {
           listen: false,
         ).selectedStudentModel(context).studcode,
       );
+      // Fetch parent details so Update Profile screens can pre-populate when accessed from student profile
+      Provider.of<ParentProvider>(context, listen: false).getParentDetailsList();
     });
     super.didChangeDependencies();
   }

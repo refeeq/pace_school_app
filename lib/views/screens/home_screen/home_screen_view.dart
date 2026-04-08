@@ -32,8 +32,10 @@ import 'package:school_app/views/screens/open_house/screens/open_house_page.dart
 import 'package:school_app/views/screens/sibilingRegister/page/sibiling_registration_list.dart';
 import 'package:school_app/views/screens/student/attendence_screen/attendence_screen_view.dart';
 import 'package:school_app/views/screens/student/fees_screen/fees_screen_view.dart';
+import 'package:school_app/views/screens/student/fees_screen/fee_sub_menu_view.dart';
 import 'package:school_app/views/screens/student/leave_application/leave_application_screen.dart';
 import 'package:school_app/views/screens/student/progress_report/progress_report_exams_page.dart';
+import 'package:school_app/views/screens/student/report_card/report_card_list_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/provider/attendance_provider.dart';
@@ -80,9 +82,7 @@ class _HomeViewState extends State<HomeView> {
       builder: (context, value, child) {
         switch (value.studentListState) {
           case AppStates.Unintialized:
-            Future(() {
-              value.getStudents();
-            });
+            // getStudents is triggered by bottom_nav initState; avoid duplicate call
             return Shimmer(
               linearGradient: ConstGradient.shimmerGradient,
               child: const HomeShimmerView(),
@@ -337,6 +337,25 @@ class _HomeViewState extends State<HomeView> {
                                       if (value.studentMenuModel == null) {
                                         return Container();
                                       } else {
+                                        final items =
+                                            [...value.studentMenuModel!.data];
+                                        // if (!items.any(
+                                        //   (e) => e.menuKey == "Library",
+                                        // )) {
+                                        //   final library = StudentMenu(
+                                        //     id: "Library",
+                                        //     iconUrl: "",
+                                        //     subMenu: null,
+                                        //     weburl: null,
+                                        //     menuKey: "Library",
+                                        //     menuValue: "Library",
+                                        //   );
+                                        //   if (circularIndex == -1) {
+                                        //     items.add(library);
+                                        //   } else {
+                                        //     items.insert(circularIndex + 1, library);
+                                        //   }
+                                        // }
                                         return GridView.builder(
                                           primary: false,
                                           shrinkWrap: true,
@@ -347,14 +366,9 @@ class _HomeViewState extends State<HomeView> {
                                                 crossAxisSpacing: 2.h,
                                                 mainAxisSpacing: 4.w,
                                               ),
-                                          itemCount: value
-                                              .studentMenuModel!
-                                              .data
-                                              .length,
+                                          itemCount: items.length,
                                           itemBuilder: (BuildContext ctx, index) {
-                                            final item = value
-                                                .studentMenuModel!
-                                                .data[index];
+                                            final item = items[index];
                                             return Hero(
                                               tag: item.id,
                                               child: StudentMenuItemWidget(
@@ -406,6 +420,15 @@ class _HomeViewState extends State<HomeView> {
                                                             const CircularScreenView(),
                                                       ),
                                                     );
+                                                  // } else if (menuKey ==
+                                                  //     "Library") {
+                                                  //   Navigator.push(
+                                                  //     context,
+                                                  //     MaterialPageRoute(
+                                                  //       builder: (context) =>
+                                                  //           const LibraryScreenView(),
+                                                  //     ),
+                                                  //   );
                                                   } else if (menuKey ==
                                                       "SchoolInfo") {
                                                     Navigator.push(
@@ -413,6 +436,18 @@ class _HomeViewState extends State<HomeView> {
                                                       MaterialPageRoute(
                                                         builder: (context) =>
                                                             SchoolInformationScreenView(),
+                                                      ),
+                                                    );
+                                                  } else if (menuKey == "Fee" &&
+                                                      item.subMenu != null &&
+                                                      item.subMenu!.isNotEmpty) {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            FeeSubMenuView(
+                                                          feeMenu: item,
+                                                        ),
                                                       ),
                                                     );
                                                   } else if (menuKey ==
@@ -515,6 +550,27 @@ class _HomeViewState extends State<HomeView> {
                                                             const BusTrackPage(),
                                                       ),
                                                     );
+                                                  } else if (menuKey
+                                                              .trim() ==
+                                                          "Report Card" ||
+                                                      menuKey.trim() ==
+                                                          "ReportCard") {
+                                                    Provider.of<
+                                                          StudentProvider
+                                                        >(
+                                                          context,
+                                                          listen: false,
+                                                        )
+                                                        .getReportNamesByClass(
+                                                          studcode,
+                                                        );
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            const ReportCardListPage(),
+                                                      ),
+                                                    );
                                                   } else if (menuKey ==
                                                       "internalWeb") {
                                                     Navigator.push(
@@ -527,7 +583,8 @@ class _HomeViewState extends State<HomeView> {
                                                       ),
                                                     );
                                                   } else if (menuKey ==
-                                                      "externalWeb") {
+                                                          "externalWeb" ||
+                                                      menuKey == "WhatsApp") {
                                                     if (await canLaunch(
                                                       item.weburl!,
                                                     )) {

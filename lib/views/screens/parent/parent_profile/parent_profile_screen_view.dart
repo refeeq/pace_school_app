@@ -1,19 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:observe_internet_connectivity/observe_internet_connectivity.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/provider/parent_provider.dart';
+import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/core/themes/const_gradient.dart';
 import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/border_with_text_widget.dart';
 import 'package:school_app/views/components/common_app_bar.dart';
+import 'package:school_app/views/components/document_expiry_alerts_widget.dart';
 import 'package:school_app/views/components/no_data_widget.dart';
 import 'package:school_app/views/components/no_internet_connection.dart';
 import 'package:school_app/views/components/shimmer_student_profile.dart';
 import 'package:school_app/views/screens/parent/parent_profile/verify_email.dart';
 import 'package:school_app/views/screens/parent/parent_profile/verify_mobile.dart';
+import 'package:school_app/core/bloc/AuthBloc/auth_listener_bloc.dart';
+import 'package:school_app/core/services/logout_service.dart';
+import 'package:school_app/views/screens/parent/parent_update/parent_update_hub_screen.dart';
 
 import '../../../components/profile_tile.dart';
 import '../../../components/shimmer_profile.dart';
@@ -28,6 +34,59 @@ class ParentProfileScreenView extends StatefulWidget {
 
 class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
   PageController pageController = PageController(initialPage: 0);
+  int _logoutTapCount = 0;
+  DateTime? _lastLogoutTapTime;
+
+  void _onFamilyCodeTap(BuildContext context) {
+    const tapWindow = Duration(seconds: 2);
+    final now = DateTime.now();
+    if (_lastLogoutTapTime != null &&
+        now.difference(_lastLogoutTapTime!) > tapWindow) {
+      _logoutTapCount = 0;
+    }
+    _lastLogoutTapTime = now;
+    _logoutTapCount++;
+    if (_logoutTapCount >= 7) {
+      _logoutTapCount = 0;
+      _showLogoutConfirmation(context);
+    }
+  }
+
+  Future<void> _showLogoutConfirmation(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Log out'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Log out'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    final navigator = Navigator.of(context);
+    final authBloc = context.read<AuthListenerBloc>();
+    if (!context.mounted) return;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black26,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+    await clearAllUserDataOnLogout(context);
+    navigator.pop(); // dismiss loader
+    authBloc.add(AuthLoggedOutEvent());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,8 +135,8 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                         CircleAvatar(
                                           backgroundColor:
                                               value.parentSelected == index
-                                              ? Colors.blue
-                                              : Colors.white,
+                                                  ? Colors.blue
+                                                  : Colors.white,
                                           radius: 30.r,
                                           child: CircleAvatar(
                                             radius: 28.5.r,
@@ -145,220 +204,272 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                           controller: pageController,
                           children: [
                             SingleChildScrollView(
-                              child: BorderWithTextWidget(
-                                title:
-                                    "${value.parentProfileListModel!.data[value.parentSelected].relation} Details",
-                                widget: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(height: 6.h),
-                                    ProfileTile(
-                                      label: "Name",
-                                      value: value
-                                          .parentProfileListModel!
-                                          .data[value.parentSelected]
-                                          .name,
-                                    ),
-                                    SizedBox(height: 6.h),
-                                    ProfileTile(
-                                      label: "Relation",
-                                      value: value
-                                          .parentProfileListModel!
-                                          .data[value.parentSelected]
-                                          .relation,
-                                    ),
-                                    SizedBox(height: 6.h),
-                                    ProfileTile(
-                                      label: "Family Code",
-                                      value: value
-                                          .parentProfileListModel!
-                                          .data[value.parentSelected]
-                                          .famcode,
-                                    ),
-                                    SizedBox(height: 6.h),
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => VerifyMobile(
-                                              relation: value
-                                                  .parentProfileListModel!
-                                                  .data[value.parentSelected]
-                                                  .relation,
-                                            ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  BorderWithTextWidget(
+                                    title:
+                                        "${value.parentProfileListModel!.data[value.parentSelected].relation} Details",
+                                    widget: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Name",
+                                          value: value
+                                              .parentProfileListModel!
+                                              .data[value.parentSelected]
+                                              .name,
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Relation",
+                                          value: value
+                                              .parentProfileListModel!
+                                              .data[value.parentSelected]
+                                              .relation,
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        GestureDetector(
+                                          onTap: () =>
+                                              _onFamilyCodeTap(context),
+                                          behavior: HitTestBehavior.opaque,
+                                          child: ProfileTile(
+                                            label: "Family Code",
+                                            value: value
+                                                .parentProfileListModel!
+                                                .data[value.parentSelected]
+                                                .famcode,
                                           ),
-                                        );
-                                      },
-                                      child: ProfileTile(
-                                        canEdit: true,
-                                        label: "Mobile Number",
-                                        value: value
-                                            .parentProfileListModel!
-                                            .data[value.parentSelected]
-                                            .mobile,
-                                      ),
-                                    ),
-                                    SizedBox(height: 6.h),
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => VerifyEmail(
-                                              relation: value
-                                                  .parentProfileListModel!
-                                                  .data[value.parentSelected]
-                                                  .relation,
-                                            ),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        InkWell(
+                                          onTap: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => VerifyMobile(
+                                                  relation: value
+                                                      .parentProfileListModel!
+                                                      .data[value.parentSelected]
+                                                      .relation,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: ProfileTile(
+                                            label: "Mobile Number",
+                                            value: value
+                                                .parentProfileListModel!
+                                                .data[value.parentSelected]
+                                                .mobile,
                                           ),
-                                        );
-                                      },
-                                      child: ProfileTile(
-                                        isRed: value
-                                            .parentProfileListModel!
-                                            .data[value.parentSelected]
-                                            .email
-                                            .isEmpty,
-                                        label: "Email ID",
-                                        value:
-                                            value
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        InkWell(
+                                          onTap: () {
+                                             if (value
                                                 .parentProfileListModel!
                                                 .data[value.parentSelected]
                                                 .email
-                                                .isEmpty
-                                            ? "UPDATE EMAIL"
-                                            : value
-                                                  .parentProfileListModel!
-                                                  .data[value.parentSelected]
-                                                  .email,
-                                      ),
+                                                .isEmpty) {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => VerifyEmail(
+                                                    relation: value
+                                                        .parentProfileListModel!
+                                                        .data[value.parentSelected]
+                                                        .relation,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: ProfileTile(
+                                            isRed: value
+                                                .parentProfileListModel!
+                                                .data[value.parentSelected]
+                                                .email
+                                                .isEmpty,
+                                            label: "Email ID",
+                                            value:
+                                                value
+                                                    .parentProfileListModel!
+                                                    .data[value.parentSelected]
+                                                    .email
+                                                    .isEmpty
+                                                ? "UPDATE EMAIL"
+                                                : value
+                                                      .parentProfileListModel!
+                                                      .data[value.parentSelected]
+                                                      .email,
+                                          ),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Office City",
+                                          value: value
+                                              .parentProfileListModel!
+                                              .data[value.parentSelected]
+                                              .offcity,
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Company",
+                                          value: value
+                                              .parentProfileListModel!
+                                              .data[value.parentSelected]
+                                              .company,
+                                        ),
+                                        SizedBox(height: 6.h),
+                                      ],
                                     ),
-                                    SizedBox(height: 6.h),
-                                    ProfileTile(
-                                      label: "Office City",
-                                      value: value
-                                          .parentProfileListModel!
-                                          .data[value.parentSelected]
-                                          .offcity,
-                                    ),
-                                    SizedBox(height: 6.h),
-                                    ProfileTile(
-                                      label: "Company",
-                                      value: value
-                                          .parentProfileListModel!
-                                          .data[value.parentSelected]
-                                          .company,
-                                    ),
-                                    SizedBox(height: 6.h),
-                                  ],
-                                ),
+                                  ),
+                                  const DocumentExpiryAlertsWidget(),
+                                ],
                               ),
                             ),
                             SingleChildScrollView(
-                              child: BorderWithTextWidget(
-                                title:
-                                    "${value.parentProfileListModel!.data[value.parentSelected].relation} Details",
-                                widget: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(height: 6.h),
-                                    ProfileTile(
-                                      label: "Name",
-                                      value: value
-                                          .parentProfileListModel!
-                                          .data[value.parentSelected]
-                                          .name,
-                                    ),
-                                    SizedBox(height: 6.h),
-                                    ProfileTile(
-                                      label: "Relation",
-                                      value: value
-                                          .parentProfileListModel!
-                                          .data[value.parentSelected]
-                                          .relation,
-                                    ),
-                                    SizedBox(height: 6.h),
-                                    ProfileTile(
-                                      label: "Family Code",
-                                      value: value
-                                          .parentProfileListModel!
-                                          .data[value.parentSelected]
-                                          .famcode,
-                                    ),
-                                    SizedBox(height: 6.h),
-                                    ProfileTile(
-                                      label: "Mobile Number",
-                                      value: value
-                                          .parentProfileListModel!
-                                          .data[value.parentSelected]
-                                          .mobile,
-                                    ),
-                                    SizedBox(height: 6.h),
-                                    InkWell(
-                                      onTap: () {
-                                        if (value
-                                            .parentProfileListModel!
-                                            .data[value.parentSelected]
-                                            .email
-                                            .isEmpty) {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => VerifyEmail(
-                                                relation: value
-                                                    .parentProfileListModel!
-                                                    .data[value.parentSelected]
-                                                    .relation,
-                                              ),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      child: ProfileTile(
-                                        isRed: value
-                                            .parentProfileListModel!
-                                            .data[value.parentSelected]
-                                            .email
-                                            .isEmpty,
-                                        label: "Email ID",
-                                        value:
-                                            value
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  BorderWithTextWidget(
+                                    title:
+                                        "${value.parentProfileListModel!.data[value.parentSelected].relation} Details",
+                                    widget: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Name",
+                                          value: value
+                                              .parentProfileListModel!
+                                              .data[value.parentSelected]
+                                              .name,
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Relation",
+                                          value: value
+                                              .parentProfileListModel!
+                                              .data[value.parentSelected]
+                                              .relation,
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        GestureDetector(
+                                          onTap: () =>
+                                              _onFamilyCodeTap(context),
+                                          behavior: HitTestBehavior.opaque,
+                                          child: ProfileTile(
+                                            label: "Family Code",
+                                            value: value
+                                                .parentProfileListModel!
+                                                .data[value.parentSelected]
+                                                .famcode,
+                                          ),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Mobile Number",
+                                          value: value
+                                              .parentProfileListModel!
+                                              .data[value.parentSelected]
+                                              .mobile,
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        InkWell(
+                                          onTap: () {
+                                            if (value
                                                 .parentProfileListModel!
                                                 .data[value.parentSelected]
                                                 .email
-                                                .isEmpty
-                                            ? "UPDATE EMAIL"
-                                            : value
-                                                  .parentProfileListModel!
-                                                  .data[value.parentSelected]
-                                                  .email,
-                                      ),
+                                                .isEmpty) {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) => VerifyEmail(
+                                                    relation: value
+                                                        .parentProfileListModel!
+                                                        .data[value.parentSelected]
+                                                        .relation,
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: ProfileTile(
+                                            isRed: value
+                                                .parentProfileListModel!
+                                                .data[value.parentSelected]
+                                                .email
+                                                .isEmpty,
+                                            label: "Email ID",
+                                            value:
+                                                value
+                                                    .parentProfileListModel!
+                                                    .data[value.parentSelected]
+                                                    .email
+                                                    .isEmpty
+                                                ? "UPDATE EMAIL"
+                                                : value
+                                                      .parentProfileListModel!
+                                                      .data[value.parentSelected]
+                                                      .email,
+                                          ),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Office City",
+                                          value: value
+                                              .parentProfileListModel!
+                                              .data[value.parentSelected]
+                                              .offcity,
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Company",
+                                          value: value
+                                              .parentProfileListModel!
+                                              .data[value.parentSelected]
+                                              .company,
+                                        ),
+                                        SizedBox(height: 6.h),
+                                      ],
                                     ),
-                                    SizedBox(height: 6.h),
-                                    ProfileTile(
-                                      label: "Office City",
-                                      value: value
-                                          .parentProfileListModel!
-                                          .data[value.parentSelected]
-                                          .offcity,
-                                    ),
-                                    SizedBox(height: 6.h),
-                                    ProfileTile(
-                                      label: "Company",
-                                      value: value
-                                          .parentProfileListModel!
-                                          .data[value.parentSelected]
-                                          .company,
-                                    ),
-                                    SizedBox(height: 6.h),
-                                  ],
-                                ),
+                                  ),
+                                  const DocumentExpiryAlertsWidget(),
+                                ],
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                      SizedBox(height: 12.h),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: ConstColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: 12.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.r),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ParentUpdateHubScreen(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.edit),
+                          label: const Text('Update Profile'),
                         ),
                       ),
                     ],
@@ -378,7 +489,6 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                     Future(() {
                       value.getParentDetailsList();
                     });
-                    //     Navigator.pop(context);
                   }
                 },
               );
@@ -396,6 +506,8 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
         context,
         listen: false,
       ).getParentDetailsList();
+      Provider.of<StudentProvider>(context, listen: false)
+          .fetchDocumentWarningsForAllStudents();
     });
     super.didChangeDependencies();
   }

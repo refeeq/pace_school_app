@@ -22,6 +22,16 @@ class AttendenceProvider with ChangeNotifier {
   bool load = false;
   int selectedMonth = 0;
 
+  /// Clears all cached user data. Call on logout.
+  void clearOnLogout() {
+    eventList = [];
+    attendanceResponseModel = null;
+    studentModel = null;
+    attendanceListState = AppStates.Unintialized;
+    selectedMonth = 0;
+    notifyListeners();
+  }
+
   void changeMonthe(int month) {
     if (month > 0 && month <= 11) {
       selectedMonth = month;
