@@ -11,6 +11,7 @@ import 'package:school_app/core/themes/const_gradient.dart';
 import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/border_with_text_widget.dart';
 import 'package:school_app/views/components/common_app_bar.dart';
+import 'package:school_app/views/components/logout_progress_dialog.dart';
 import 'package:school_app/views/components/document_expiry_alerts_widget.dart';
 import 'package:school_app/views/components/no_data_widget.dart';
 import 'package:school_app/views/components/no_internet_connection.dart';
@@ -79,9 +80,7 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black26,
-      builder: (_) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (_) => const LogoutProgressDialog(),
     );
     await clearAllUserDataOnLogout(context);
     navigator.pop(); // dismiss loader

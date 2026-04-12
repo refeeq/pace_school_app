@@ -12,6 +12,7 @@ import 'package:school_app/core/provider/contactus_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/core/themes/const_gradient.dart';
 import 'package:school_app/core/utils/utils.dart';
+import 'package:school_app/views/components/logout_progress_dialog.dart';
 import 'package:school_app/views/components/web_view_screen.dart';
 import 'package:school_app/views/screens/contact_us/contact_us.dart';
 import 'package:school_app/views/screens/family_fee/cubit/family_fee_cubit.dart';
@@ -361,9 +362,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.black26,
-      builder: (_) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (_) => const LogoutProgressDialog(),
     );
     await clearAllUserDataOnLogout(context);
     navigator.pop(); // dismiss loader
