@@ -38,6 +38,112 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
   int _logoutTapCount = 0;
   DateTime? _lastLogoutTapTime;
 
+  String _cleanValue(dynamic value) {
+    if (value == null) return "";
+    final text = value.toString().trim();
+    if (text.isEmpty) return "";
+    final lower = text.toLowerCase();
+    if (lower == "null" || lower == "nil") return "";
+    return text;
+  }
+
+  String _selectedParentEmiratesId(ParentProvider provider) {
+    final selectedParent =
+        provider.parentProfileListModel!.data[provider.parentSelected];
+    final relation = selectedParent.relation.toLowerCase();
+    final eid =
+        relation == 'mother'
+            ? provider.parentProfileListModel!.common.mEid
+            : provider.parentProfileListModel!.common.fEid;
+    return eid?.toString() ?? "";
+  }
+
+  String _primaryContactNumber(ParentProvider provider) =>
+      _cleanValue(provider.parentProfileListModel!.common.mobile);
+
+  String _selectedParentFamilyCode(ParentProvider provider) {
+    return _cleanValue(
+      provider.parentProfileListModel!.data[provider.parentSelected].famcode,
+    );
+  }
+
+  String _mappedEmirateName(ParentProvider provider) {
+    final model = provider.parentProfileListModel!;
+    final rawCommunityId = _cleanValue(model.common.communityId);
+    final communityId = int.tryParse(rawCommunityId);
+    if (communityId != null) {
+      for (final community in model.community) {
+        if (community.id == communityId) {
+          for (final emirate in model.emirate) {
+            if (emirate.id == community.emirateId) {
+              return _cleanValue(emirate.emirate);
+            }
+          }
+        }
+      }
+    }
+
+    final rawEmirate = _cleanValue(model.common.memirate);
+    if (rawEmirate.isNotEmpty) {
+      final emirateId = int.tryParse(rawEmirate);
+      if (emirateId != null) {
+        for (final emirate in model.emirate) {
+          if (emirate.id == emirateId) {
+            return _cleanValue(emirate.emirate);
+          }
+        }
+      } else {
+        for (final emirate in model.emirate) {
+          if (_cleanValue(emirate.emirate).toLowerCase() ==
+              rawEmirate.toLowerCase()) {
+            return _cleanValue(emirate.emirate);
+          }
+        }
+        return rawEmirate;
+      }
+    }
+
+    return "";
+  }
+
+  String _mappedCommunityName(ParentProvider provider) {
+    final model = provider.parentProfileListModel!;
+    final rawCommunityId = _cleanValue(model.common.communityId);
+    final communityId = int.tryParse(rawCommunityId);
+    if (communityId != null) {
+      for (final community in model.community) {
+        if (community.id == communityId) {
+          return _cleanValue(community.communityName);
+        }
+      }
+    }
+
+    final rawCommunityName = _cleanValue(model.common.communityName);
+    if (rawCommunityName.isNotEmpty) {
+      for (final community in model.community) {
+        if (_cleanValue(community.communityName).toLowerCase() ==
+            rawCommunityName.toLowerCase()) {
+          return _cleanValue(community.communityName);
+        }
+      }
+      return rawCommunityName;
+    }
+
+    return "";
+  }
+
+  String _primaryAddress(ParentProvider provider) {
+    final common = provider.parentProfileListModel!.common;
+    final parts = [
+      _mappedEmirateName(provider),
+      _mappedCommunityName(provider),
+      _cleanValue(common.homeadd),
+      _cleanValue(common.buildingName),
+      _cleanValue(common.flatNo),
+    ].where((part) => part.isNotEmpty).toList();
+    return parts.join(", ");
+  }
+
   void _onFamilyCodeTap(BuildContext context) {
     const tapWindow = Duration(seconds: 2);
     final now = DateTime.now();
@@ -207,6 +313,40 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   BorderWithTextWidget(
+                                    title: "Primary Details",
+                                    widget: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Primary Contact Number",
+                                          value: _primaryContactNumber(value),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        GestureDetector(
+                                          onTap: () =>
+                                              _onFamilyCodeTap(context),
+                                          behavior: HitTestBehavior.opaque,
+                                          child: ProfileTile(
+                                            label: "Family Code",
+                                            value: _selectedParentFamilyCode(
+                                              value,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Address",
+                                          value: _primaryAddress(value),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  BorderWithTextWidget(
                                     title:
                                         "${value.parentProfileListModel!.data[value.parentSelected].relation} Details",
                                     widget: Column(
@@ -228,19 +368,6 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                               .parentProfileListModel!
                                               .data[value.parentSelected]
                                               .relation,
-                                        ),
-                                        SizedBox(height: 6.h),
-                                        GestureDetector(
-                                          onTap: () =>
-                                              _onFamilyCodeTap(context),
-                                          behavior: HitTestBehavior.opaque,
-                                          child: ProfileTile(
-                                            label: "Family Code",
-                                            value: value
-                                                .parentProfileListModel!
-                                                .data[value.parentSelected]
-                                                .famcode,
-                                          ),
                                         ),
                                         SizedBox(height: 6.h),
                                         InkWell(
@@ -308,6 +435,11 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                         ),
                                         SizedBox(height: 6.h),
                                         ProfileTile(
+                                          label: "Emirates ID",
+                                          value: _selectedParentEmiratesId(value),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
                                           label: "Office City",
                                           value: value
                                               .parentProfileListModel!
@@ -335,6 +467,40 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   BorderWithTextWidget(
+                                    title: "Primary Details",
+                                    widget: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Primary Contact Number",
+                                          value: _primaryContactNumber(value),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        GestureDetector(
+                                          onTap: () =>
+                                              _onFamilyCodeTap(context),
+                                          behavior: HitTestBehavior.opaque,
+                                          child: ProfileTile(
+                                            label: "Family Code",
+                                            value: _selectedParentFamilyCode(
+                                              value,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Address",
+                                          value: _primaryAddress(value),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  BorderWithTextWidget(
                                     title:
                                         "${value.parentProfileListModel!.data[value.parentSelected].relation} Details",
                                     widget: Column(
@@ -356,19 +522,6 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                               .parentProfileListModel!
                                               .data[value.parentSelected]
                                               .relation,
-                                        ),
-                                        SizedBox(height: 6.h),
-                                        GestureDetector(
-                                          onTap: () =>
-                                              _onFamilyCodeTap(context),
-                                          behavior: HitTestBehavior.opaque,
-                                          child: ProfileTile(
-                                            label: "Family Code",
-                                            value: value
-                                                .parentProfileListModel!
-                                                .data[value.parentSelected]
-                                                .famcode,
-                                          ),
                                         ),
                                         SizedBox(height: 6.h),
                                         ProfileTile(
@@ -418,6 +571,11 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                                       .data[value.parentSelected]
                                                       .email,
                                           ),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        ProfileTile(
+                                          label: "Emirates ID",
+                                          value: _selectedParentEmiratesId(value),
                                         ),
                                         SizedBox(height: 6.h),
                                         ProfileTile(

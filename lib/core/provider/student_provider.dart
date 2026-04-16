@@ -642,22 +642,35 @@ class StudentProvider with ChangeNotifier {
 
   StudentModel selectedStudentModel(BuildContext) {
     print("Student ID $studID");
+    final students = studentsModel?.data ?? const <StudentModel>[];
+
     if (studID.isNotEmpty) {
       if (studentsModel == null) {
         getStudents();
-        Future.delayed(const Duration(seconds: 2));
       }
 
-      for (var element in studentsModel!.data) {
+      for (final element in students) {
         if (element.studcode == studID) {
           _selectedStudentModel = element;
+          break;
         }
       }
+
+      // Notifications can carry a stale/foreign student id. In that case,
+      // keep the current selection or fall back to the first available student.
       studID = "";
-      return _selectedStudentModel!;
-    } else {
-      return _selectedStudentModel ?? studentsModel!.data[0];
     }
+
+    if (_selectedStudentModel != null) {
+      return _selectedStudentModel!;
+    }
+
+    if (students.isNotEmpty) {
+      _selectedStudentModel = students.first;
+      return _selectedStudentModel!;
+    }
+
+    throw StateError('Student list is not available yet');
   }
 
   void selectStudent(

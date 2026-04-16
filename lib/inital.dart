@@ -2,7 +2,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:school_app/app.dart';
+import 'package:school_app/core/notification/fcm_pending_navigation.dart';
 import 'package:school_app/core/notification/firebase_notification.dart';
+import 'package:school_app/core/app_init_status.dart';
 import 'package:school_app/core/services/dependecyInjection.dart';
 
 import 'core/constants/db_constants.dart';
@@ -11,6 +13,7 @@ import 'core/models/parent_model.dart';
 import 'core/models/students_model.dart';
 
 Future<void> initilization() async {
+  appInitializationLastError = null;
   try {
     // Initialize Firebase with default name for compatibility
     await Firebase.initializeApp(options: AppEnivrornment.firebaseOptions);
@@ -37,6 +40,7 @@ Future<void> initilization() async {
     await Hive.openBox("notificationCount");
     await Hive.openBox("documentExpiry");
     await Hive.openBox("fcm_topics");
+    await Hive.openBox("fcm_notif_dedupe");
 
     // Set default notification setting
     if (Hive.box('notification').values.isEmpty) {
@@ -45,8 +49,19 @@ Future<void> initilization() async {
 
     // Register background message handler for FCM
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-  } catch (e) {
+
+    // Capture notification that launched the app from terminated state before runApp.
+    // getInitialMessage must be read early; navigation runs later when navigator exists.
+    final initialMsg = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMsg != null && initialMsg.data.isNotEmpty) {
+      FcmPendingNavigation.bufferTerminatedLaunchData(
+        Map<String, dynamic>.from(initialMsg.data),
+      );
+    }
+  } catch (e, st) {
+    appInitializationLastError = e;
     print('Initialization error: $e');
+    print(st);
     // Continue with app launch even if initialization fails
   }
 }

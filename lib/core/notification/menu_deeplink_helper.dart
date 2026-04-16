@@ -28,6 +28,7 @@ import 'package:school_app/views/screens/student/student_fee_statement/student_f
 import 'package:school_app/views/screens/student/student_profile/student_profile_view.dart';
 import 'package:school_app/views/screens/family_fee/cubit/family_fee_cubit.dart';
 import 'package:school_app/views/screens/family_fee/pages/family_fee_screen.dart';
+import 'package:school_app/views/screens/parent/parent_update/parent_update_history_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Navigates to the appropriate student menu screen based on [menuKey].
@@ -112,6 +113,12 @@ Future<bool> navigateToMenuScreen({
         break;
       case 'OpenHouse':
         state.push(MaterialPageRoute(builder: (_) => const OpenHousePage()));
+        break;
+      case 'ParentUpdateHistory':
+      case 'ChangeRequestHistory':
+        state.push(
+          MaterialPageRoute(builder: (_) => const ParentUpdateHistoryScreen()),
+        );
         break;
       case 'studTrack':
         locator<BusTrackCubit>().getTracking(

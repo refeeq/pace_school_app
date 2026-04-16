@@ -14,6 +14,8 @@ import 'package:school_app/core/provider/nav_provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/main.dart';
 import 'package:school_app/views/screens/home_screen/bottom_nav.dart';
+import 'package:school_app/core/notification/drawer_deeplink_helper.dart';
+import 'package:school_app/core/notification/fcm_pending_navigation.dart';
 import 'package:school_app/core/notification/fcm_topic_service.dart';
 import 'package:school_app/core/notification/menu_deeplink_helper.dart';
 import 'package:school_app/core/provider/communication_provider.dart';
@@ -163,7 +165,7 @@ Future<void> setupFlutterNotifications() async {
             final data = jsonDecode(response.payload!) as Map<String, dynamic>;
             log('Notification tapped, payload: $data');
             Future.delayed(const Duration(milliseconds: 300), () {
-              goToNextScreen(data, null);
+              scheduleNavigateFromNotificationData(data);
             });
           } catch (e) {
             log('Error parsing notification payload: $e, payload: ${response.payload}');
@@ -256,19 +258,152 @@ void showFlutterNotification(RemoteMessage message) {
 /// Initialize the [FlutterLocalNotificationsPlugin] package.
 FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
 
+String? _readDataValue(Map<String, dynamic> data, List<String> candidateKeys) {
+  for (final key in candidateKeys) {
+    if (data.containsKey(key)) {
+      final value = data[key]?.toString().trim();
+      if (value != null && value.isNotEmpty) return value;
+    }
+  }
+
+  for (final entry in data.entries) {
+    final entryKey = entry.key.toString().trim().toLowerCase();
+    for (final key in candidateKeys) {
+      if (entryKey == key.toLowerCase()) {
+        final value = entry.value?.toString().trim();
+        if (value != null && value.isNotEmpty) return value;
+      }
+    }
+  }
+
+  return null;
+}
+
+/// Backend id for a notification row (optional). Used for tap logging and dedupe.
+String? extractNotifIdFromData(Map<String, dynamic> data) {
+  return _readDataValue(data, const ['notif_id', 'notifId', 'notification_id']);
+}
+
+/// Log when user opens the app from a notification (support / analytics).
+void logNotificationTap(Map<String, dynamic> data) {
+  final nid = extractNotifIdFromData(data);
+  final action = _extractClickAction(data);
+  log(
+    '[FCM_TAP] notif_id=${nid ?? '—'} '
+    'click_action=${action ?? '—'}',
+  );
+}
+
+/// Skips showing a duplicate **foreground** local notification for the same
+/// [notif_id] (or FCM [messageId]) within [dedupeWindow].
+Future<bool> shouldShowForegroundNotificationAfterDedupe(
+  RemoteMessage message, {
+  Duration dedupeWindow = const Duration(hours: 24),
+}) async {
+  try {
+    final fromData = extractNotifIdFromData(message.data);
+    final id = (fromData != null && fromData.isNotEmpty)
+        ? fromData
+        : message.messageId;
+    if (id == null || id.isEmpty) {
+      return true;
+    }
+
+    final box = Hive.box('fcm_notif_dedupe');
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final last = box.get(id);
+    if (last is int && (now - last) < dedupeWindow.inMilliseconds) {
+      log('[FCM_DEDUPE] skip duplicate foreground notification id=$id');
+      return false;
+    }
+    await box.put(id, now);
+    return true;
+  } catch (e, st) {
+    log('shouldShowForegroundNotificationAfterDedupe error: $e\n$st');
+    return true;
+  }
+}
+
+String? _extractClickAction(Map<String, dynamic> data) {
+  final direct = _readDataValue(data, const ['click_action', 'clickAction', 'action']);
+  if (direct != null) return direct;
+
+  final nestedData = data['data'];
+  if (nestedData is Map) {
+    final nestedMap = nestedData.map(
+      (key, value) => MapEntry(key.toString(), value),
+    );
+    final nested = _readDataValue(
+      nestedMap,
+      const ['click_action', 'clickAction', 'action'],
+    );
+    if (nested != null) return nested;
+  }
+
+  return null;
+}
+
+String _normalizeClickAction(String value) {
+  return value.trim().toUpperCase().replaceAll(RegExp(r'[\s-]+'), '_');
+}
+
+/// Waits until [navigatorKey] has a [NavigatorState], then runs [goToNextScreen].
+/// Needed for cold start: FCM tap handlers can fire before the first frame.
+void scheduleNavigateFromNotificationData(Map<String, dynamic> data) {
+  var attempt = 0;
+  const maxAttempts = 50;
+
+  void step() {
+    attempt++;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final nav = navigatorKey.currentState;
+      if (nav == null && attempt < maxAttempts) {
+        Future.delayed(const Duration(milliseconds: 120), step);
+        return;
+      }
+      if (nav == null) {
+        log(
+          'scheduleNavigateFromNotificationData: navigator still null after '
+          '$maxAttempts attempts; data=$data',
+        );
+        return;
+      }
+      goToNextScreen(data, navigatorKey.currentContext);
+    });
+  }
+
+  step();
+}
+
 void goToNextScreen(Map<String, dynamic> data, BuildContext? context) {
   debugPrint(data.toString());
   log("goToNextScreen called with data: $data");
+  logNotificationTap(data);
 
-  // Use navigatorKey.currentContext if context is null or invalid
-  final safeContext = context ?? navigatorKey.currentContext;
-  if (safeContext == null) {
-    log("Warning: No valid context available for navigation");
+  if (navigatorKey.currentState == null) {
+    log('goToNextScreen: navigator not ready, scheduling retry');
+    scheduleNavigateFromNotificationData(data);
     return;
   }
 
-    if (data['click_action'] != null) {
-    if (data['click_action'] == 'NOTIFICATION') {
+  final clickActionRaw = _extractClickAction(data);
+  if (clickActionRaw != null) {
+    final normalized = _normalizeClickAction(clickActionRaw);
+    // Contact Us is only implemented via drawer (same UX as drawer tap).
+    Map<String, dynamic> navData = data;
+    var resolvedClick = normalized;
+    if (normalized == 'CONTACT_US') {
+      resolvedClick = 'DRAWER';
+      navData = Map<String, dynamic>.from(data);
+      final existingDrawerKey = navData['drawer_key']?.toString().trim() ??
+          navData['drawerKey']?.toString().trim();
+      if (existingDrawerKey == null || existingDrawerKey.isEmpty) {
+        navData['drawer_key'] = 'ContactUs';
+      }
+    }
+    log('goToNextScreen click_action resolved as: $resolvedClick (raw: $normalized)');
+
+    if (resolvedClick == 'NOTIFICATION') {
       navigatorKey.currentState?.pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (context) {
@@ -288,12 +423,12 @@ void goToNextScreen(Map<String, dynamic> data, BuildContext? context) {
         ),
         (route) => false,
       );
-    } else if (data['click_action'] == 'COMMUNICATION') {
-      final String? commTypeId = data['comm_type_id']?.toString().trim();
+    } else if (resolvedClick == 'COMMUNICATION') {
+      final String? commTypeId = navData['comm_type_id']?.toString().trim();
 
       Future<void> runCommunicationNavigation() async {
         try {
-          final String? studCode = await resolveStudCodeFromNotificationData(data);
+          final String? studCode = await resolveStudCodeFromNotificationData(navData);
 
           final navContext = navigatorKey.currentContext;
           if (navContext == null) {
@@ -370,13 +505,13 @@ void goToNextScreen(Map<String, dynamic> data, BuildContext? context) {
         }
       }
       runCommunicationNavigation();
-    } else if (data['click_action'] == 'MENU') {
-      final String? menuKey = data['menu_key']?.toString().trim();
-      final String? url = data['url']?.toString().trim();
+    } else if (resolvedClick == 'MENU') {
+      final String? menuKey = navData['menu_key']?.toString().trim();
+      final String? url = navData['url']?.toString().trim();
 
       Future<void> runMenuNavigation() async {
         try {
-          final String? studCode = await resolveStudCodeFromNotificationData(data);
+          final String? studCode = await resolveStudCodeFromNotificationData(navData);
 
           final state = navigatorKey.currentState;
           if (state == null) {
@@ -416,6 +551,42 @@ void goToNextScreen(Map<String, dynamic> data, BuildContext? context) {
         }
       }
       runMenuNavigation();
+    } else if (resolvedClick == 'DRAWER') {
+      Future<void> runDrawerNavigation() async {
+        try {
+          final state = navigatorKey.currentState;
+          if (state == null) {
+            log('DRAWER: No navigator state, scheduling retry');
+            scheduleNavigateFromNotificationData(navData);
+            return;
+          }
+
+          state.pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) {
+                Future.microtask(() async {
+                  try {
+                    Provider.of<NavProvider>(
+                      context,
+                      listen: false,
+                    ).changeIndex(0, context);
+                    await Future.delayed(const Duration(milliseconds: 450));
+                    await navigateToDrawerFromNotificationData(navData);
+                  } catch (e, st) {
+                    log('DRAWER: Error in microtask: $e\n$st');
+                  }
+                });
+                return const HomeScreenView();
+              },
+            ),
+            (route) => false,
+          );
+        } catch (e, st) {
+          log('DRAWER: runDrawerNavigation error: $e\n$st');
+        }
+      }
+
+      runDrawerNavigation();
     } else {
       navigatorKey.currentState?.pushAndRemoveUntil(
         MaterialPageRoute(
@@ -441,7 +612,6 @@ void goToNextScreen(Map<String, dynamic> data, BuildContext? context) {
 
 class FirebaseNotificationService {
   static bool _isInitialized = false;
-  static BuildContext? _storedContext;
 
   // Expose initialization state so UI code can avoid redundant setup work.
   static bool get isInitialized => _isInitialized;
@@ -452,10 +622,15 @@ class FirebaseNotificationService {
       return;
     }
     _isInitialized = true;
-    _storedContext = context;
 
     // Initialize local notifications
     setupFlutterNotifications();
+
+    final pending = FcmPendingNavigation.takeTerminatedLaunchData();
+    if (pending != null && pending.isNotEmpty) {
+      log('FirebaseNotificationService: consuming pending terminated-launch data');
+      scheduleNavigateFromNotificationData(pending);
+    }
 
     // Handle foreground messages (app is open)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
@@ -483,7 +658,9 @@ class FirebaseNotificationService {
 
         // Show local notification only when app is in foreground
         // (FCM handles it automatically when app is in background/terminated)
-        showFlutterNotification(message);
+        if (await shouldShowForegroundNotificationAfterDedupe(message)) {
+          showFlutterNotification(message);
+        }
       }
     });
 
@@ -491,18 +668,38 @@ class FirebaseNotificationService {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       printFcmMessage(message, source: 'OPENED FROM NOTIFICATION');
       Future.delayed(const Duration(milliseconds: 500), () {
-        goToNextScreen(message.data, _storedContext);
+        scheduleNavigateFromNotificationData(message.data);
       });
-    });
-
-    // Handle notification tap when app is launched from terminated state
-    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
-      if (message != null) {
-        printFcmMessage(message, source: 'LAUNCHED FROM NOTIFICATION');
-        Future.delayed(const Duration(milliseconds: 1000), () {
-          goToNextScreen(message.data, _storedContext);
-        });
-      }
     });
   }
 }
+
+
+// example of data payload for menu navigation
+// {
+//   "message": {
+//     "topic": "stud_3333",
+//     "notification": {
+//       "title": "New circular",
+//       "body": "Tap to view"
+//     },
+//     "data": {
+//       "click_action": "MENU",
+//       "menu_key": "Circular"
+//     }
+//   }
+// }
+// example for drawer navigation
+// {
+//   "message": {
+//     "topic": "stud_3333",
+//     "notification": {
+//       "title": "Enquiry reply",
+//       "body": "Tap to open Contact Us"
+//     },
+//     "data": {
+//       "click_action": "DRAWER",
+//       "drawer_key": "ContactUs"
+//     }
+//   }
+// }

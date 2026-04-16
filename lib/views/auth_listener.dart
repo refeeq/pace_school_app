@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:school_app/core/app_init_status.dart';
 import 'package:school_app/core/constants/db_constants.dart';
 import 'package:school_app/core/models/auth_model.dart';
 import 'package:school_app/views/screens/home_screen/bottom_nav.dart';
@@ -15,6 +16,24 @@ class AuthListener extends StatefulWidget {
 class _AuthListenerState extends State<AuthListener> {
   @override
   Widget build(BuildContext context) {
+    if (!Hive.isBoxOpen(USERDB)) {
+      final err = appInitializationLastError;
+      return Scaffold(
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Text(
+              err != null
+                  ? 'App failed to initialize storage or services.\n\n$err\n\n'
+                      'Try: flutter clean, then flutter pub get, '
+                      'cd ios && pod install, and rebuild.'
+                  : 'Loading…',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
     return ValueListenableBuilder(
       valueListenable: Hive.box<AuthModel>(USERDB).listenable(),
       builder: (context, Box<AuthModel> box, child) {

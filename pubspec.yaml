@@ -94,6 +94,12 @@ dependencies:
   flutter_image_compress: ^2.1.0
   dropdown_search: ^6.0.2
 
+# path_provider_foundation 2.6+ uses Dart FFI (package:objective_c), which can
+# fail to load on iOS Simulator when native assets embedding is stale (Flutter
+# tools cache). 2.4.x uses the classic Pigeon plugin and avoids objective_c.
+dependency_overrides:
+  path_provider_foundation: 2.4.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

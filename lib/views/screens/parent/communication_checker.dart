@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/provider/communication_provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
@@ -18,6 +19,26 @@ class _CommunicationCheckerState extends State<CommunicationChecker> {
   bool isLoader = true;
   @override
   Widget build(BuildContext context) {
+    final studentProvider = context.watch<StudentProvider>();
+    final hasStudents = (studentProvider.studentsModel?.data.isNotEmpty ?? false);
+    final isLoading = studentProvider.studentListState == AppStates.Initial_Fetching;
+
+    if (!hasStudents) {
+      return Scaffold(
+        backgroundColor: ConstColors.backgroundColor,
+        appBar: const CommonAppBar(title: "Communication"),
+        body: SafeArea(
+          child: Center(
+            child: isLoading
+                ? const CircularProgressIndicator()
+                : const Text("No students available"),
+          ),
+        ),
+      );
+    }
+
+    final selectedStudent = studentProvider.selectedStudentModel(context);
+
     return Scaffold(
       backgroundColor: ConstColors.backgroundColor,
       appBar: const CommonAppBar(title: "Communication"),
@@ -33,20 +54,16 @@ class _CommunicationCheckerState extends State<CommunicationChecker> {
                     context,
                     listen: false,
                   ).getCommunicationList(
-                    Provider.of<StudentProvider>(
-                      context,
-                      listen: false,
-                    ).selectedStudentModel(context).studcode,
+                    Provider.of<StudentProvider>(context, listen: false)
+                        .selectedStudentModel(context)
+                        .studcode,
                   );
                 },
               ),
             ),
             Expanded(
               child: CommunicationListingScreen(
-                studentId: Provider.of<StudentProvider>(
-                  context,
-                  listen: false,
-                ).selectedStudentModel(context).studcode,
+                studentId: selectedStudent.studcode,
               ),
             ),
           ],
