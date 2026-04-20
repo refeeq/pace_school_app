@@ -53,6 +53,19 @@ class _ParentEidRequestScreenState extends State<ParentEidRequestScreen> {
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
+  /// Backend already has an Emirates ID number → user cannot change it (renewals still change expiry/doc).
+  bool _parentHasStoredEmiratesId(ParentProvider parentProvider) {
+    final common = parentProvider.parentProfileListModel?.common;
+    if (common == null) return false;
+
+    final isMother = widget.relation.toLowerCase() == 'mother';
+    final eidValue = isMother ? common.mEid : common.fEid;
+    final eidStr = eidValue == null
+        ? ''
+        : (eidValue is String ? eidValue : eidValue.toString()).trim();
+    return eidStr.isNotEmpty && eidStr != 'null';
+  }
+
   /// Pre-populate Emirates ID and expiry from parent profile (parentProfileTab API).
   /// Matches logic used on student EID update screen.
   void _prePopulateFromParentProfile() {
@@ -105,6 +118,8 @@ class _ParentEidRequestScreenState extends State<ParentEidRequestScreen> {
   @override
   Widget build(BuildContext context) {
     final updateProvider = Provider.of<ParentUpdateProvider>(context);
+    final parentProvider = Provider.of<ParentProvider>(context);
+    final eidNumberLocked = _parentHasStoredEmiratesId(parentProvider);
     final key =
         widget.relation.toLowerCase() == 'mother' ? 'mother_eid' : 'father_eid';
     final isLoading = updateProvider.stateFor(key) == AppStates.Initial_Fetching;
@@ -128,6 +143,7 @@ class _ParentEidRequestScreenState extends State<ParentEidRequestScreen> {
               const SizedBox(height: 20),
               CustomtextFormFieldBorder(
                 enabled: true,
+                readOnly: eidNumberLocked,
                 hintText: "Emirates ID",
                 keyboardType: TextInputType.number,
                 textEditingController: _emiratesIdController,

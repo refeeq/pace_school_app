@@ -52,7 +52,7 @@ class DocumentDetailWidget extends StatelessWidget {
                     }
 
                     return InkWell(
-                      onTap: navigate,
+                      // onTap: navigate,
                       child: ProfileTile(
                         canEdit: false,
                         label: "Emirates ID",
@@ -76,7 +76,7 @@ class DocumentDetailWidget extends StatelessWidget {
                     }
 
                     return InkWell(
-                      onTap: navigate,
+                      // onTap: navigate,
                       child: ProfileTile(
                         label: "Emirates ID Expiry date",
                         value: data.emiratesIdExp,
@@ -87,15 +87,15 @@ class DocumentDetailWidget extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const StudentPassportRequestScreen(),
-                      ),
-                    );
-                  },
+                  // onTap: () {
+                  //   Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(
+                  //       builder: (context) =>
+                  //           const StudentPassportRequestScreen(),
+                  //     ),
+                  //   );
+                  // },
                   child: ProfileTile(
                     label: "Passport Number",
                     value: data.passno,

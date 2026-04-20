@@ -371,19 +371,19 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                         ),
                                         SizedBox(height: 6.h),
                                         InkWell(
-                                          onTap: () {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => VerifyMobile(
-                                                  relation: value
-                                                      .parentProfileListModel!
-                                                      .data[value.parentSelected]
-                                                      .relation,
-                                                ),
-                                              ),
-                                            );
-                                          },
+                                          // onTap: () {
+                                          //   Navigator.push(
+                                          //     context,
+                                          //     MaterialPageRoute(
+                                          //       builder: (context) => VerifyMobile(
+                                          //         relation: value
+                                          //             .parentProfileListModel!
+                                          //             .data[value.parentSelected]
+                                          //             .relation,
+                                          //       ),
+                                          //     ),
+                                          //   );
+                                          // },
                                           child: ProfileTile(
                                             label: "Mobile Number",
                                             value: value

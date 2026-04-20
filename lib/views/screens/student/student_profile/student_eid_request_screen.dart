@@ -56,6 +56,12 @@ class _StudentEidRequestScreenState extends State<StudentEidRequestScreen> {
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
+  /// Backend already has an Emirates ID number → user cannot change it.
+  bool _studentHasStoredEmiratesId(Data data) {
+    final s = data.emiratesId.trim();
+    return s.isNotEmpty && s != 'null';
+  }
+
   void _fillFormFromStudentData(Data data) {
     _emiratesIdController.text = data.emiratesId;
     final parsedDate = _parseDate(data.emiratesIdExp);
@@ -135,6 +141,8 @@ class _StudentEidRequestScreenState extends State<StudentEidRequestScreen> {
                       return const Center(
                           child: Text('No student details available'));
                     }
+                    final detail = sp.studentDetailModel!.data;
+                    final eidNumberLocked = _studentHasStoredEmiratesId(detail);
                     return Form(
                       key: _formKey,
                       child: SingleChildScrollView(
@@ -150,7 +158,7 @@ class _StudentEidRequestScreenState extends State<StudentEidRequestScreen> {
                             const SizedBox(height: 20),
                             CustomtextFormFieldBorder(
                               enabled: true,
-                              readOnly: true,
+                              readOnly: eidNumberLocked,
                               hintText: "Emirates ID",
                               keyboardType: TextInputType.number,
                               textEditingController: _emiratesIdController,

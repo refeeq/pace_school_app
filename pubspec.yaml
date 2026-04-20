@@ -93,6 +93,7 @@ dependencies:
   image_cropper: ^11.0.0
   flutter_image_compress: ^2.1.0
   dropdown_search: ^6.0.2
+  keyboard_actions: ^4.2.1
 
 # path_provider_foundation 2.6+ uses Dart FFI (package:objective_c), which can
 # fail to load on iOS Simulator when native assets embedding is stale (Flutter
