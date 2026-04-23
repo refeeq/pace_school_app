@@ -15,6 +15,7 @@ import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/common_app_bar.dart';
 import 'package:school_app/views/components/custom_text_field.dart';
 import 'package:school_app/views/components/slect_student.dart';
+import 'package:school_app/views/components/update_bottom_action_bar.dart';
 
 class StudentPassportRequestScreen extends StatefulWidget {
   const StudentPassportRequestScreen({super.key});
@@ -233,38 +234,10 @@ class _StudentPassportRequestScreenState
           ),
         ],
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: GestureDetector(
-          onTap: isLoading ? null : _onSubmit,
-          child: Container(
-            height: 48,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: isLoading ? Colors.grey : ConstColors.primary,
-            ),
-            child: Center(
-              child: isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text(
-                      "SUBMIT REQUEST",
-                      style: GoogleFonts.nunitoSans(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-            ),
-          ),
-        ),
+      bottomNavigationBar: UpdateBottomActionBar(
+        label: 'SUBMIT REQUEST',
+        isLoading: isLoading,
+        onTap: _onSubmit,
       ),
     );
   }

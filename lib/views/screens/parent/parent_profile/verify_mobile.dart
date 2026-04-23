@@ -2,19 +2,22 @@ import 'dart:async';
 
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/provider/parent_provider.dart';
+import 'package:school_app/core/utils/form_validators.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/common_app_bar.dart';
 import 'package:school_app/views/components/no_data_widget.dart';
 import 'package:school_app/views/components/no_internet_connection.dart';
 
-import '../../../../core/config/app_status.dart';
-import '../../../components/custom_text_field.dart';
+import 'package:school_app/core/config/app_status.dart';
+import 'package:school_app/views/components/custom_text_field.dart';
+import 'package:school_app/views/components/update_bottom_action_bar.dart';
 
 class VerifyMobile extends StatefulWidget {
   final String relation;
@@ -30,6 +33,7 @@ class _VerifyMobileState extends State<VerifyMobile> {
   int _start = 60;
   TextEditingController mobileController = TextEditingController();
   TextEditingController otpController = TextEditingController();
+  final FocusNode _mobileFocus = FocusNode();
   final _formKey = GlobalKey<FormState>();
   bool _disposed = false;
 
@@ -41,7 +45,7 @@ class _VerifyMobileState extends State<VerifyMobile> {
     final isFather = widget.relation.toLowerCase() == 'father';
     final str = (isFather ? common.mobile : common.mmob).trim();
     if (str.isNotEmpty && str != 'null') {
-      mobileController.text = str;
+      mobileController.text = str.replaceAll(RegExp(r'\D'), '');
     }
   }
 
@@ -62,6 +66,7 @@ class _VerifyMobileState extends State<VerifyMobile> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
             children: [
               Consumer<ParentProvider>(
@@ -89,12 +94,18 @@ class _VerifyMobileState extends State<VerifyMobile> {
                           const SizedBox(height: 20),
                           CustomtextFormFieldBorder(
                             hintText: "Mobile Number",
-                            keyboardType: TextInputType.phone,
+                            keyboardType: TextInputType.text,
                             textEditingController: mobileController,
-                            validator: (val) =>
-                                val == null || val.trim().isEmpty
-                                ? "Enter a valid mobile number"
-                                : null,
+                            focusNode: _mobileFocus,
+                            maxLength: 12,
+                            hideCounter: true,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            textInputAction: TextInputAction.done,
+                            onFieldSubmitted: (_) =>
+                                FocusManager.instance.primaryFocus?.unfocus(),
+                            validator: validateUaMobileField,
                           ),
                         ],
                       ),
@@ -239,58 +250,39 @@ class _VerifyMobileState extends State<VerifyMobile> {
           ),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: GestureDetector(
-          onTap: () {
-            if (_formKey.currentState!.validate() &&
-                Provider.of<ParentProvider>(
-                      context,
-                      listen: false,
-                    ).parentMobileOtpState !=
-                    AppStates.Fetched &&
-                Provider.of<ParentProvider>(
-                      context,
-                      listen: false,
-                    ).parentMobileOtpState !=
-                    AppStates.Initial_Fetching) {
-              Provider.of<ParentProvider>(context, listen: false).sendMobileOtp(
-                relation: widget.relation,
-                mobile: mobileController.text,
-                context: context,
-              );
-              startTimer();
-            } else if (Provider.of<ParentProvider>(
-                  context,
-                  listen: false,
-                ).parentMobileOtpState ==
-                AppStates.Fetched) {
-              Provider.of<ParentProvider>(context, listen: false).verifyMobile(
-                relation: widget.relation,
-                mobile: mobileController.text,
-                otp: otpController.text,
-                context: context,
-              );
-            }
-          },
-          child: Container(
-            height: 48,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: ConstColors.primary,
-            ),
-            child: Center(
-              child: Text(
-                "UPDATE",
-                style: GoogleFonts.nunitoSans(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ),
-        ),
+      bottomNavigationBar: UpdateBottomActionBar(
+        label: 'UPDATE',
+        onTap: () {
+          if (_formKey.currentState!.validate() &&
+              Provider.of<ParentProvider>(
+                    context,
+                    listen: false,
+                  ).parentMobileOtpState !=
+                  AppStates.Fetched &&
+              Provider.of<ParentProvider>(
+                    context,
+                    listen: false,
+                  ).parentMobileOtpState !=
+                  AppStates.Initial_Fetching) {
+            Provider.of<ParentProvider>(context, listen: false).sendMobileOtp(
+              relation: widget.relation,
+              mobile: mobileController.text.trim(),
+              context: context,
+            );
+            startTimer();
+          } else if (Provider.of<ParentProvider>(
+                context,
+                listen: false,
+              ).parentMobileOtpState ==
+              AppStates.Fetched) {
+            Provider.of<ParentProvider>(context, listen: false).verifyMobile(
+              relation: widget.relation,
+              mobile: mobileController.text.trim(),
+              otp: otpController.text,
+              context: context,
+            );
+          }
+        },
       ),
     );
   }
@@ -300,6 +292,7 @@ class _VerifyMobileState extends State<VerifyMobile> {
     if (_disposed) return;
     _disposed = true;
     _timer?.cancel();
+    _mobileFocus.dispose();
     mobileController.dispose();
     otpController.dispose();
     super.dispose();

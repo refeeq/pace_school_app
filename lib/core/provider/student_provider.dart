@@ -615,12 +615,14 @@ class StudentProvider with ChangeNotifier {
           if (!_updateRequired) {
             try {
               fetchDocumentWarningsForAllStudents();
-              final topics = studentsModel?.topics ?? [];
-              if (topics.isNotEmpty) {
+              // Only sync when API includes `topics`; null = omit field (leave FCM as-is).
+              // Empty list [] = unsubscribe from all previously stored topics.
+              final topics = studentsModel?.topics;
+              if (topics != null) {
                 try {
-                  await FcmTopicService.subscribeToTopics(topics);
+                  await FcmTopicService.syncSubscribedTopics(topics);
                 } catch (e) {
-                  log('Error subscribing to FCM topics: $e');
+                  log('Error syncing FCM topics: $e');
                 }
               }
             } catch (e) {

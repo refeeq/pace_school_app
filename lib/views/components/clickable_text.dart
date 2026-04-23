@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/models/communication_detail_model.dart';
+import '../../core/utils/form_validators.dart';
 
 class HighlightUrlText extends StatelessWidget {
   final CommunicationDetailModel communicationDetailModel;
@@ -78,7 +79,7 @@ class HighlightUrlTextCircular extends StatelessWidget {
         ),
         recognizer: TapGestureRecognizer()
           ..onTap = () {
-            if (_isEmail(match.group(0)!)) {
+            if (isValidEmail(match.group(0)!)) {
               _launchEmail(match.group(0)!);
             } else {
               launch(match.group(0)!);
@@ -107,13 +108,6 @@ class HighlightUrlTextCircular extends StatelessWidget {
       },
       child: Text.rich(TextSpan(children: spans)),
     );
-  }
-
-  bool _isEmail(String input) {
-    // Regular expression to validate an Email
-    final RegExp emailRegex =
-        RegExp(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$');
-    return emailRegex.hasMatch(input);
   }
 
   void _launchEmail(String email) async {

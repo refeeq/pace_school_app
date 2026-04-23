@@ -11,6 +11,7 @@ import 'package:school_app/views/components/common_app_bar.dart';
 import 'package:school_app/views/components/custom_text_field.dart';
 import 'package:school_app/views/components/no_data_widget.dart';
 import 'package:school_app/views/components/no_internet_connection.dart';
+import 'package:school_app/views/components/update_bottom_action_bar.dart';
 
 class EditEmiratesIdScreen extends StatefulWidget {
   const EditEmiratesIdScreen({super.key});
@@ -155,30 +156,9 @@ class _EditEmiratesIdScreenState extends State<EditEmiratesIdScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: GestureDetector(
-          onTap: () {
-            _onSubmit();
-          },
-          child: Container(
-            height: 48,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: ConstColors.primary,
-            ),
-            child: Center(
-              child: Text(
-                "UPDATE",
-                style: GoogleFonts.nunitoSans(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ),
-        ),
+      bottomNavigationBar: UpdateBottomActionBar(
+        label: 'UPDATE',
+        onTap: _onSubmit,
       ),
     );
   }

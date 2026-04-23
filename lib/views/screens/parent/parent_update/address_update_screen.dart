@@ -1,6 +1,6 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/config/app_status.dart';
@@ -12,6 +12,7 @@ import 'package:school_app/core/themes/const_text_style.dart';
 import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/common_app_bar.dart';
 import 'package:school_app/views/components/custom_text_field.dart';
+import 'package:school_app/views/components/update_bottom_action_bar.dart';
 
 class AddressUpdateScreen extends StatefulWidget {
   const AddressUpdateScreen({super.key});
@@ -26,6 +27,10 @@ class _AddressUpdateScreenState extends State<AddressUpdateScreen> {
   final TextEditingController _flatNoController = TextEditingController();
   final TextEditingController _buildingNameController = TextEditingController();
   final TextEditingController _comNumberController = TextEditingController();
+
+  final FocusNode _flatNoFocus = FocusNode();
+  final FocusNode _buildingNameFocus = FocusNode();
+  final FocusNode _comNumberFocus = FocusNode();
 
   List<Emirate> _emirates = [];
   List<Community> _communities = [];
@@ -124,6 +129,42 @@ class _AddressUpdateScreenState extends State<AddressUpdateScreen> {
     setState(() {
       _selectedCommunity = value;
     });
+  }
+
+  Widget _buildTransportationNotice() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: ConstColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: ConstColors.primary.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: ConstColors.primary,
+            size: 22,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Note: To change student transportation (school bus) arrangements, '
+              'please contact the transportation department directly.',
+              style: GoogleFonts.nunitoSans(
+                fontSize: 13,
+                height: 1.35,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildLabeledField({
@@ -289,6 +330,9 @@ class _AddressUpdateScreenState extends State<AddressUpdateScreen> {
 
   @override
   void dispose() {
+    _flatNoFocus.dispose();
+    _buildingNameFocus.dispose();
+    _comNumberFocus.dispose();
     _homeAddressController.dispose();
     _flatNoController.dispose();
     _buildingNameController.dispose();
@@ -309,11 +353,13 @@ class _AddressUpdateScreenState extends State<AddressUpdateScreen> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.all(12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 20),
+              _buildTransportationNotice(),
+              const SizedBox(height: 16),
               Text(
                 "Update your family address details. Changes will be applied after school approval.",
                 style: GoogleFonts.nunitoSans(fontSize: 17),
@@ -383,6 +429,10 @@ class _AddressUpdateScreenState extends State<AddressUpdateScreen> {
                 child: CustomtextFormFieldBorder(
                   hintText: "Enter flat number",
                   textEditingController: _flatNoController,
+                  focusNode: _flatNoFocus,
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) =>
+                      FocusScope.of(context).requestFocus(_buildingNameFocus),
                 ),
               ),
               const SizedBox(height: 12),
@@ -391,6 +441,10 @@ class _AddressUpdateScreenState extends State<AddressUpdateScreen> {
                 child: CustomtextFormFieldBorder(
                   hintText: "Enter building name",
                   textEditingController: _buildingNameController,
+                  focusNode: _buildingNameFocus,
+                  textInputAction: TextInputAction.next,
+                  onFieldSubmitted: (_) =>
+                      FocusScope.of(context).requestFocus(_comNumberFocus),
                 ),
               ),
               const SizedBox(height: 12),
@@ -399,7 +453,16 @@ class _AddressUpdateScreenState extends State<AddressUpdateScreen> {
                 child: CustomtextFormFieldBorder(
                   hintText: "Enter contact number",
                   textEditingController: _comNumberController,
-                  keyboardType: TextInputType.phone,
+                  focusNode: _comNumberFocus,
+                  // Use default keyboard (not phone pad) so iOS shows a Done/Return key;
+                  // phone pad has no dismiss action and hides the submit bar.
+                  keyboardType: TextInputType.text,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  textInputAction: TextInputAction.done,
+                  onFieldSubmitted: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                 ),
               ),
               const SizedBox(height: 8),
@@ -412,38 +475,10 @@ class _AddressUpdateScreenState extends State<AddressUpdateScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: GestureDetector(
-          onTap: isLoading ? null : _onSubmit,
-          child: Container(
-            height: 48,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: isLoading ? Colors.grey : ConstColors.primary,
-            ),
-            child: Center(
-              child: isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : Text(
-                      "SUBMIT REQUEST",
-                      style: GoogleFonts.nunitoSans(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-            ),
-          ),
-        ),
+      bottomNavigationBar: UpdateBottomActionBar(
+        label: 'SUBMIT REQUEST',
+        isLoading: isLoading,
+        onTap: _onSubmit,
       ),
     );
   }

@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:school_app/app.dart';
 import 'package:school_app/core/provider/nav_provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/main.dart';
@@ -84,8 +83,12 @@ void printFcmMessage(RemoteMessage message, {String source = 'FOREGROUND'}) {
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(options: AppEnivrornment.firebaseOptions);
-  await setupFlutterNotifications();
+  // Background isolates never run main() / setupEnv(); `firebaseOptions` is unset.
+  // Omitting options uses native google-services.json / GoogleService-Info.plist
+  // for this APK flavor (see Firebase.initializeApp docs).
+  await Firebase.initializeApp();
+  await setupFlutterNotifications(forBackgroundIsolate: true);
+  // Dedupe uses Hive and must run only in the main isolate (see onMessage).
   showFlutterNotification(message);
   try {
     final payload = {
@@ -110,41 +113,48 @@ late AndroidNotificationChannel channel;
 
 bool isFlutterLocalNotificationsInitialized = false;
 
-Future<void> setupFlutterNotifications() async {
+Future<void> setupFlutterNotifications({bool forBackgroundIsolate = false}) async {
   if (isFlutterLocalNotificationsInitialized) {
     return;
   }
 
   try {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-    NotificationSettings settings = await messaging.requestPermission(
-      alert: true,
-      announcement: true,
-      badge: true,
-      carPlay: true,
-      criticalAlert: true,
-      provisional: true,
-      sound: true,
-    );
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-    } else if (settings.authorizationStatus ==
-        AuthorizationStatus.provisional) {
-    } else {
-      AppSettings.openAppSettings();
+    if (!forBackgroundIsolate) {
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        announcement: true,
+        badge: true,
+        carPlay: true,
+        criticalAlert: true,
+        provisional: true,
+        sound: true,
+      );
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      } else if (settings.authorizationStatus ==
+          AuthorizationStatus.provisional) {
+      } else {
+        AppSettings.openAppSettings();
+      }
     }
 
+    // Sound/vibration are fixed when the channel is first created. If you ever
+    // need to reset user-facing behavior after testing, use a new channel id
+    // and update AndroidManifest + FCM [channel_id] to match.
     channel = const AndroidNotificationChannel(
       'high_importance_channel', // id
       'High Importance Notifications', // title
       description:
           'This channel is used for important notifications.', // description
       importance: Importance.high,
+      playSound: true,
+      enableVibration: true,
     );
 
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
-    // Initialize local notifications plugin
-    const androidSettings = AndroidInitializationSettings('ic_launcher');
+    // Small icon must be a drawable (mipmap @ic_launcher is not valid here).
+    const androidSettings = AndroidInitializationSettings('ic_notification');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -184,14 +194,16 @@ Future<void> setupFlutterNotifications() async {
         >()
         ?.createNotificationChannel(channel);
 
-    /// Update the iOS foreground notification presentation options to allow
-    /// heads up notifications.
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
+    if (!forBackgroundIsolate) {
+      /// Update the iOS foreground notification presentation options to allow
+      /// heads up notifications.
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+            alert: true,
+            badge: true,
+            sound: true,
+          );
+    }
     isFlutterLocalNotificationsInitialized = true;
   } catch (e) {
     print("Error initializing local notifications: $e");
@@ -215,10 +227,14 @@ void showFlutterNotification(RemoteMessage message) {
     // Create JSON payload string from message data for notification tap handling
     final payload = jsonEncode(message.data);
 
+    final nid = message.messageId;
+    final notificationId = nid != null && nid.isNotEmpty
+        ? nid.hashCode
+        : notification.hashCode;
+
     if (Platform.isAndroid) {
-      // Android notification
       flutterLocalNotificationsPlugin!.show(
-        notification.hashCode,
+        notificationId,
         title,
         body,
         NotificationDetails(
@@ -226,8 +242,7 @@ void showFlutterNotification(RemoteMessage message) {
             channel.id,
             channel.name,
             channelDescription: channel.description,
-            icon: 'ic_launcher',
-            largeIcon: const DrawableResourceAndroidBitmap('ic_launcher'),
+            icon: 'ic_notification',
             importance: Importance.high,
             priority: Priority.high,
           ),
@@ -235,9 +250,8 @@ void showFlutterNotification(RemoteMessage message) {
         payload: payload,
       );
     } else if (Platform.isIOS) {
-      // iOS notification
       flutterLocalNotificationsPlugin!.show(
-        notification.hashCode,
+        notificationId,
         title,
         body,
         const NotificationDetails(
@@ -284,6 +298,22 @@ String? extractNotifIdFromData(Map<String, dynamic> data) {
   return _readDataValue(data, const ['notif_id', 'notifId', 'notification_id']);
 }
 
+/// Dedupe key when the server sends the same logical push twice (e.g. to both
+/// `fam_*` and `stud_*` topics). Prefer backend [notif_id]; else stable content.
+String? notificationDedupeKey(RemoteMessage message) {
+  final fromData = extractNotifIdFromData(message.data);
+  if (fromData != null && fromData.isNotEmpty) return fromData;
+
+  final title = message.notification?.title?.trim() ?? '';
+  final body = message.notification?.body?.trim() ?? '';
+  final stud = message.data['studcode']?.toString().trim() ?? '';
+  final action = message.data['click_action']?.toString().trim() ?? '';
+  if (title.isEmpty && body.isEmpty) {
+    return message.messageId;
+  }
+  return '$action|$stud|$title|$body';
+}
+
 /// Log when user opens the app from a notification (support / analytics).
 void logNotificationTap(Map<String, dynamic> data) {
   final nid = extractNotifIdFromData(data);
@@ -298,13 +328,10 @@ void logNotificationTap(Map<String, dynamic> data) {
 /// [notif_id] (or FCM [messageId]) within [dedupeWindow].
 Future<bool> shouldShowForegroundNotificationAfterDedupe(
   RemoteMessage message, {
-  Duration dedupeWindow = const Duration(hours: 24),
+  Duration dedupeWindow = const Duration(seconds: 90),
 }) async {
   try {
-    final fromData = extractNotifIdFromData(message.data);
-    final id = (fromData != null && fromData.isNotEmpty)
-        ? fromData
-        : message.messageId;
+    final id = notificationDedupeKey(message);
     if (id == null || id.isEmpty) {
       return true;
     }

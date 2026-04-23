@@ -7,14 +7,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/provider/parent_provider.dart';
+import 'package:school_app/core/utils/form_validators.dart';
 import 'package:school_app/core/provider/parent_update_provider.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/core/utils/utils.dart';
+import 'package:school_app/core/config/app_status.dart';
+import 'package:school_app/views/components/custom_text_field.dart';
 import 'package:school_app/views/components/no_data_widget.dart';
 import 'package:school_app/views/components/no_internet_connection.dart';
-
-import '../../../../core/config/app_status.dart';
-import '../../../components/custom_text_field.dart';
+import 'package:school_app/views/components/update_bottom_action_bar.dart';
 
 class VerifyEmail extends StatefulWidget {
   final String relation;
@@ -67,6 +68,7 @@ class _VerifyEmailState extends State<VerifyEmail> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           child: Column(
             children: [
               Consumer<ParentProvider>(
@@ -95,10 +97,9 @@ class _VerifyEmailState extends State<VerifyEmail> {
                             hintText: "Email Id",
                             keyboardType: TextInputType.emailAddress,
                             textEditingController: emailcontroller,
-                            validator: (val) =>
-                                val!.isEmpty || !val.contains("@")
-                                ? "enter a valid eamil"
-                                : null,
+                            maxLength: kMaxEmailLength,
+                            hideCounter: true,
+                            validator: validateEmailField,
                           ),
                         ],
                       ),
@@ -278,83 +279,59 @@ class _VerifyEmailState extends State<VerifyEmail> {
           ),
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: GestureDetector(
-          onTap: () {
-            if (_formKey.currentState!.validate() &&
-                Provider.of<ParentProvider>(
-                      context,
-                      listen: false,
-                    ).parentOtpState !=
-                    AppStates.Fetched &&
-                Provider.of<ParentProvider>(
-                      context,
-                      listen: false,
-                    ).parentOtpState !=
-                    AppStates.Initial_Fetching) {
-              Provider.of<ParentProvider>(context, listen: false).sendEmailOtp(
-                relation: widget.relation,
-                email: emailcontroller.text,
-                context: context,
-              );
-            } else if (Provider.of<ParentProvider>(
-                  context,
-                  listen: false,
-                ).parentOtpState ==
-                AppStates.Fetched) {
-              final email = emailcontroller.text;
-              final otp = controller.text;
-              Provider.of<ParentProvider>(context, listen: false)
-                  .verifyEmailOtp(
-                    relation: widget.relation,
+      bottomNavigationBar: UpdateBottomActionBar(
+        label: 'Continue',
+        height: 48,
+        onTap: () {
+          if (_formKey.currentState!.validate() &&
+              Provider.of<ParentProvider>(
+                    context,
+                    listen: false,
+                  ).parentOtpState !=
+                  AppStates.Fetched &&
+              Provider.of<ParentProvider>(
+                    context,
+                    listen: false,
+                  ).parentOtpState !=
+                  AppStates.Initial_Fetching) {
+            Provider.of<ParentProvider>(context, listen: false).sendEmailOtp(
+              relation: widget.relation,
+              email: emailcontroller.text.trim(),
+              context: context,
+            );
+          } else if (Provider.of<ParentProvider>(
+                context,
+                listen: false,
+              ).parentOtpState ==
+              AppStates.Fetched) {
+            final email = emailcontroller.text.trim();
+            final otp = controller.text;
+            Provider.of<ParentProvider>(context, listen: false)
+                .verifyEmailOtp(
+                  relation: widget.relation,
+                  email: email,
+                  otp: otp,
+                  context: context,
+                )
+                .then((_) async {
+                  if (!mounted) return;
+                  // After successful OTP verification, also create a request entry
+                  final parentUpdateProvider =
+                      Provider.of<ParentUpdateProvider>(
+                    context,
+                    listen: false,
+                  );
+                  await parentUpdateProvider.submitFatherEmailRequest(
                     email: email,
-                    otp: otp,
                     context: context,
-                  )
-                  .then((_) async {
-                    if (!mounted) return;
-                    // After successful OTP verification, also create a request entry
-                    final parentUpdateProvider =
-                        Provider.of<ParentUpdateProvider>(
-                      context,
-                      listen: false,
-                    );
-                    await parentUpdateProvider.submitFatherEmailRequest(
-                      email: email,
-                      context: context,
-                    );
-                    if (mounted) {
-                      emailcontroller.clear();
-                      Navigator.pop(context);
-                    }
-                  });
-            }
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(5),
-              color: ConstColors.primary,
-            ),
-            width: MediaQuery.of(context).size.width,
-            height: 44,
-            child: Center(
-              child: Text(
-                'Continue',
-                textAlign: TextAlign.left,
-                style: GoogleFonts.nunitoSans(
-                  textStyle: const TextStyle(
-                    color: Color.fromRGBO(255, 255, 255, 1),
-                    fontFamily: 'SourceSansPro',
-                    fontSize: 16,
-                    letterSpacing: 0,
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
+                  );
+                  if (mounted) {
+                    emailcontroller.clear();
+                    Navigator.pop(context);
+                  }
+                });
+          }
+        },
       ),
     );
   }

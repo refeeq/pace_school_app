@@ -41,6 +41,11 @@ class CustomtextFormFieldBorder extends StatelessWidget {
   final void Function()? onTap;
   final Function(String)? onChanged;
   final List<TextInputFormatter>? inputFormatters;
+  final FocusNode? focusNode;
+  final TextInputAction? textInputAction;
+  final void Function(String)? onFieldSubmitted;
+  /// When true and [maxLength] is set, hides the character counter under the field.
+  final bool hideCounter;
   const CustomtextFormFieldBorder({
     super.key,
     required this.hintText,
@@ -55,15 +60,31 @@ class CustomtextFormFieldBorder extends StatelessWidget {
     this.onChanged,
     this.keyboardType,
     this.inputFormatters,
+    this.focusNode,
+    this.textInputAction,
+    this.onFieldSubmitted,
+    this.hideCounter = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
       autovalidateMode: AutovalidateMode.onUserInteraction,
+      focusNode: focusNode,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onFieldSubmitted,
       onChanged: onChanged,
       onTap: onTap,
       maxLength: maxLength,
+      buildCounter: hideCounter && maxLength != null
+          ? (
+              BuildContext context, {
+              required int currentLength,
+              required bool isFocused,
+              required int? maxLength,
+            }) =>
+                const SizedBox.shrink()
+          : null,
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,

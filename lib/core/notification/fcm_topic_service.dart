@@ -8,11 +8,69 @@ class FcmTopicService {
   static const String _topicsBoxName = 'fcm_topics';
   static const String _lastSubscribedTopicsKey = 'last_subscribed_topics';
 
+  static List<String> _normalizeTopicList(List<String> topics) {
+    final seen = <String>{};
+    final out = <String>[];
+    for (final t in topics) {
+      final trimmed = t.trim();
+      if (trimmed.isEmpty) continue;
+      if (seen.add(trimmed)) out.add(trimmed);
+    }
+    return out;
+  }
+
+  /// Aligns FCM subscriptions with [desiredTopics] from the API.
+  ///
+  /// Uses set difference so unchanged topics do not trigger extra
+  /// subscribe/unsubscribe calls. Local storage is updated to [desiredTopics]
+  /// after attempts complete (intended state; FCM may lag until next sync).
+  static Future<void> syncSubscribedTopics(List<String> desiredTopics) async {
+    final desired = _normalizeTopicList(desiredTopics);
+    final previous = _normalizeTopicList(await _getStoredTopics());
+    final prevSet = previous.toSet();
+    final desiredSet = desired.toSet();
+
+    if (prevSet == desiredSet) {
+      log('FcmTopicService: Sync — topics unchanged, skipping FCM');
+      return;
+    }
+
+    final toUnsubscribe = prevSet.difference(desiredSet).toList();
+    if (toUnsubscribe.isNotEmpty) {
+      log(
+        'FcmTopicService: Sync — removing ${toUnsubscribe.length} topic(s) '
+        'no longer in API list: $toUnsubscribe',
+      );
+      await unsubscribeFromTopics(toUnsubscribe);
+    }
+
+    if (desired.isEmpty) {
+      if (prevSet.isNotEmpty) {
+        await _clearStoredTopics();
+        log('FcmTopicService: Sync — API returned no topics; storage cleared');
+      }
+      return;
+    }
+
+    final toSubscribe = desiredSet.difference(prevSet).toList();
+    if (toSubscribe.isNotEmpty) {
+      await subscribeToTopics(toSubscribe, persistStorage: false);
+    }
+
+    await _storeSubscribedTopics(desired);
+  }
+
   /// Subscribe to a list of FCM topics
-  /// 
+  ///
   /// Each topic will be subscribed individually. Errors for individual
   /// topics are logged but won't stop the subscription process.
-  static Future<void> subscribeToTopics(List<String> topics) async {
+  ///
+  /// [persistStorage]: when false, Hive is not updated (used by [syncSubscribedTopics]
+  /// which persists the full desired set after subscribe + unsubscribe).
+  static Future<void> subscribeToTopics(
+    List<String> topics, {
+    bool persistStorage = true,
+  }) async {
     if (topics.isEmpty) {
       log('FcmTopicService: No topics to subscribe to');
       return;
@@ -46,9 +104,8 @@ class FcmTopicService {
 
     log('FcmTopicService: Subscription complete - Success: $successCount, Failed: $failureCount');
 
-    // Store subscribed topics for potential cleanup later
-    if (successCount > 0) {
-      await _storeSubscribedTopics(topics);
+    if (persistStorage && successCount > 0) {
+      await _storeSubscribedTopics(_normalizeTopicList(topics));
     }
   }
 
