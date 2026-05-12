@@ -100,6 +100,10 @@ dependencies:
 # tools cache). 2.4.x uses the classic Pigeon plugin and avoids objective_c.
 dependency_overrides:
   path_provider_foundation: 2.4.3
+  # turnable_page 1.0.1 uses Pdfrx.getCacheDirectory; pdfrx 2.3+ replaced it with
+  # Pdfrx.cacheDirectoryPath. Pin until turnable_page publishes a compatible release.
+  pdfrx: 2.2.24
+  pdfrx_engine: 0.3.9
 
 dev_dependencies:
   flutter_test:

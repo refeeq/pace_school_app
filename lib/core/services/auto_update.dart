@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:in_app_update/in_app_update.dart';
-import 'package:logger/logger.dart';
 
 // class AutoUpdate {
 //   String _currentVersion = '';
@@ -43,7 +42,6 @@ class AutoUpdateAndriod {
   // set up the AlertDialog
 
   bool isUpadate = false;
-  Logger logger = Logger();
   Future<void> checkforUpdate(BuildContext context) async {
     // Checks for any updates
 
@@ -61,7 +59,7 @@ class AutoUpdateAndriod {
     }
     //if any error occured catch will print the error
     catch (e) {
-      logger.i(e);
+      debugPrint('$e');
     }
   }
 }

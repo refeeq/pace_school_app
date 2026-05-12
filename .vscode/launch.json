@@ -5,19 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "school_app (default)",
-            "request": "launch",
-            "type": "dart"
-        },
-        {
-            "name": "PACE INTL",
+            "name": "PACE INTL (pace)",
             "request": "launch",
             "type": "dart",
             "program": "lib/schools/pace/pace_main.dart",
-            "args": [
+            "toolArgs": [
                 "--flavor",
                 "pace",
-                "--target",
+                "-t",
                 "lib/schools/pace/pace_main.dart"
             ]
         },
@@ -26,10 +21,10 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/schools/iiss/iiss_main.dart",
-            "args": [
+            "toolArgs": [
                 "--flavor",
                 "iiss",
-                "--target",
+                "-t",
                 "lib/schools/iiss/iiss_main.dart"
             ]
         },
@@ -38,10 +33,10 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/schools/gaes/gaes_main.dart",
-            "args": [
+            "toolArgs": [
                 "--flavor",
                 "gaes",
-                "--target",
+                "-t",
                 "lib/schools/gaes/gaes_main.dart"
             ]
         },
@@ -50,10 +45,10 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/schools/cbsa/cbsa_main.dart",
-            "args": [
+            "toolArgs": [
                 "--flavor",
                 "cbsa",
-                "--target",
+                "-t",
                 "lib/schools/cbsa/cbsa_main.dart"
             ]
         },
@@ -62,10 +57,10 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/schools/dpsa/dpsa_main.dart",
-            "args": [
+            "toolArgs": [
                 "--flavor",
                 "dpsa",
-                "--target",
+                "-t",
                 "lib/schools/dpsa/dpsa_main.dart"
             ]
         },
@@ -74,10 +69,10 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/schools/pmbs/pmbs_main.dart",
-            "args": [
+            "toolArgs": [
                 "--flavor",
                 "pmbs",
-                "--target",
+                "-t",
                 "lib/schools/pmbs/pmbs_main.dart"
             ]
         },
@@ -86,10 +81,10 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/schools/pcbs/pcbs_main.dart",
-            "args": [
+            "toolArgs": [
                 "--flavor",
                 "pcbs",
-                "--target",
+                "-t",
                 "lib/schools/pcbs/pcbs_main.dart"
             ]
         },
@@ -98,10 +93,10 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/schools/pbss/pbss_main.dart",
-            "args": [
+            "toolArgs": [
                 "--flavor",
                 "pbss",
-                "--target",
+                "-t",
                 "lib/schools/pbss/pbss_main.dart"
             ]
         },
@@ -110,10 +105,10 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/schools/sisd/sisd_main.dart",
-            "args": [
+            "toolArgs": [
                 "--flavor",
                 "sisd",
-                "--target",
+                "-t",
                 "lib/schools/sisd/sisd_main.dart"
             ]
         },
@@ -122,10 +117,10 @@
             "request": "launch",
             "type": "dart",
             "program": "lib/schools/demo/demo_main.dart",
-            "args": [
+            "toolArgs": [
                 "--flavor",
                 "demo",
-                "--target",
+                "-t",
                 "lib/schools/demo/demo_main.dart"
             ]
         },

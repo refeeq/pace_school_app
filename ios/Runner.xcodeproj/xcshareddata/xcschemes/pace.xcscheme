@@ -23,7 +23,7 @@
       </BuildActionEntries>
    </BuildAction>
    <TestAction
-      buildConfiguration = "Debug-sisd"
+      buildConfiguration = "Debug-pace"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       customLLDBInitFile = "$(SRCROOT)/Flutter/ephemeral/flutter_lldbinit"
@@ -32,7 +32,7 @@
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug-sisd"
+      buildConfiguration = "Debug-pace"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       customLLDBInitFile = "$(SRCROOT)/Flutter/ephemeral/flutter_lldbinit"
@@ -54,7 +54,7 @@
       </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
-      buildConfiguration = "Debug-sisd"
+      buildConfiguration = "Release-pace"
       shouldUseLaunchSchemeArgsEnv = "YES"
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
@@ -71,10 +71,10 @@
       </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
-      buildConfiguration = "Debug-sisd">
+      buildConfiguration = "Debug-pace">
    </AnalyzeAction>
    <ArchiveAction
-      buildConfiguration = "Release-sisd"
+      buildConfiguration = "Release-pace"
       revealArchiveInOrganizer = "YES">
    </ArchiveAction>
 </Scheme>

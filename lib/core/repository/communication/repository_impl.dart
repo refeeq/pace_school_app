@@ -32,6 +32,10 @@ class CommunicationRepositoryImpl implements CommunicationRepository {
       "type": id,
       "pageNo": page,
     });
+    log(
+      '[Communication] API POST getCommunicationsBifur '
+      'studcode=$studentId tileId=$id pageNo=$page',
+    );
     var response = await apiServices.postAPI(
       url: ApiConstatns.getCommunicationsBifur,
       body: data,

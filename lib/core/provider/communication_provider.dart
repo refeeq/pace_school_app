@@ -24,7 +24,6 @@ class CommunicationProvider with ChangeNotifier {
   List<CommunicationDetailModel> communicationDetailList = [];
   int _currentPageNumber = 0; // Current Page to get Data from API
 
-  int count = 0;
   bool _didLastLoad =
       false; // Property through which we can check if last page have been loaded from API or not
   /// Clears all cached user data. Call on logout.
@@ -46,8 +45,6 @@ class CommunicationProvider with ChangeNotifier {
     String type, {
     bool isRefresh = false,
   }) async {
-    count++;
-    log("getCommunicationDetailList $count");
     if (!isRefresh) {
       communicationDetailState =
           (communicationDetailState == DataState.Uninitialized)
@@ -59,44 +56,73 @@ class CommunicationProvider with ChangeNotifier {
       _didLastLoad = false;
       communicationDetailState = DataState.Initial_Fetching;
     }
+
+    final mode = isRefresh ? 'refresh' : 'pagination';
+    final pageForApi = _currentPageNumber;
+
     notifyListeners();
     if (_didLastLoad) {
+      log(
+        '[Communication] detail: skipped fetch — no more pages '
+        '(studcode=$studentId tileId=$type)',
+      );
       communicationDetailState = DataState.No_More_Data;
     } else {
+      log(
+        '[Communication] detail: requesting messages → '
+        'mode=$mode pageNo=$pageForApi '
+        '(maps to API field pageNo) '
+        'tileId=$type studcode=$studentId',
+      );
+
       var respon = await repository.getCommunicationDetails(
         studentId,
         type,
-        _currentPageNumber,
+        pageForApi,
       );
       if (respon.isLeft) {
-        log(respon.left.message.toString());
-        log(respon.left.key.toString());
+        log(
+          '[Communication] detail: request failed — '
+          '${respon.left.message ?? "no message"} (${respon.left.key})',
+        );
         communicationDetailState = DataState.Error;
       } else {
-        // log("Communication Response\n${respon.right}");
-        log('getCommunicationsBifur response fetched successfully');
         if (respon.right['status'] == true) {
           communicationDetailState = DataState.Fetched;
-          //   showToast(respon.right.message);
-          // log(respon.right.toString());
           List<CommunicationDetailModel> list =
               List<CommunicationDetailModel>.from(
                 respon.right["data"].map(
                   (x) => CommunicationDetailModel.fromJson(x),
                 ),
               );
-          log("getCommunicationDetailList length ${list.length}");
           if (communicationDetailList.isEmpty && list.isEmpty) {
             communicationDetailList = [];
+            log(
+              '[Communication] detail: response OK — empty thread '
+              '(studcode=$studentId tileId=$type)',
+            );
           } else if (list.isEmpty) {
             _didLastLoad = true;
+            log(
+              '[Communication] detail: response OK — empty page; '
+              'no older messages (studcode=$studentId tileId=$type)',
+            );
           } else {
             communicationDetailList += list;
-
             _currentPageNumber += 1;
+            log(
+              '[Communication] detail: response OK — '
+              '+${list.length} message(s), '
+              'total loaded=${communicationDetailList.length}, '
+              'next pageNo will be $_currentPageNumber',
+            );
           }
         } else {
           communicationDetailList = [];
+          log(
+            '[Communication] detail: response status=false '
+            '(studcode=$studentId tileId=$type)',
+          );
         }
       }
     }

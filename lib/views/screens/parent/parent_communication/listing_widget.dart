@@ -1,18 +1,86 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/config/app_status.dart';
 import 'package:school_app/core/models/communicatio_tile_model.dart';
 import 'package:school_app/core/models/communication_detail_model.dart';
 import 'package:school_app/core/provider/communication_provider.dart';
-import 'package:school_app/core/provider/student_provider.dart';
-import 'package:school_app/core/themes/const_colors.dart';
-import 'package:school_app/views/components/clickable_text.dart';
+import 'package:school_app/core/utils/communication_date_utils.dart';
 import 'package:school_app/views/components/no_data_widget.dart';
+import 'package:school_app/views/screens/parent/parent_communication/communication_detail/widgets/chat_bubble.dart';
+import 'package:school_app/views/screens/parent/parent_communication/communication_detail/widgets/chat_date_separator.dart';
+import 'package:school_app/views/screens/parent/parent_communication/communication_detail/widgets/sender_avatar.dart';
 
-import '../../../../core/models/students_model.dart';
+sealed class _ChatListEntry {}
+
+class _DateEntry extends _ChatListEntry {
+  _DateEntry(this.day);
+  final DateTime day;
+}
+
+class _MessageEntry extends _ChatListEntry {
+  _MessageEntry(this.model, this.isFirstInGroup, this.isLastInGroup);
+  final CommunicationDetailModel model;
+  final bool isFirstInGroup;
+  final bool isLastInGroup;
+}
+
+DateTime _messageTime(CommunicationDetailModel m) {
+  return tryParseCommunicationDate(m.dateAdded) ??
+      DateTime.fromMillisecondsSinceEpoch(0);
+}
+
+bool _sameCalendarDay(DateTime a, DateTime b) {
+  return a.year == b.year && a.month == b.month && a.day == b.day;
+}
+
+String _senderKey(CommunicationDetailModel m, String fallback) {
+  final h = m.head.trim();
+  return h.isEmpty ? fallback : h;
+}
+
+List<_ChatListEntry> _buildEntries(
+  List<CommunicationDetailModel> raw,
+  String tileType,
+) {
+  if (raw.isEmpty) return [];
+  final asc = List<CommunicationDetailModel>.from(raw)
+    ..sort((a, b) => _messageTime(a).compareTo(_messageTime(b)));
+
+  final rows = <_ChatListEntry>[];
+  DateTime? lastSeparatorDay;
+
+  for (var j = 0; j < asc.length; j++) {
+    final m = asc[j];
+    final t = _messageTime(m);
+    final day = DateTime(t.year, t.month, t.day);
+    if (lastSeparatorDay == null || !_sameCalendarDay(day, lastSeparatorDay)) {
+      rows.add(_DateEntry(day));
+      lastSeparatorDay = day;
+    }
+
+    final prev = j > 0 ? asc[j - 1] : null;
+    final next = j < asc.length - 1 ? asc[j + 1] : null;
+    final sk = _senderKey(m, tileType);
+
+    final isFirst =
+        prev == null ||
+        !_sameCalendarDay(_messageTime(m), _messageTime(prev)) ||
+        sk != _senderKey(prev, tileType);
+    final bool isLast;
+    if (next == null) {
+      isLast = true;
+    } else {
+      isLast =
+          !_sameCalendarDay(_messageTime(m), _messageTime(next)) ||
+          sk != _senderKey(next, tileType);
+    }
+
+    rows.add(_MessageEntry(m, isFirst, isLast));
+  }
+  return rows;
+}
 
 class ListViewWidget extends StatefulWidget {
   final CommunicationTileModel communicationTileModel;
@@ -37,25 +105,55 @@ class ListViewWidget extends StatefulWidget {
 class _ListViewWidgetState extends State<ListViewWidget> {
   late DataState _dataState;
   late BuildContext _buildContext;
-  ScrollController scrollController = ScrollController();
-  late StudentModel studentModel;
-  // int unreadCount = 0;
-  int get unreadCount {
-    return widget._data.where((message) => message.readStat == "0").length;
-  }
 
   @override
   Widget build(BuildContext context) {
-    studentModel = Provider.of<StudentProvider>(
-      context,
-      listen: false,
-    ).selectedStudentModel(context);
     _dataState = Provider.of<CommunicationProvider>(
       context,
       listen: false,
     ).communicationDetailState;
     _buildContext = context;
-    return SafeArea(child: _scrollNotificationWidget(context));
+
+    const screenBg = Color(0xFFF2F2F7);
+
+    return ColoredBox(
+      color: screenBg,
+      child: Column(
+        children: [
+          if (_dataState == DataState.More_Fetching)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Center(
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ),
+          Expanded(
+            child: widget._data.isEmpty
+                ? const Center(
+                    child: NoDataWidget(
+                      imagePath: "assets/images/no_messages.svg",
+                      content:
+                          "Your communication history indicates that you have no active conversations at this time.",
+                    ),
+                  )
+                : NotificationListener<ScrollNotification>(
+                    onNotification: _scrollNotification,
+                    child: _ChatMessageList(
+                      entries: _buildEntries(
+                        widget._data,
+                        widget.communicationTileModel.type,
+                      ),
+                      iconUrl: widget.communicationTileModel.iconUrl,
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
   }
 
   bool _scrollNotification(ScrollNotification scrollInfo) {
@@ -65,7 +163,12 @@ class _ListViewWidgetState extends State<ListViewWidget> {
         metrices.atEdge &&
         metrices.pixels > 0 &&
         metrices.pixels >= metrices.maxScrollExtent) {
-      log("scrollDown reverse");
+      log(
+        '[Communication] scroll: max extent edge (reverse layout) — '
+        'loading older messages via pagination '
+        '(studcode=${widget.id}, tileId=${widget.type}, '
+        'alreadyShowing=${widget._data.length})',
+      );
 
       Provider.of<CommunicationProvider>(
         _buildContext,
@@ -74,190 +177,49 @@ class _ListViewWidgetState extends State<ListViewWidget> {
     }
     return true;
   }
+}
 
-  Widget _scrollNotificationWidget(context) {
-    return Stack(
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_dataState == DataState.More_Fetching)
-              Container(
-                width: MediaQuery.of(context).size.width,
-                color: Colors.transparent,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-            widget._data.isEmpty
-                ? const Center(
-                    child: NoDataWidget(
-                      imagePath: "assets/images/no_messages.svg",
-                      content:
-                          "Your communication history indicates that you have no active conversations at this time.",
-                    ),
-                  )
-                : Expanded(
-                    child: NotificationListener<ScrollNotification>(
-                      onNotification: _scrollNotification,
-                      child: SingleChildScrollView(
-                        reverse: true,
-                        child: ListView.separated(
-                          primary: false,
-                          separatorBuilder: (context, index) {
-                            return Container();
-                          },
-                          shrinkWrap: true,
-                          reverse: true,
-                          itemCount: widget._data.length,
-                          itemBuilder: (context, index) {
-                            // int inx = widget._data.length - index - 1;
-                            CommunicationDetailModel model =
-                                widget._data[index];
+class _ChatMessageList extends StatelessWidget {
+  const _ChatMessageList({required this.entries, required this.iconUrl});
 
-                            // Figma Flutter Generator Group14Widget - GROUP
-                            return Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: <Widget>[
-                                  Container(
-                                    width: 30,
-                                    height: 30,
-                                    decoration: BoxDecoration(
-                                      color: const Color.fromRGBO(
-                                        196,
-                                        196,
-                                        196,
-                                        1,
-                                      ),
-                                      image: DecorationImage(
-                                        image: NetworkImage(
-                                          widget.communicationTileModel.iconUrl,
-                                        ),
-                                        fit: BoxFit.fitWidth,
-                                      ),
-                                      borderRadius: const BorderRadius.all(
-                                        Radius.elliptical(56, 56),
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(5.0),
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          borderRadius: const BorderRadius.only(
-                                            topLeft: Radius.circular(0),
-                                            topRight: Radius.circular(10),
-                                            bottomLeft: Radius.circular(10),
-                                            bottomRight: Radius.circular(10),
-                                          ),
-                                          color: ConstColors.secondary,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 10,
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            HighlightUrlText(
-                                              text: model.notification,
-                                              communicationDetailModel: model,
-                                            ),
-                                            // Text(
-                                            //   model.notification,
-
-                                            // ),
-                                            Align(
-                                              alignment: Alignment.bottomRight,
-                                              child: Text(
-                                                model.dateAdded,
-                                                textAlign: TextAlign.left,
-                                                style: GoogleFonts.nunitoSans(
-                                                  textStyle: const TextStyle(
-                                                    color: Color.fromRGBO(
-                                                      0,
-                                                      0,
-                                                      0,
-                                                      1,
-                                                    ),
-                                                    fontSize: 12,
-                                                    letterSpacing:
-                                                        0 /*percentages not used in flutter. defaulting to zero*/,
-                                                    fontWeight:
-                                                        FontWeight.normal,
-                                                    height:
-                                                        1.5 /*PERCENT not supported*/,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-          ],
-        ),
-        // unreadCount != 0
-        //     ? Align(
-        //         alignment: Alignment.bottomRight,
-        //         child: Padding(
-        //           padding: const EdgeInsets.only(bottom: 130, right: 10.0),
-        //           child: SizedBox(
-        //             height: 50,
-        //             width: 50,
-        //             child: Stack(
-        //               //  alignment: AlignmentDirectional.center,
-        //               children: [
-        //                 Align(
-        //                   alignment: Alignment.topCenter,
-        //                   child: Padding(
-        //                     padding: const EdgeInsets.all(8.0),
-        //                     child: CircleAvatar(
-        //                         backgroundColor: ConstColors.secondary,
-        //                         child: Icon(
-        //                           Icons.arrow_downward,
-        //                           color: Colors.white,
-        //                         )),
-        //                   ),
-        //                 ),
-        //                 Container(
-        //                     decoration: BoxDecoration(
-        //                         color: Colors.blue,
-        //                         borderRadius: BorderRadius.circular(5)),
-        //                     child: Padding(
-        //                       padding: const EdgeInsets.all(2.0),
-        //                       child: Text(
-        //                         unreadCount.toString(),
-        //                         style: TextStyle(
-        //                           color: Colors.white,
-        //                         ),
-        //                       ),
-        //                     )),
-        //               ],
-        //             ),
-        //           ),
-        //         ),
-        //       )
-        //     : SizedBox()
-      ],
-    );
-  }
+  final List<_ChatListEntry> entries;
+  final String iconUrl;
 
   @override
-  void dispose() {
-    scrollController.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      reverse: true,
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 20),
+      itemCount: entries.length,
+      itemBuilder: (context, index) {
+        final entry = entries[entries.length - 1 - index];
+        if (entry is _DateEntry) {
+          return ChatDateSeparator(date: entry.day);
+        }
+        final msg = entry as _MessageEntry;
+        final model = msg.model;
+        final time = _messageTime(model);
+        final isRead = model.readStat != "0";
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 3),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              SenderAvatar(iconUrl: iconUrl, visible: msg.isFirstInGroup),
+              const SizedBox(width: 8),
+              ChatBubble(
+                message: model.notification,
+                timestamp: time,
+                isRead: isRead,
+                isFirstInGroup: msg.isFirstInGroup,
+                isLastInGroup: msg.isLastInGroup,
+                detailModel: model,
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

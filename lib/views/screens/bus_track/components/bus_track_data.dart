@@ -10,7 +10,6 @@ import 'package:school_app/app.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/views/screens/bus_track/components/tracking_component.dart';
 import 'package:school_app/views/screens/bus_track/models/bus_track_data_model.dart';
-import 'package:school_app/views/screens/bus_track/models/live_trip.dart';
 import 'package:school_app/views/screens/bus_track/models/student_track_model.dart';
 
 class BusTrackData extends StatelessWidget {
@@ -249,7 +248,7 @@ class BusTrackData extends StatelessWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
-            busTrackDataModel.studentTrack != null ||
+            busTrackDataModel.studentTrack == null ||
                     busTrackDataModel.studentTrack!.isEmpty
                 ? Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -461,12 +460,12 @@ class BusTrackData extends StatelessWidget {
                                             ),
                                           ),
                                           Text(
-                                            item.entryTime == null
+                                            item.exitTime == null
                                                 ? "-- --"
                                                 : DateFormat(
                                                     'h:mm a',
                                                   ).format(
-                                                    item.entryTime!,
+                                                    item.exitTime!,
                                                   ),
                                             style: GoogleFonts.roboto(
                                               color: const Color.fromARGB(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/provider/communication_provider.dart';
 import 'package:school_app/core/provider/notification_provider.dart';
+import 'package:school_app/core/provider/student_provider.dart';
 
 class NavProvider with ChangeNotifier {
   var index = 0;
@@ -25,10 +26,20 @@ class NavProvider with ChangeNotifier {
         listen: false,
       ).getAllNotificationCount();
     } else if (val == 3) {
-      Provider.of<CommunicationProvider>(
+      final comm = Provider.of<CommunicationProvider>(
         context,
         listen: false,
-      ).getStudentList();
+      );
+      comm.getStudentList();
+      final studentProvider = Provider.of<StudentProvider>(
+        context,
+        listen: false,
+      );
+      if (studentProvider.studentsModel?.data.isNotEmpty ?? false) {
+        comm.getCommunicationList(
+          studentProvider.selectedStudentModel(context).studcode,
+        );
+      }
     }
     log("bottom index $val");
     notifyListeners();

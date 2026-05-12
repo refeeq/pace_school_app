@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:school_app/core/models/communicatio_tile_model.dart';
+import 'package:school_app/core/utils/communication_date_utils.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 
 class CommunicationSubMessage extends StatelessWidget {
@@ -10,12 +10,9 @@ class CommunicationSubMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateTime =
-        model.dateAdded.isEmpty ? null : _tryParseDate(model.dateAdded);
-    final dateTimeString = dateTime != null
-        // Example: 15/7/26, 3:39 pm
-        ? DateFormat('d/M/yy, h:mm a').format(dateTime).toLowerCase()
-        : '';
+    final parts = model.dateAdded.isEmpty
+        ? null
+        : communicationDateTimeParts(model.dateAdded);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -63,16 +60,55 @@ class CommunicationSubMessage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        dateTimeString,
-                        style: const TextStyle(
-                          letterSpacing: - 0.1,
-                          // color: Color.fromRGBO(114, 134, 233, 1),
-                          color: Color.fromARGB(255, 170, 173, 184),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      parts != null
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  parts.date,
+                                  style: const TextStyle(
+                                    letterSpacing: -0.1,
+                                    color: Color.fromARGB(
+                                      255,
+                                      170,
+                                      173,
+                                      184,
+                                    ),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  parts.time,
+                                  style: const TextStyle(
+                                    letterSpacing: -0.1,
+                                    color: Color.fromARGB(
+                                      255,
+                                      170,
+                                      173,
+                                      184,
+                                    ),
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.2,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Text(
+                              model.dateAdded.isEmpty
+                                  ? ''
+                                  : formatCommunicationDateDdMmYyyy(
+                                      model.dateAdded,
+                                    ),
+                              style: const TextStyle(
+                                letterSpacing: -0.1,
+                                color: Color.fromARGB(255, 170, 173, 184),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -128,11 +164,4 @@ class CommunicationSubMessage extends StatelessWidget {
     );
   }
 
-  static DateTime? _tryParseDate(String dateAdded) {
-    try {
-      return DateFormat('dd-MM-yyyy hh:mm:ss a').parse(dateAdded);
-    } catch (_) {
-      return null;
-    }
-  }
 }
