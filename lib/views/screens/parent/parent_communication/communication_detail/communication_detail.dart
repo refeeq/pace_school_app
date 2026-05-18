@@ -72,7 +72,6 @@ class _CommunicationDetailScreenState extends State<CommunicationDetailScreen> {
                       iconUrl: widget.communicationTileModel.iconUrl,
                       subtitle: _headerSubtitle(comm.communicationDetailList),
                       onBackTap: () => Navigator.of(context).pop(),
-                      onMoreTap: () {},
                     );
                   },
                 ),

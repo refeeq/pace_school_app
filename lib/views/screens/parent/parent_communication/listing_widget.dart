@@ -157,6 +157,12 @@ class _ListViewWidgetState extends State<ListViewWidget> {
   }
 
   bool _scrollNotification(ScrollNotification scrollInfo) {
+    // ScrollUpdate/Overscroll fire many times while the user holds the list at max extent;
+    // only react once per scroll gesture when scrolling settles (reverse list → older = max extent).
+    if (scrollInfo is! ScrollEndNotification) {
+      return false;
+    }
+
     final metrices = scrollInfo.metrics;
 
     if (!widget._isLoading &&
@@ -175,7 +181,7 @@ class _ListViewWidgetState extends State<ListViewWidget> {
         listen: false,
       ).getCommunicationDetailList(widget.id, widget.type);
     }
-    return true;
+    return false;
   }
 }
 
@@ -216,6 +222,7 @@ class _ChatMessageList extends StatelessWidget {
                 isLastInGroup: msg.isLastInGroup,
                 detailModel: model,
               ),
+              const Expanded(child: SizedBox.shrink()),
             ],
           ),
         );

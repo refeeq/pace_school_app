@@ -7,7 +7,6 @@ class ChatDetailHeader extends StatelessWidget {
     required this.iconUrl,
     required this.subtitle,
     required this.onBackTap,
-    required this.onMoreTap,
   });
 
   final String senderName;
@@ -16,7 +15,6 @@ class ChatDetailHeader extends StatelessWidget {
   final String iconUrl;
   final String subtitle;
   final VoidCallback onBackTap;
-  final VoidCallback onMoreTap;
 
   static const Color _headerBg = Color(0xFF1A4A8A);
 
@@ -80,19 +78,6 @@ class ChatDetailHeader extends StatelessWidget {
                     ),
                   ],
                 ],
-              ),
-            ),
-            Material(
-              color: const Color.fromRGBO(255, 255, 255, 0.12),
-              shape: const CircleBorder(),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: onMoreTap,
-                child: const SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: Icon(Icons.more_vert, color: Colors.white, size: 18),
-                ),
               ),
             ),
           ],

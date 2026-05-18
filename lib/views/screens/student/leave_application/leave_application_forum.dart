@@ -37,7 +37,7 @@ class _LeaveApplicationForumState extends State<LeaveApplicationForum> {
   final TextEditingController searchController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   DateTime? _startDate;
-  DateTime _endDate = DateTime.now().add(const Duration(days: 7));
+  DateTime _endDate = DateTime.now();
   String startDate = '';
   String endDate = '';
   @override
@@ -80,6 +80,8 @@ class _LeaveApplicationForumState extends State<LeaveApplicationForum> {
                     messageController.clear();
                     _startDate = null;
                     startDate = '';
+                    endDate = '';
+                    _endDate = DateTime.now();
                     searchController.clear();
                   }
 
@@ -124,6 +126,8 @@ class _LeaveApplicationForumState extends State<LeaveApplicationForum> {
                                         startDate = DateFormat.yMMMd().format(
                                           selectedDate,
                                         );
+                                        _endDate = selectedDate;
+                                        endDate = '';
                                       });
                                     }
                                   },
@@ -157,9 +161,13 @@ class _LeaveApplicationForumState extends State<LeaveApplicationForum> {
                                     if (_startDate == null) {
                                       showToast("Select from date", context);
                                     } else {
+                                      final initialToDate =
+                                          _endDate.isBefore(_startDate!)
+                                          ? _startDate!
+                                          : _endDate;
                                       final selectedDate = await showDatePicker(
                                         context: context,
-                                        initialDate: _endDate,
+                                        initialDate: initialToDate,
                                         firstDate: _startDate!,
                                         lastDate: DateTime(2100),
                                       );

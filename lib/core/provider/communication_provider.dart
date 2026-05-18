@@ -26,6 +26,10 @@ class CommunicationProvider with ChangeNotifier {
 
   bool _didLastLoad =
       false; // Property through which we can check if last page have been loaded from API or not
+
+  /// Prevents overlapping detail API calls when scroll notifications fire repeatedly at max extent.
+  bool _communicationDetailFetchInFlight = false;
+
   /// Clears all cached user data. Call on logout.
   void clearOnLogout() {
     studentModel = null;
@@ -37,6 +41,7 @@ class CommunicationProvider with ChangeNotifier {
     communicationDetailList = [];
     _currentPageNumber = 0;
     _didLastLoad = false;
+    _communicationDetailFetchInFlight = false;
     notifyListeners();
   }
 
@@ -45,36 +50,60 @@ class CommunicationProvider with ChangeNotifier {
     String type, {
     bool isRefresh = false,
   }) async {
-    if (!isRefresh) {
-      communicationDetailState =
-          (communicationDetailState == DataState.Uninitialized)
-          ? DataState.Initial_Fetching
-          : DataState.More_Fetching;
-    } else {
+    if (_communicationDetailFetchInFlight) {
+      log(
+        '[Communication] detail: skipped fetch — request already in flight '
+        '(studcode=$studentId tileId=$type)',
+      );
+      return;
+    }
+
+    if (!isRefresh && _didLastLoad) {
+      log(
+        '[Communication] detail: skipped fetch — no more pages '
+        '(studcode=$studentId tileId=$type)',
+      );
+      communicationDetailState = DataState.No_More_Data;
+      notifyListeners();
+      return;
+    }
+
+    if (isRefresh) {
       communicationDetailList.clear();
       _currentPageNumber = 0;
       _didLastLoad = false;
       communicationDetailState = DataState.Initial_Fetching;
+    } else {
+      communicationDetailState =
+          (communicationDetailState == DataState.Uninitialized)
+          ? DataState.Initial_Fetching
+          : DataState.More_Fetching;
     }
 
     final mode = isRefresh ? 'refresh' : 'pagination';
     final pageForApi = _currentPageNumber;
 
     notifyListeners();
+
     if (_didLastLoad) {
       log(
         '[Communication] detail: skipped fetch — no more pages '
         '(studcode=$studentId tileId=$type)',
       );
       communicationDetailState = DataState.No_More_Data;
-    } else {
-      log(
-        '[Communication] detail: requesting messages → '
-        'mode=$mode pageNo=$pageForApi '
-        '(maps to API field pageNo) '
-        'tileId=$type studcode=$studentId',
-      );
+      notifyListeners();
+      return;
+    }
 
+    log(
+      '[Communication] detail: requesting messages → '
+      'mode=$mode pageNo=$pageForApi '
+      '(maps to API field pageNo) '
+      'tileId=$type studcode=$studentId',
+    );
+
+    _communicationDetailFetchInFlight = true;
+    try {
       var respon = await repository.getCommunicationDetails(
         studentId,
         type,
@@ -125,8 +154,10 @@ class CommunicationProvider with ChangeNotifier {
           );
         }
       }
+    } finally {
+      _communicationDetailFetchInFlight = false;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<void> getCommunicationList(String studentId) async {
