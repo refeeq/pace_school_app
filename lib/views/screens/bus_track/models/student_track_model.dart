@@ -35,6 +35,15 @@ class StudentTrackModel {
     required this.busNO,
   });
 
+  static DateTime? _parseExitTime(dynamic value) {
+    if (value == null) return null;
+    final raw = value.toString().trim();
+    if (raw.isEmpty || raw.startsWith('0000-00-00')) return null;
+    final parsed = DateTime.tryParse(raw);
+    if (parsed == null || parsed.year <= 0) return null;
+    return parsed;
+  }
+
   factory StudentTrackModel.fromJson(Map<String, dynamic> json) =>
       StudentTrackModel(
           trackId: json["track_id"],
@@ -43,9 +52,7 @@ class StudentTrackModel {
           entryTime: json["entry_time"] == null
               ? null
               : DateTime.parse(json["entry_time"]),
-          exitTime: json["exit_time"] == null
-              ? null
-              : DateTime.parse(json["exit_time"]),
+          exitTime: _parseExitTime(json["exit_time"]),
           entryStat: json["entry_stat"],
           exitStat: json["exit_stat"],
           entryLat: json["entry_lat"],
