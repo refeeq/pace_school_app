@@ -46,7 +46,7 @@ This project supports **10 flavors** representing different schools:
 - `pbss` - PACE British School
 - `pcbs` - PACE Creative British School
 - `pmbs` - PACE Modern British School
-- `sisd` - Springfield International School
+- `sisd` - PACE Springfield International School
 - `demo` - Demo/Development flavor
 
 Each flavor has:

@@ -14,6 +14,7 @@ esac
 APP_PATH="${TARGET_BUILD_DIR}/${WRAPPER_NAME}"
 FRAMEWORKS_DIR="${APP_PATH}/Frameworks"
 DSYM_OUTPUT_DIR="${DWARF_DSYM_FOLDER_PATH}"
+ARCHIVE_DSYMS_DIR="${ARCHIVE_DSYMS_PATH:-}"
 
 if [ ! -d "${FRAMEWORKS_DIR}" ] || [ ! -d "${DSYM_OUTPUT_DIR}" ]; then
   exit 0
@@ -42,6 +43,10 @@ for FRAMEWORK_PATH in "${FRAMEWORKS_DIR}"/*.framework; do
 
   TMP_DSYM="/tmp/${FRAMEWORK_NAME}.dSYM.$$"
   DEST_DSYM="${DSYM_OUTPUT_DIR}/${FRAMEWORK_NAME}.dSYM"
+  ARCHIVE_DEST_DSYM=""
+  if [ -n "${ARCHIVE_DSYMS_DIR}" ]; then
+    ARCHIVE_DEST_DSYM="${ARCHIVE_DSYMS_DIR}/${FRAMEWORK_NAME}.dSYM"
+  fi
 
   rm -rf "${TMP_DSYM}"
   dsymutil "${BINARY_PATH}" -o "${TMP_DSYM}" >/dev/null 2>&1
@@ -49,6 +54,10 @@ for FRAMEWORK_PATH in "${FRAMEWORKS_DIR}"/*.framework; do
   if [ -d "${TMP_DSYM}" ]; then
     rm -rf "${DEST_DSYM}"
     cp -R "${TMP_DSYM}" "${DEST_DSYM}"
+    if [ -n "${ARCHIVE_DEST_DSYM}" ]; then
+      rm -rf "${ARCHIVE_DEST_DSYM}"
+      cp -R "${TMP_DSYM}" "${ARCHIVE_DEST_DSYM}"
+    fi
     rm -rf "${TMP_DSYM}"
     echo "Prepared dSYM for ${FRAMEWORK_NAME}"
   else

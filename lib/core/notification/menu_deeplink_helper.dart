@@ -33,12 +33,14 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// Navigates to the appropriate student menu screen based on [menuKey].
 /// [studcode] is optional: if provided, the student is selected and menu is fetched first.
-/// [url] is used for menu_key "internalWeb" (e.g. Activity Fee).
+/// [url] is used for menu_key "internalWeb".
+/// [menuTitle] is an optional display title (e.g. from notification payload).
 /// Returns true if a screen was pushed, false otherwise.
 Future<bool> navigateToMenuScreen({
   required String menuKey,
   String? studcode,
   String? url,
+  String? menuTitle,
 }) async {
   final context = navigatorKey.currentContext;
   if (context == null) {
@@ -168,26 +170,43 @@ Future<bool> navigateToMenuScreen({
         {
           final loadUrl = url?.trim();
           if (loadUrl != null && loadUrl.isNotEmpty) {
-            // Derive a sensible title from the URL so that different
-            // internal web pages (e.g. Activity Fee vs Re-Registration)
-            // show the correct title even though they share the same
-            // menu_key ("internalWeb").
-            String menuTitle = 'Activity Fee';
-            final lowerUrl = loadUrl.toLowerCase();
-            if (lowerUrl.contains('reregfee')) {
-              menuTitle = 'Re-Registration';
-            } else if (lowerUrl.contains('activityfee')) {
-              menuTitle = 'Activity Fee';
+            await _ensureStudentMenuLoaded(
+              studentProvider: studentProvider,
+              context: context,
+              studcode: studcode,
+            );
+
+            final matchedMenu = _findStudentMenuByWebUrl(
+              studentProvider.studentMenuModel?.data ?? const [],
+              loadUrl,
+            );
+            final resolvedTitle = matchedMenu?.menuValue.trim().isNotEmpty == true
+                ? matchedMenu!.menuValue
+                : menuTitle?.trim();
+
+            if (resolvedTitle == null || resolvedTitle.isEmpty) {
+              log(
+                'menu_deeplink: internalWeb title not found for url: $loadUrl',
+              );
             }
 
-            final studentMenu = StudentMenu(
-              id: '0',
-              menuKey: 'internalWeb',
-              menuValue: menuTitle,
-              iconUrl: '',
-              subMenu: null,
-              weburl: loadUrl,
-            );
+            final studentMenu = matchedMenu != null
+                ? StudentMenu(
+                    id: matchedMenu.id,
+                    menuKey: matchedMenu.menuKey,
+                    menuValue: resolvedTitle ?? '',
+                    iconUrl: matchedMenu.iconUrl,
+                    subMenu: matchedMenu.subMenu,
+                    weburl: loadUrl,
+                  )
+                : StudentMenu(
+                    id: '0',
+                    menuKey: 'internalWeb',
+                    menuValue: resolvedTitle ?? '',
+                    iconUrl: '',
+                    subMenu: null,
+                    weburl: loadUrl,
+                  );
             state.push(MaterialPageRoute(
               builder: (_) => InternalWebPage(studentMenu: studentMenu),
             ));
@@ -228,4 +247,62 @@ Future<bool> navigateToMenuScreen({
     log('menu_deeplink error: $e\n$st');
     return false;
   }
+}
+
+Future<void> _ensureStudentMenuLoaded({
+  required StudentProvider studentProvider,
+  required BuildContext context,
+  String? studcode,
+}) async {
+  if (studentProvider.studentMenuModel != null) return;
+
+  final code = studcode?.trim();
+  final studCode = (code != null && code.isNotEmpty)
+      ? code
+      : studentProvider.selectedStudentModel(context).studcode;
+  await studentProvider.getStudentMenu(studcode: studCode);
+}
+
+StudentMenu? _findStudentMenuByWebUrl(
+  Iterable<StudentMenu> menus,
+  String targetUrl,
+) {
+  for (final menu in menus) {
+    final menuUrl = menu.weburl?.trim();
+    if (menuUrl != null &&
+        menuUrl.isNotEmpty &&
+        _webUrlsMatch(menuUrl, targetUrl)) {
+      return menu;
+    }
+
+    final subMenus = menu.subMenu;
+    if (subMenus != null) {
+      final match = _findStudentMenuByWebUrl(subMenus, targetUrl);
+      if (match != null) return match;
+    }
+  }
+  return null;
+}
+
+bool _webUrlsMatch(String a, String b) {
+  final normalizedA = _normalizeMenuWebUrl(a);
+  final normalizedB = _normalizeMenuWebUrl(b);
+  if (normalizedA == normalizedB) return true;
+  return normalizedA.contains(normalizedB) ||
+      normalizedB.contains(normalizedA);
+}
+
+String _normalizeMenuWebUrl(String url) {
+  final trimmed = url.trim();
+  final uri = Uri.tryParse(trimmed);
+  if (uri == null) return trimmed.toLowerCase();
+
+  final params = Map<String, String>.from(uri.queryParameters)
+    ..remove('admission_no');
+  return Uri(
+    scheme: uri.scheme.toLowerCase(),
+    host: uri.host.toLowerCase(),
+    path: uri.path,
+    queryParameters: params.isEmpty ? null : params,
+  ).toString();
 }

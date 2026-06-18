@@ -122,6 +122,9 @@ flutter {
 }
 
 dependencies {
-    // ... other dependencies
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4") // Or a newer version
+    // Pin a current androidx.activity so Play Console SDK outdated warnings clear
+    // (older plugin transitive deps can otherwise resolve to legacy versions).
+    implementation("androidx.activity:activity-ktx:1.13.0")
+
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

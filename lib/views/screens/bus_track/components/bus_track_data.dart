@@ -40,7 +40,7 @@ class BusTrackData extends StatelessWidget {
                         padding: const EdgeInsets.all(8.0),
                         child: Row(
                           children: [
-                            const Icon(
+                            const FaIcon(
                               FontAwesomeIcons.bus,
                               size: 14,
                               color: Color.fromARGB(255, 212, 129, 4),
@@ -70,7 +70,7 @@ class BusTrackData extends StatelessWidget {
                         padding: const EdgeInsets.all(8.0),
                         child: Row(
                           children: [
-                            const Icon(
+                            const FaIcon(
                               FontAwesomeIcons.bus,
                               size: 14,
                               color: Color.fromARGB(255, 212, 129, 4),
@@ -334,7 +334,7 @@ class BusTrackData extends StatelessWidget {
                                   ),
                                   Row(
                                     children: [
-                                      const Icon(
+                                      const FaIcon(
                                         FontAwesomeIcons.bus,
                                         size: 14,
                                         color: Color.fromARGB(

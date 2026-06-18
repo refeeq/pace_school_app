@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:school_app/core/config/app_status.dart';
-import 'package:school_app/core/models/students_model.dart';
 import 'package:school_app/core/models/transaction_model.dart';
 import 'package:school_app/core/provider/student_fee_provider.dart';
 import 'package:school_app/core/provider/student_provider.dart';
@@ -25,21 +24,26 @@ class StudentFeesStatementScreen extends StatefulWidget {
       _StudentFeesStatementScreenState();
 }
 
-class _ListViewWidget extends StatelessWidget {
+class _ListViewWidget extends StatefulWidget {
   final List<Transaction> _data;
-  bool _isLoading;
-  late DataState _dataState;
-  late BuildContext _buildContext;
-  late StudentModel studentModel;
-  _ListViewWidget(this._data, this._isLoading);
+  final bool isLoading;
+  const _ListViewWidget(this._data, this.isLoading);
+
+  @override
+  State<_ListViewWidget> createState() => _ListViewWidgetState();
+}
+
+class _ListViewWidgetState extends State<_ListViewWidget> {
+  late bool _isLoading;
+
+  @override
+  void initState() {
+    super.initState();
+    _isLoading = widget.isLoading;
+  }
+
   @override
   Widget build(BuildContext context) {
-    _dataState = Provider.of<StudentFeeProvider>(
-      context,
-      listen: false,
-    ).dataState;
-    studentModel = Provider.of<StudentFeeProvider>(context).studentModel!;
-    _buildContext = context;
     return SafeArea(child: _scrollNotificationWidget(context));
   }
 
@@ -48,13 +52,13 @@ class _ListViewWidget extends StatelessWidget {
         scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
       _isLoading = true;
       Provider.of<StudentFeeProvider>(
-        _buildContext,
+        context,
         listen: false,
       ).getStudentFeeStatementlist(
         studeCode: Provider.of<StudentProvider>(
-          _buildContext,
+          context,
           listen: false,
-        ).selectedStudentModel(_buildContext).studcode,
+        ).selectedStudentModel(context).studcode,
       );
     }
     return true;
@@ -106,7 +110,7 @@ class _ListViewWidget extends StatelessWidget {
                 child: ListView.builder(
                   shrinkWrap: true,
                   primary: false,
-                  itemCount: _data.length,
+                  itemCount: widget._data.length,
                   itemBuilder: (context, index) {
                     return Container(
                       decoration: BoxDecoration(
@@ -118,7 +122,9 @@ class _ListViewWidget extends StatelessWidget {
                           ),
                         ),
                       ),
-                      child: TransactionTileStudent(transaction: _data[index]),
+                      child: TransactionTileStudent(
+                        transaction: widget._data[index],
+                      ),
                     );
                   },
                 ),
@@ -126,11 +132,12 @@ class _ListViewWidget extends StatelessWidget {
             ),
           ),
         ),
-        if (_dataState == DataState.More_Fetching)
+        if (Provider.of<StudentFeeProvider>(context).dataState ==
+            DataState.More_Fetching)
           const Center(child: CircularProgressIndicator()),
         double.parse(
                   Provider.of<StudentFeeProvider>(
-                    _buildContext,
+                    context,
                     listen: false,
                   ).pending_fee,
                 ) ==
@@ -148,7 +155,7 @@ class _ListViewWidget extends StatelessWidget {
                 },
                 totalAmount: double.parse(
                   Provider.of<StudentFeeProvider>(
-                    _buildContext,
+                    context,
                     listen: false,
                   ).pending_fee.toString(),
                 ),

@@ -149,7 +149,7 @@ abstract class AppEnivrornment {
           firbaseName = "springfield-international";
           appName = "Springfield";
           bundleName = "com.sisd.schoolapp";
-          appFullName = "SPRINGFIELD INTERNATIONAL SCHOOL";
+          appFullName = "PACE SPRINGFIELD INTERNATIONAL SCHOOL";
           url = "https://sisd.paceeducation.com/app-api/index.php?page=";
           firebaseOptions = SisdDefaultFirebaseOptions.currentPlatform;
           appImageName = "assets/logo/sisd.jpg";

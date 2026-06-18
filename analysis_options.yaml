@@ -10,8 +10,11 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
-  enable-experiment:
-    - access-level-on-import
+  exclude:
+    - build/**
+    - .dart_tool/**
+    - ios/Flutter/ephemeral/**
+    - macos/Flutter/ephemeral/**
 
 linter:
   # The lint rules applied to this project can be customized in the

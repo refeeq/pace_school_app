@@ -4,8 +4,6 @@ import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/core/utils/utils.dart';
 import 'package:school_app/views/components/border_with_text_widget.dart';
 import 'package:school_app/views/components/profile_tile.dart';
-import 'package:school_app/views/screens/student/student_profile/student_eid_request_screen.dart';
-import 'package:school_app/views/screens/student/student_profile/student_passport_request_screen.dart';
 
 class DocumentDetailWidget extends StatelessWidget {
   const DocumentDetailWidget({super.key});
@@ -39,51 +37,21 @@ class DocumentDetailWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 5),
-                Builder(
-                  builder: (context) {
-                    void navigate() {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const StudentEidRequestScreen(),
-                        ),
-                      );
-                    }
-
-                    return InkWell(
-                      // onTap: navigate,
-                      child: ProfileTile(
-                        canEdit: false,
-                        label: "Emirates ID",
-                        value: data.emiratesId,
-                        valueColor: eidColor,
-                      ),
-                    );
-                  },
+                InkWell(
+                  child: ProfileTile(
+                    canEdit: false,
+                    label: "Emirates ID",
+                    value: data.emiratesId,
+                    valueColor: eidColor,
+                  ),
                 ),
                 const SizedBox(height: 5),
-                Builder(
-                  builder: (context) {
-                    void navigate() {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const StudentEidRequestScreen(),
-                        ),
-                      );
-                    }
-
-                    return InkWell(
-                      // onTap: navigate,
-                      child: ProfileTile(
-                        label: "Emirates ID Expiry date",
-                        value: data.emiratesIdExp,
-                        valueColor: eidColor,
-                      ),
-                    );
-                  },
+                InkWell(
+                  child: ProfileTile(
+                    label: "Emirates ID Expiry date",
+                    value: data.emiratesIdExp,
+                    valueColor: eidColor,
+                  ),
                 ),
                 const SizedBox(height: 5),
                 InkWell(

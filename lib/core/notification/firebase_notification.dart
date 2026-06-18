@@ -535,6 +535,8 @@ void goToNextScreen(Map<String, dynamic> data, BuildContext? context) {
     } else if (resolvedClick == 'MENU') {
       final String? menuKey = navData['menu_key']?.toString().trim();
       final String? url = navData['url']?.toString().trim();
+      final String? menuTitle = navData['menu_val']?.toString().trim() ??
+          navData['menu_title']?.toString().trim();
 
       Future<void> runMenuNavigation() async {
         try {
@@ -562,6 +564,7 @@ void goToNextScreen(Map<String, dynamic> data, BuildContext? context) {
                         menuKey: menuKey,
                         studcode: studCode,
                         url: url?.isNotEmpty == true ? url : null,
+                        menuTitle: menuTitle?.isNotEmpty == true ? menuTitle : null,
                       );
                     }
                   } catch (e, st) {

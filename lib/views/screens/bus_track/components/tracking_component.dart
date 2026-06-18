@@ -50,7 +50,6 @@ class TrackingComponentState extends State<TrackingComponent>
       'mqtt_${DateTime.now().millisecondsSinceEpoch}_${math.Random().nextInt(1000)}';
   GoogleMapController? _mapController;
   MapController? _openStreetMapController; // For OpenStreetMap
-  CameraPosition? _currentCameraPosition;
   late MqttServerClient client;
   LatLng? busLocation; // Nullable to handle the initial null case
   LatLng? _animatedBusLocation; // Animated location for smooth movement
@@ -189,10 +188,6 @@ class TrackingComponentState extends State<TrackingComponent>
         await _mapController!.animateCamera(
           CameraUpdate.newLatLngZoom(locationToCenter, 17.0),
         );
-        _currentCameraPosition = CameraPosition(
-          target: locationToCenter,
-          zoom: 17.0,
-        );
         log('✅ [MAP] Camera centered on bus location (Google Maps)');
       }
       // Use OpenStreetMap controller if available
@@ -295,16 +290,12 @@ class TrackingComponentState extends State<TrackingComponent>
 
       // Attempt connection with timeout
       // log('🔌 [MQTT] Attempting to connect to broker...');
-      final connectionStartTime = DateTime.now();
       try {
         await client.connect().timeout(
           const Duration(seconds: 10),
           onTimeout: () {
             throw TimeoutException('Connection timeout after 10 seconds');
           },
-        );
-        final connectionDuration = DateTime.now().difference(
-          connectionStartTime,
         );
         // log(
         //   '⏱️ [MQTT] Connection attempt completed in ${connectionDuration.inMilliseconds}ms',
@@ -608,9 +599,6 @@ class TrackingComponentState extends State<TrackingComponent>
                 '📊 [MQTT] Total messages received before close: $_totalMessagesReceived',
               );
               if (_lastMessageTime != null) {
-                final timeSinceLastMessage = DateTime.now().difference(
-                  _lastMessageTime!,
-                );
                 // log(
                 //   '📊 [MQTT] Time since last message: ${timeSinceLastMessage.inSeconds}s',
                 // );
@@ -789,8 +777,6 @@ class TrackingComponentState extends State<TrackingComponent>
 
   void _logConnectionStatus() {
     final connectionState = client.connectionStatus?.state;
-    final returnCode = client.connectionStatus?.returnCode;
-
     log('📊 [MQTT] ========== PERIODIC STATUS CHECK ==========');
     // log('📊 [MQTT] Connection state: $connectionState');
     // log('📊 [MQTT] Return code: $returnCode');
@@ -799,8 +785,7 @@ class TrackingComponentState extends State<TrackingComponent>
 
     // Check if message stream is still active
     try {
-      final streamActive =
-          _messageSubscription != null && !_messageSubscription!.isPaused;
+      _messageSubscription != null && !_messageSubscription!.isPaused;
       // log('📊 [MQTT] Message stream subscription active: $streamActive');
       // log(
       //   '📊 [MQTT] Message stream paused: ${_messageSubscription?.isPaused ?? "N/A"}',
@@ -1004,10 +989,6 @@ class TrackingComponentState extends State<TrackingComponent>
             _mapController!.animateCamera(
               CameraUpdate.newLatLngZoom(newLocation, 17.0),
             );
-            _currentCameraPosition = CameraPosition(
-              target: newLocation,
-              zoom: 17.0,
-            );
           } else if (_openStreetMapController != null) {
             _openStreetMapController!.move(
               _toLatLong2(newLocation),
@@ -1093,10 +1074,6 @@ class TrackingComponentState extends State<TrackingComponent>
 
         // If we already have a bus location, move camera to it
         if (busLocation != null) {
-          _currentCameraPosition = CameraPosition(
-            target: busLocation!,
-            zoom: 17.0,
-          );
           await controller.animateCamera(
             CameraUpdate.newLatLngZoom(busLocation!, 17.0),
           );
@@ -1104,10 +1081,6 @@ class TrackingComponentState extends State<TrackingComponent>
             '📷 [MAP] Camera moved to bus location: ${busLocation!.latitude}, ${busLocation!.longitude}',
           );
         } else {
-          _currentCameraPosition = CameraPosition(
-            target: const LatLng(25.2959397, 55.4576871),
-            zoom: 17.0,
-          );
         }
 
         setState(() {
@@ -1819,7 +1792,6 @@ class TrackingComponentState extends State<TrackingComponent>
     log('📊 [MQTT] Total messages received: $_totalMessagesReceived');
 
     if (_lastMessageTime != null) {
-      final timeSinceLastMessage = DateTime.now().difference(_lastMessageTime!);
       log(
         '📊 [MQTT] Last message received: ${_lastMessageTime!.toIso8601String()}',
       );

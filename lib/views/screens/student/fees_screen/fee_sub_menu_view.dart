@@ -4,6 +4,7 @@ import 'package:school_app/core/notification/menu_deeplink_helper.dart';
 import 'package:school_app/core/themes/const_colors.dart';
 import 'package:school_app/views/components/common_app_bar.dart';
 import 'package:school_app/views/components/update_alert.dart';
+import 'package:school_app/views/screens/internal_web/pages/internal_web_page.dart';
 
 class FeeSubMenuView extends StatelessWidget {
   final StudentMenu feeMenu;
@@ -46,17 +47,27 @@ class FeeSubMenuView extends StatelessWidget {
   Future<void> _onTapSubMenu(BuildContext context, StudentMenu item) async {
     final key = item.menuKey.trim();
 
+    if (key == 'internalWeb' &&
+        item.weburl != null &&
+        item.weburl!.trim().isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => InternalWebPage(studentMenu: item),
+        ),
+      );
+      return;
+    }
+
     String? url;
-    if (key == 'internalWeb' || key == 'externalWeb' || key == 'WhatsApp') {
-      // For web submenu items, always prefer the URL directly provided
-      // on that item (supports distinct pages like Activity Fee,
-      // Re-Registration, WhatsApp web, etc.).
+    if (key == 'externalWeb' || key == 'WhatsApp') {
       url = item.weburl;
     }
 
     final handled = await navigateToMenuScreen(
       menuKey: key,
       url: url,
+      menuTitle: item.menuValue,
     );
 
     if (!handled && context.mounted) {

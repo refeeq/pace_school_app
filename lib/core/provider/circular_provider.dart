@@ -31,15 +31,6 @@ class CircularProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  static const String _notActiveMessage =
-      'Circulars are not available. This student is not active.';
-
-  /// Returns true only when statusLabel is exactly "Active" (case insensitive).
-  static bool _isActiveStatus(String? label) {
-    if (label == null || label.isEmpty) return false;
-    return label.toLowerCase().trim() == 'active';
-  }
-
   Future<void> getCircularList({String? studCode}) async {
     circularListState = AppStates.Initial_Fetching;
     circularListMessage = null;

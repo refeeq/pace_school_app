@@ -17,7 +17,6 @@ import 'package:school_app/views/components/no_data_widget.dart';
 import 'package:school_app/views/components/no_internet_connection.dart';
 import 'package:school_app/views/components/shimmer_student_profile.dart';
 import 'package:school_app/views/screens/parent/parent_profile/verify_email.dart';
-import 'package:school_app/views/screens/parent/parent_profile/verify_mobile.dart';
 import 'package:school_app/core/bloc/AuthBloc/auth_listener_bloc.dart';
 import 'package:school_app/core/services/logout_service.dart';
 import 'package:school_app/views/screens/parent/parent_update/parent_update_hub_screen.dart';
