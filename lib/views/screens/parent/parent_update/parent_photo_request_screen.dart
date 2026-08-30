@@ -35,7 +35,7 @@ class _ParentPhotoRequestScreenState extends State<ParentPhotoRequestScreen> {
     return Scaffold(
       backgroundColor: ConstColors.backgroundColor,
       appBar: CommonAppBar(title: 'Request ${widget.relation} Photo Update'),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,11 +81,8 @@ class _ParentPhotoRequestScreenState extends State<ParentPhotoRequestScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              "Allowed formats: JPG, JPEG, PNG",
-              style: GoogleFonts.nunitoSans(fontSize: 12),
-            ),
+            const SizedBox(height: 20),
+            _buildPhotoGuidelines(),
           ],
         ),
       ),
@@ -93,6 +90,83 @@ class _ParentPhotoRequestScreenState extends State<ParentPhotoRequestScreen> {
         label: 'SUBMIT REQUEST',
         isLoading: isLoading,
         onTap: _onSubmit,
+      ),
+    );
+  }
+
+  Widget _buildPhotoGuidelines() {
+    final relation = widget.relation.toLowerCase();
+    final guidelines = [
+      'Use a recent, passport-sized photograph of the $relation only.',
+      'Dress professionally. Formal or smart casual attire is preferred.',
+      'Face must be clearly visible, looking directly at the camera, with a neutral expression.',
+      'Use a plain, light-coloured background. No scenery, filters, or busy patterns.',
+      'Ensure good lighting. Avoid shadows on the face.',
+      'Do not upload selfies, group photos, screenshots, cartoons, or photos with sunglasses, hats, or other people.',
+      'Allowed formats: JPG, JPEG, PNG.',
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: ConstColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: ConstColors.primary.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline,
+                color: ConstColors.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Photo guidelines',
+                style: GoogleFonts.nunitoSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: ConstColors.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...guidelines.map(
+            (item) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '•  ',
+                    style: GoogleFonts.nunitoSans(
+                      fontSize: 13,
+                      height: 1.4,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      item,
+                      style: GoogleFonts.nunitoSans(
+                        fontSize: 13,
+                        height: 1.4,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

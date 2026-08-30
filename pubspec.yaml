@@ -103,7 +103,12 @@ dependency_overrides:
   # turnable_page 1.0.1 uses Pdfrx.getCacheDirectory; pdfrx 2.3+ replaced it with
   # Pdfrx.cacheDirectoryPath. Pin until turnable_page publishes a compatible release.
   pdfrx: 2.2.24
-  pdfrx_engine: 0.3.9
+  # Vendored copy of pdfrx_engine 0.3.9 with pdf_file_cache.dart patched: the
+  # published code relies on a nullable parameter staying promoted inside a
+  # closure, which stopped compiling on Dart 3.13. 0.3.9 is the last release
+  # pdfrx 2.2.x accepts, so there is no published fix to upgrade to.
+  pdfrx_engine:
+    path: third_party/pdfrx_engine
 
 dev_dependencies:
   flutter_test:
