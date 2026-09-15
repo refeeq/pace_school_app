@@ -1,7 +1,10 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:school_app/core/constants/db_constants.dart';
+import 'package:school_app/core/models/auth_model.dart';
 import 'package:school_app/core/models/student_menu_model.dart';
 import 'package:school_app/core/provider/student_provider.dart';
 import 'package:school_app/views/components/common_app_bar.dart';
@@ -62,7 +65,15 @@ class _InternalWebPageState extends State<InternalWebPage> {
       context,
       listen: false,
     ).selectedStudentModel(context).studcode;
-    return "${widget.studentMenu.weburl!}&admission_no=$studentCode";
+    final authModel = Hive.box<AuthModel>(USERDB).get(0) as AuthModel;
+    final uri = Uri.parse(widget.studentMenu.weburl!);
+    return uri.replace(
+      queryParameters: {
+        ...uri.queryParameters,
+        'admission_no': studentCode,
+        'token': authModel.token,
+      },
+    ).toString();
   }
 
   void _reloadWebView() {
