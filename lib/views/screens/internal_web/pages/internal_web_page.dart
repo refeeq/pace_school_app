@@ -71,6 +71,7 @@ class _InternalWebPageState extends State<InternalWebPage> {
       queryParameters: {
         ...uri.queryParameters,
         'admission_no': studentCode,
+        'famcode': authModel.famcode,
         'token': authModel.token,
       },
     ).toString();
