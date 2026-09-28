@@ -63,7 +63,6 @@ class AdmissionRepositoryImpl implements AdmissionRepository {
         log(response.right['message']);
         return const Right(null);
       } else {
-        log(response.right.toString());
         return Right(AdmissionResModel.fromJson(response.right['data']));
       }
     }
@@ -81,7 +80,6 @@ class AdmissionRepositoryImpl implements AdmissionRepository {
         log(response.right['message']);
         return const Right(null);
       } else {
-        log(response.right.toString());
         return Right(AdmissionResModel.fromJson(response.right['data']));
       }
     }
@@ -122,12 +120,10 @@ class AdmissionRepositoryImpl implements AdmissionRepository {
       return Left(response.left);
     } else {
       if (response.right['status'] == false) {
-        log(response.right.toString());
         log(response.right['message']);
         return Right(response.right);
       } else {
         // showToast(response.right['message']);
-        log(response.right.toString());
         return Right(response.right);
       }
     }

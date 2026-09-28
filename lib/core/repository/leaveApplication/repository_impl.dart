@@ -47,12 +47,10 @@ class LeaveApplicationRepositoryImpl implements LeaveApplicationRepository {
       return Left(response.left);
     } else {
       if (response.right['status'] == false) {
-        log(response.right.toString());
         log(response.right['message']);
         return Right(response.right);
       } else {
         //  showToast(response.right['message']);
-        log(response.right.toString());
 
         return Right(response.right);
       }
@@ -82,11 +80,9 @@ class LeaveApplicationRepositoryImpl implements LeaveApplicationRepository {
       return Left(response.left);
     } else {
       if (response.right['status'] == false) {
-        log(response.right.toString());
         log(response.right['message']);
         return Right(response.right);
       } else {
-        log(response.right.toString());
 
         return Right(response.right);
       }
@@ -113,11 +109,9 @@ class LeaveApplicationRepositoryImpl implements LeaveApplicationRepository {
       return Left(response.left);
     } else {
       if (response.right['status'] == false) {
-        log(response.right.toString());
         log(response.right['message']);
         return const Right([]);
       } else {
-        log(response.right.toString());
 
         return Right(response.right);
       }

@@ -42,7 +42,6 @@ class ParentUpdateRepositoryImpl implements ParentUpdateRepository {
       log(response.left.message ?? 'Unknown error');
       return Left(response.left);
     } else {
-      log(response.right.toString());
       return Right(response.right);
     }
   }
@@ -359,7 +358,6 @@ class ParentUpdateRepositoryImpl implements ParentUpdateRepository {
           ),
         );
       }
-      log(response.right.toString());
       return Right(ParentUpdateRequestListModel.fromJson(raw));
     } catch (e) {
       log('getParentUpdateRequests error: $e');

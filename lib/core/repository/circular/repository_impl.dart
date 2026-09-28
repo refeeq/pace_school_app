@@ -59,7 +59,6 @@ class CircularRepositoryImpl implements CircularRepository {
       url: ApiConstatns.getParentCircular,
       body: data,
     );
-    log(response.right.toString());
 
     if (response.isLeft) {
       log(response.left.message!);

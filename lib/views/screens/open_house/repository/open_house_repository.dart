@@ -70,7 +70,6 @@ class OpenHouseRepository {
       log(response.left.message!);
       return Left(response.left);
     } else {
-      log(response.right.toString());
       if (response.right['status']) {
         List<OpenHouseModel> list = List<OpenHouseModel>.from(
           response.right["data"].map((x) => OpenHouseModel.fromJson(x)),

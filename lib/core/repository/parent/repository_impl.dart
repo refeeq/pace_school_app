@@ -39,7 +39,6 @@ class ParentRepositoryimpl implements ParentRepository {
       log(response.left.message!);
       return Left(response.left);
     } else {
-      log(response.right.toString());
       return Right(ParentProfileModel.fromJson(response.right));
     }
   }
@@ -63,7 +62,6 @@ class ParentRepositoryimpl implements ParentRepository {
       log(response.left.message!);
       return Left(response.left);
     } else {
-      log(response.right.toString());
       return Right(ParentProfileListModel.fromJson(response.right));
     }
   }
@@ -92,7 +90,6 @@ class ParentRepositoryimpl implements ParentRepository {
       log(response.left.message!);
       return Left(response.left);
     } else {
-      log(response.right.toString());
       return Right(response.right);
     }
   }
@@ -123,7 +120,6 @@ class ParentRepositoryimpl implements ParentRepository {
       log(response.left.message!);
       return Left(response.left);
     } else {
-      log(response.right.toString());
       return Right(response.right);
     }
   }
@@ -152,7 +148,6 @@ class ParentRepositoryimpl implements ParentRepository {
       log(response.left.message!);
       return Left(response.left);
     } else {
-      log(response.right.toString());
       return Right(response.right);
     }
   }
@@ -183,7 +178,6 @@ class ParentRepositoryimpl implements ParentRepository {
       log(response.left.message!);
       return Left(response.left);
     } else {
-      log(response.right.toString());
       return Right(response.right);
     }
   }

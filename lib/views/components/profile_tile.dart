@@ -8,6 +8,8 @@ class ProfileTile extends StatelessWidget {
   final bool canEdit;
   /// Optional custom color for the value text. Overrides isRed when set.
   final Color? valueColor;
+  /// Uses the section-title style for the label. Colon and value stay unchanged.
+  final bool highlightLabel;
   const ProfileTile({
     super.key,
     required this.label,
@@ -15,6 +17,7 @@ class ProfileTile extends StatelessWidget {
     this.isRed = false,
     this.canEdit = false,
     this.valueColor,
+    this.highlightLabel = false,
   });
 
   @override
@@ -28,13 +31,19 @@ class ProfileTile extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: GoogleFonts.nunitoSans(
-                  textStyle: const TextStyle(
-                    color: Color(0xFF777F84),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
+                style: highlightLabel
+                    ? const TextStyle(
+                        color: Color(0xFF000203),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      )
+                    : GoogleFonts.nunitoSans(
+                        textStyle: const TextStyle(
+                          color: Color(0xFF777F84),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
               ),
             ],
           ),

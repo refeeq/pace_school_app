@@ -44,12 +44,10 @@ class ContactUsRepositoryImpl implements ContactUsRepository {
       return Left(response.left);
     } else {
       if (response.right['status'] == false) {
-        log(response.right.toString());
 
         return Right(response.right);
       } else {
         //  showToast(response.right['message']);
-        log(response.right.toString());
 
         return Right(response.right);
       }
@@ -81,14 +79,12 @@ class ContactUsRepositoryImpl implements ContactUsRepository {
       return Left(response.left);
     } else {
       if (response.right['status'] == false) {
-        log(response.right.toString());
 
         return Left(
           MyError(key: AppError.unknown, message: response.right["message"]),
         );
       } else {
         //  showToast(response.right['message']);
-        log(response.right.toString());
 
         return Right(response.right);
       }
@@ -114,7 +110,6 @@ class ContactUsRepositoryImpl implements ContactUsRepository {
       return Left(response.left);
     }
     if (response.right['status'] != true) {
-      log(response.right.toString());
       return Left(
         MyError(
           key: AppError.unknown,

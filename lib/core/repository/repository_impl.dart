@@ -40,7 +40,6 @@ class RepsitoryImpl implements Repository {
       log(response.left.message!);
       return Left(response.left);
     } else {
-      log(response.right.toString());
       return Right(LoginResponseModel.fromJson(response.right));
     }
   }
@@ -77,7 +76,6 @@ class RepsitoryImpl implements Repository {
         log(response.right['message']);
         return Right(OtpResponseModel.fromJson(response.right));
       } else {
-        log(response.right.toString());
         return Right(OtpResponseModel.fromJson(response.right));
       }
     }
@@ -109,7 +107,6 @@ class RepsitoryImpl implements Repository {
         log(response.right['message']);
         return Right(OtpResponseModel.fromJson(response.right));
       } else {
-        log(response.right.toString());
         return Right(OtpResponseModel.fromJson(response.right));
       }
     }

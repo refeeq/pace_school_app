@@ -57,8 +57,142 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
     return eid?.toString() ?? "";
   }
 
-  String _primaryContactNumber(ParentProvider provider) =>
-      _cleanValue(provider.parentProfileListModel!.common.mobile);
+  String _firstValue(List<String?> values) {
+    for (final value in values) {
+      final cleaned = _cleanValue(value);
+      if (cleaned.isNotEmpty) return cleaned;
+    }
+    return "";
+  }
+
+  String _primaryContactNumber(ParentProvider provider) {
+    final model = provider.parentProfileListModel!;
+    return _firstValue([
+      model.primaryContact?.phone,
+      model.common.primaryPhone,
+      model.common.comNumber,
+      model.common.mobile,
+    ]);
+  }
+
+  String _primaryEmail(ParentProvider provider) {
+    final model = provider.parentProfileListModel!;
+    return _firstValue([
+      model.primaryContact?.email,
+      model.common.primaryEmail,
+      model.common.comEmail,
+    ]);
+  }
+
+  String _phonePerson(ParentProvider provider) {
+    final model = provider.parentProfileListModel!;
+    return _firstValue([
+      model.primaryContact?.phonePerson,
+      model.common.primaryContactRelation,
+    ]);
+  }
+
+  String _phonePersonName(ParentProvider provider) {
+    final model = provider.parentProfileListModel!;
+    return _firstValue([
+      model.primaryContact?.phonePersonName,
+      model.common.primaryContactPerson,
+    ]);
+  }
+
+  String _emailPerson(ParentProvider provider) {
+    final model = provider.parentProfileListModel!;
+    return _firstValue([
+      model.primaryContact?.emailPerson,
+      model.common.mailPrimaryContactRelation,
+    ]);
+  }
+
+  String _emailPersonName(ParentProvider provider) {
+    final model = provider.parentProfileListModel!;
+    return _firstValue([
+      model.primaryContact?.emailPersonName,
+      model.common.mailPrimaryContactPerson,
+      model.common.mailGname,
+    ]);
+  }
+
+  Widget _primaryGroupTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        color: Color(0xFF000203),
+        fontSize: 14,
+        fontWeight: FontWeight.w700,
+      ),
+    );
+  }
+
+  List<Widget> _primaryDetailFields(ParentProvider provider) {
+    final address = _primaryAddress(provider);
+    return [
+      SizedBox(height: 6.h),
+      GestureDetector(
+        onTap: () => _onFamilyCodeTap(context),
+        behavior: HitTestBehavior.opaque,
+        child: ProfileTile(
+          label: "Family Code",
+          value: _selectedParentFamilyCode(provider),
+        ),
+      ),
+      // SizedBox(height: 10.h),
+   
+      SizedBox(height: 10.h),
+      _primaryGroupTitle("Primary Phone"),
+      SizedBox(height: 6.h),
+      ProfileTile(
+        label: "Contact",
+        value: _phonePerson(provider),
+      ),
+      SizedBox(height: 6.h),
+      ProfileTile(
+        label: "Name",
+        value: _phonePersonName(provider),
+      ),
+      SizedBox(height: 6.h),
+      ProfileTile(
+        label: "Number",
+        value: _primaryContactNumber(provider),
+      ),
+      SizedBox(height: 10.h),
+      _primaryGroupTitle("Primary Email"),
+      SizedBox(height: 6.h),
+      ProfileTile(
+        label: "Contact",
+        value: _emailPerson(provider),
+      ),
+      SizedBox(height: 6.h),
+      ProfileTile(
+        label: "Name",
+        value: _emailPersonName(provider),
+      ),
+      SizedBox(height: 6.h),
+      ProfileTile(
+        label: "Mail",
+        value: _primaryEmail(provider),
+      ),
+       SizedBox(height: 10.h),
+      _primaryGroupTitle("Address"),
+      SizedBox(height: 6.h),
+      ProfileTile(
+        label: "Contact Address",
+        value: (address),
+      ),
+    
+      // SizedBox(height: 10.h),
+      // ProfileTile(
+      //   label: "Address",
+      //   value: address,
+      //   highlightLabel: true,
+      // ),
+      // SizedBox(height: 6.h),
+    ];
+  }
 
   String _selectedParentFamilyCode(ParentProvider provider) {
     return _cleanValue(
@@ -317,31 +451,7 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                       mainAxisSize: MainAxisSize.min,
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
-                                      children: [
-                                        SizedBox(height: 6.h),
-                                        ProfileTile(
-                                          label: "Primary Contact Number",
-                                          value: _primaryContactNumber(value),
-                                        ),
-                                        SizedBox(height: 6.h),
-                                        GestureDetector(
-                                          onTap: () =>
-                                              _onFamilyCodeTap(context),
-                                          behavior: HitTestBehavior.opaque,
-                                          child: ProfileTile(
-                                            label: "Family Code",
-                                            value: _selectedParentFamilyCode(
-                                              value,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(height: 6.h),
-                                        ProfileTile(
-                                          label: "Address",
-                                          value: _primaryAddress(value),
-                                        ),
-                                        SizedBox(height: 6.h),
-                                      ],
+                                      children: _primaryDetailFields(value),
                                     ),
                                   ),
                                   SizedBox(height: 8.h),
@@ -391,6 +501,7 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                                 .mobile,
                                           ),
                                         ),
+                                       
                                         SizedBox(height: 6.h),
                                         InkWell(
                                           onTap: () {
@@ -471,31 +582,7 @@ class _ParentProfileScreenViewState extends State<ParentProfileScreenView> {
                                       mainAxisSize: MainAxisSize.min,
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
-                                      children: [
-                                        SizedBox(height: 6.h),
-                                        ProfileTile(
-                                          label: "Primary Contact Number",
-                                          value: _primaryContactNumber(value),
-                                        ),
-                                        SizedBox(height: 6.h),
-                                        GestureDetector(
-                                          onTap: () =>
-                                              _onFamilyCodeTap(context),
-                                          behavior: HitTestBehavior.opaque,
-                                          child: ProfileTile(
-                                            label: "Family Code",
-                                            value: _selectedParentFamilyCode(
-                                              value,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(height: 6.h),
-                                        ProfileTile(
-                                          label: "Address",
-                                          value: _primaryAddress(value),
-                                        ),
-                                        SizedBox(height: 6.h),
-                                      ],
+                                      children: _primaryDetailFields(value),
                                     ),
                                   ),
                                   SizedBox(height: 8.h),

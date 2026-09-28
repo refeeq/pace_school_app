@@ -16,14 +16,12 @@ class SchoolRepositoyImpl implements SchoolRepository {
   Future<Either<MyError, SchoolInfoModel?>> getSchoolInfo() async {
     var response = await apiServices.postAPI(url: ApiConstatns.getSchoolInfo);
 
-    log(response.right.toString());
 
     if (response.isLeft) {
       log(response.left.message!);
       return Left(response.left);
     } else {
       if (response.right['status'] == true) {
-        log(response.right.toString());
         return Right(SchoolInfoModel.fromJson(response.right['data']));
       } else {
         //  showToast(response.right['message']);

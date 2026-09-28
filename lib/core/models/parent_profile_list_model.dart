@@ -81,6 +81,15 @@ class Common {
   final String mofficetel;
   final String mpobox;
   final String primaryContact;
+  final String mailPrimaryContact;
+  final String mailGname;
+  final String comEmail;
+  final String primaryContactPerson;
+  final String primaryContactRelation;
+  final String primaryPhone;
+  final String mailPrimaryContactPerson;
+  final String mailPrimaryContactRelation;
+  final String primaryEmail;
   final dynamic fEid;
   final dynamic mEid;
   final dynamic fEidExp;
@@ -116,6 +125,15 @@ class Common {
     required this.mofficetel,
     required this.mpobox,
     required this.primaryContact,
+    required this.mailPrimaryContact,
+    required this.mailGname,
+    required this.comEmail,
+    required this.primaryContactPerson,
+    required this.primaryContactRelation,
+    required this.primaryPhone,
+    required this.mailPrimaryContactPerson,
+    required this.mailPrimaryContactRelation,
+    required this.primaryEmail,
     required this.fEid,
     required this.mEid,
     required this.fEidExp,
@@ -147,11 +165,23 @@ class Common {
         email: json["email"] ?? "",
         comNumber: json["com_number"] ?? "",
         mcomp: json["mcomp"] ?? "",
-        memail: json["memail"] ?? "",
+        memail: json["memail"]?.toString() ?? "",
         memirate: json["memirate"] ?? "",
         mofficetel: json["mofficetel"] ?? "",
         mpobox: json["mpobox"] ?? "",
-        primaryContact: json["primary_contact"] ?? "",
+        primaryContact: json["primary_contact"]?.toString() ?? "",
+        mailPrimaryContact: json["mail_primary_contact"]?.toString() ?? "",
+        mailGname: json["mail_gname"]?.toString() ?? "",
+        comEmail: json["com_email"]?.toString() ?? "",
+        primaryContactPerson: json["primary_contact_person"]?.toString() ?? "",
+        primaryContactRelation:
+            json["primary_contact_relation"]?.toString() ?? "",
+        primaryPhone: json["primary_phone"]?.toString() ?? "",
+        mailPrimaryContactPerson:
+            json["mail_primary_contact_person"]?.toString() ?? "",
+        mailPrimaryContactRelation:
+            json["mail_primary_contact_relation"]?.toString() ?? "",
+        primaryEmail: json["primary_email"]?.toString() ?? "",
         fEid: json["f_eid"] ?? "",
         mEid: json["m_eid"] ?? "",
         fEidExp: json["f_eid_exp"] ?? "",
@@ -188,6 +218,15 @@ class Common {
         "mofficetel": mofficetel,
         "mpobox": mpobox,
         "primary_contact": primaryContact,
+        "mail_primary_contact": mailPrimaryContact,
+        "mail_gname": mailGname,
+        "com_email": comEmail,
+        "primary_contact_person": primaryContactPerson,
+        "primary_contact_relation": primaryContactRelation,
+        "primary_phone": primaryPhone,
+        "mail_primary_contact_person": mailPrimaryContactPerson,
+        "mail_primary_contact_relation": mailPrimaryContactRelation,
+        "primary_email": primaryEmail,
         "f_eid": fEid,
         "m_eid": mEid,
         "f_eid_exp": fEidExp,
@@ -228,7 +267,7 @@ class Datum {
         famcode: json["famcode"] ?? "",
         mobile: json["mobile"] ?? "",
         photo: json["photo"] ?? "",
-        email: json["email"] ?? "",
+        email: json["email"]?.toString() ?? "",
         occupation: json["occupation"] ?? "",
         company: json["company"] ?? "",
         offcity: json["offcity"] ?? "",
@@ -250,6 +289,50 @@ class Datum {
       };
 }
 
+class PrimaryContact {
+  final String phonePersonCode;
+  final String phonePerson;
+  final String phonePersonName;
+  final String phone;
+  final String emailPersonCode;
+  final String emailPerson;
+  final String emailPersonName;
+  final String email;
+
+  PrimaryContact({
+    required this.phonePersonCode,
+    required this.phonePerson,
+    required this.phonePersonName,
+    required this.phone,
+    required this.emailPersonCode,
+    required this.emailPerson,
+    required this.emailPersonName,
+    required this.email,
+  });
+
+  factory PrimaryContact.fromJson(Map<String, dynamic> json) => PrimaryContact(
+        phonePersonCode: json["phone_person_code"]?.toString() ?? "",
+        phonePerson: json["phone_person"]?.toString() ?? "",
+        phonePersonName: json["phone_person_name"]?.toString() ?? "",
+        phone: json["phone"]?.toString() ?? "",
+        emailPersonCode: json["email_person_code"]?.toString() ?? "",
+        emailPerson: json["email_person"]?.toString() ?? "",
+        emailPersonName: json["email_person_name"]?.toString() ?? "",
+        email: json["email"]?.toString() ?? "",
+      );
+
+  Map<String, dynamic> toJson() => {
+        "phone_person_code": phonePersonCode,
+        "phone_person": phonePerson,
+        "phone_person_name": phonePersonName,
+        "phone": phone,
+        "email_person_code": emailPersonCode,
+        "email_person": emailPerson,
+        "email_person_name": emailPersonName,
+        "email": email,
+      };
+}
+
 class ParentProfileListModel {
   final List<Emirate> emirate;
   final List<Community> community;
@@ -257,6 +340,7 @@ class ParentProfileListModel {
   final String message;
   final List<Datum> data;
   final Common common;
+  final PrimaryContact? primaryContact;
 
   ParentProfileListModel({
     required this.emirate,
@@ -265,6 +349,7 @@ class ParentProfileListModel {
     required this.message,
     required this.data,
     required this.common,
+    this.primaryContact,
   });
 
   factory ParentProfileListModel.fromJson(Map<String, dynamic> json) =>
@@ -283,6 +368,11 @@ class ParentProfileListModel {
             ? List<Datum>.from(json["data"].map((x) => Datum.fromJson(x)))
             : [],
         common: Common.fromJson(json["common"] ?? {}),
+        primaryContact: json["primary_contact"] is Map
+            ? PrimaryContact.fromJson(
+                Map<String, dynamic>.from(json["primary_contact"]),
+              )
+            : null,
       );
 
   Map<String, dynamic> toJson() => {
@@ -292,5 +382,6 @@ class ParentProfileListModel {
         "message": message,
         "data": List<dynamic>.from(data.map((x) => x.toJson())),
         "common": common.toJson(),
+        "primary_contact": primaryContact?.toJson(),
       };
 }

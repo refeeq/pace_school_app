@@ -46,12 +46,10 @@ class CommunicationRepositoryImpl implements CommunicationRepository {
       return Left(response.left);
     } else {
       if (response.right['status'] == false) {
-        log(response.right.toString());
         log(response.right['message']);
         return const Right([]);
       } else {
         //  showToast(response.right['message']);
-        log(response.right.toString());
 
         return Right(response.right);
       }
@@ -115,12 +113,10 @@ class CommunicationRepositoryImpl implements CommunicationRepository {
       return Left(response.left);
     } else {
       if (response.right['status'] == false) {
-        log(response.right.toString());
         log(response.right['message']);
         return const Right([]);
       } else {
         //  showToast(response.right['message']);
-        log(response.right.toString());
 
         return Right(response.right);
       }

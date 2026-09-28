@@ -42,7 +42,6 @@ class AttendanceRepositoryImpl extends AttendanceRepository {
       log(response.left.message!);
       return Left(response.left);
     } else {
-      log(response.right.toString());
       if (response.right['status']) {
         return Right(response.right);
       } else {

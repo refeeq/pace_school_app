@@ -57,7 +57,6 @@ class AdmissionRegisterProvider with ChangeNotifier {
           showToast(error, context);
           submitGuestAdmissionFormState = AppStates.Error;
         } else {
-          log("response ${respon.right}");
           if (respon.right['status'] == true) {
             error = respon.right["message"];
 
