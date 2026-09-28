@@ -1,7 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:html_to_pdf_plus/html_to_pdf_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -25,6 +23,75 @@ class PdfGenerationScreen extends StatefulWidget {
 class PdfGenerationScreenState extends State<PdfGenerationScreen> {
   String? generatedPdfFilePath;
   final ScreenshotController screenshotController = ScreenshotController();
+  bool _isSharing = false;
+
+  String _singlePageReceiptHtml(String html) {
+    const style =
+        '<style>@page{size:auto;margin:0;}html,body{height:auto!important;min-height:0!important;overflow:visible!important;}</style>';
+    final head = RegExp(r'<head[^>]*>', caseSensitive: false).firstMatch(html);
+    if (head != null) {
+      return html.replaceRange(head.end, head.end, style);
+    }
+    return '$style$html';
+  }
+
+  String _pdfFileName(String id) {
+    final cleaned = id.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_').trim();
+    return cleaned.isEmpty ? 'receipt' : cleaned;
+  }
+
+  Rect _shareOrigin(BuildContext context) {
+    final box = context.findRenderObject() as RenderBox?;
+    if (box != null && box.attached && box.hasSize && !box.size.isEmpty) {
+      final rect = box.localToGlobal(Offset.zero) & box.size;
+      if (!rect.isEmpty) return rect;
+    }
+    final size = MediaQuery.sizeOf(context);
+    return Rect.fromCenter(
+      center: Offset(size.width - 28, 28),
+      width: 24,
+      height: 24,
+    );
+  }
+
+  Future<void> _downloadReceipt(BuildContext buttonContext, String html) async {
+    if (_isSharing) return;
+    final origin = _shareOrigin(buttonContext);
+    setState(() => _isSharing = true);
+    try {
+      final appDocDir = await getApplicationDocumentsDirectory();
+      final pdfFile = await HtmlToPdf.convertFromHtmlContent(
+        htmlContent: _singlePageReceiptHtml(html),
+        configuration: PdfConfiguration(
+          targetDirectory: appDocDir.path,
+          targetName: _pdfFileName(widget.id),
+          printSize: PrintSize.A4,
+          printOrientation: PrintOrientation.Landscape,
+          linksClickable: true,
+          fitToSinglePage: true,
+        ),
+      );
+      if (!mounted) return;
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(pdfFile.path)],
+          subject: 'PDF',
+          text: 'PDF',
+          sharePositionOrigin: origin,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to download the receipt. Please try again.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isSharing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,36 +103,30 @@ class PdfGenerationScreenState extends State<PdfGenerationScreen> {
           Consumer<StudentFeeProvider>(
             builder: (context, value, child) {
               if (value.feeViewState == AppStates.Fetched) {
-                return InkWell(
-                  child: const Padding(
-                    padding: EdgeInsets.only(right: 18.0),
-                    child: Text(
-                      "Download",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  onTap: () async {
-                    Directory appDocDir =
-                        await getApplicationDocumentsDirectory();
-                    final targetPath = appDocDir.path;
-                    var targetFileName = widget.id;
-
-                    await HtmlToPdf.convertFromHtmlContent(
-                      htmlContent: value.feeViewRes,
-                      configuration: PdfConfiguration(
-                        targetDirectory: targetPath,
-                        targetName: targetFileName,
-                        printSize: PrintSize.A4,
-                        printOrientation: PrintOrientation.Landscape,
-                        linksClickable: true,
-                      ),
-                    ).then(
-                      (value) => SharePlus.instance.share(
-                        ShareParams(
-                          files: [XFile(value.path)],
-                          subject: 'PDF',
-                          text: 'PDF',
-                        ),
+                final html = value.feeViewRes;
+                return Builder(
+                  builder: (buttonContext) {
+                    return InkWell(
+                      onTap: html is String && html.isNotEmpty && !_isSharing
+                          ? () => _downloadReceipt(buttonContext, html)
+                          : null,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 18.0),
+                        child: _isSharing
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                            : const Text(
+                                "Download",
+                                style: TextStyle(color: Colors.white),
+                              ),
                       ),
                     );
                   },

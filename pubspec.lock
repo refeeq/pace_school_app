@@ -699,10 +699,9 @@ packages:
   html_to_pdf_plus:
     dependency: "direct main"
     description:
-      name: html_to_pdf_plus
-      sha256: d71185bbf11a3f0893d248a572cd0c677459d80f25caa72edb81c692dedd0ac5
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/html_to_pdf_plus"
+      relative: true
+    source: path
     version: "1.0.7"
   http:
     dependency: transitive
